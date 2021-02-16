@@ -4,6 +4,26 @@
 
 A Bayesian Optimisation package for ROS. 
 
+## ToDo List
+
+Immediate:
+- [ ] [CI] Set up pipeline in circle CI using docker
+- [ ] [BO] Create BO object from settings file
+- [ ] [BO] Actually implement some BO functionality (UCB first)
+- [ ] [CI] Set up some basic unit tests
+- [ ] [CI] Set up some basic integration tests
+- [ ] [CRS] Figure out how to integrate this with the CRS (or other code bases)
+
+Long-/midterm:
+- [ ] [OS] Make this repository public on Github
+- [ ] [OS] Make this repository be listed on ROS Index
+- [ ] [OS] Using type hinting throughout the project
+- [ ] [OS] Proper documentation of all functionality
+- [ ] [OS] Write a proper README with instructions, etc. 
+- [ ] [BO] Implement contextual BO
+- [ ] [BO] Integrate CRBO
+
+
 ## Instructions
 
 In order to get the BayesOpt service and a test client running, follow the steps below.
