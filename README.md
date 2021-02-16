@@ -1,5 +1,7 @@
 # BayesOpt4ROS
 
+[![CircleCI](https://circleci.com/gh/lukasfro/bayesopt4ros.svg?style=shield&circle-token=455400e23bd646c26570706fcdae8b01c3d3611f)]([<>](https://app.circleci.com/pipelines/github/lukasfro/bayesopt4ros))
+
 A Bayesian Optimisation package for ROS. 
 
 ## Instructions
