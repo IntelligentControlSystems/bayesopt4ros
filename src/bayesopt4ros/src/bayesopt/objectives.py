@@ -8,4 +8,4 @@ def quadratic(x, dim):
         x = np.array(x).squeeze()
     assert x.shape[0] == dim
 
-    return np.sum(x ** 2)
+    return -1 * np.sum(x ** 2)

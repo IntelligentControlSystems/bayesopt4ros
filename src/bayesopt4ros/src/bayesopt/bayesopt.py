@@ -2,21 +2,28 @@ from typing import List, Union
 import numpy as np
 import rospy
 import yaml
+import sobol_seq
+
+from scipy.optimize import minimize, Bounds
 
 from GPy.models import GPRegression
+
+from bayesopt.acq_func import UpperConfidenceBound
 
 
 class BayesianOptimization(object):
     """! The Bayesian optimization class.
 
     Implements the actual heavy lifting that is done behind the BayesOpt service.
+
+    Note: We assume that the objective function is to be maximized!
     """
 
     def __init__(
         self,
         input_dim: int,
         max_iter: int,
-        bounds: np.ndarray,
+        bounds: Bounds,
         acq_func: str,
         n_init: int,
     ) -> None:
@@ -32,13 +39,12 @@ class BayesianOptimization(object):
         self.max_iter = max_iter
         self.bounds = bounds
         self.acq_func = acq_func
-        self.gp = None  # GP is initialized in self.next()
-        self.x, self.y = None, None
+        self.gp = None  # GP is initialized in self._update_model()
         self.n_init = n_init
         self.x_init = self._initial_design(n_init)
         self.x_new = None
 
-        assert bounds.shape == (2, self.input_dim)
+        assert bounds.lb.shape[0] == bounds.ub.shape[0] == self.input_dim
 
     @classmethod
     def from_file(cls, settings_file: str):
@@ -61,7 +67,7 @@ class BayesianOptimization(object):
         # Bring bounds in correct format (2 x input_dim)
         lb = np.array(settings["lower_bound"])
         ub = np.array(settings["upper_bound"])
-        bounds = np.stack((lb, ub))
+        bounds = Bounds(lb=lb, ub=ub)
 
         # Construct class instance based on the settings
         return cls(
@@ -75,30 +81,32 @@ class BayesianOptimization(object):
     def next(self, y_new: float) -> np.ndarray:
         """! Compute new parameters to perform an experiment with.
 
+        The functionality of this method can generally be split into three parts:
+
+        1) Update the model with the new data.
+        2) Retrieve a new point as response of the service.
+        3) Save current state to file.
+
         @param y_new    The function value obtained from the last experiment.
 
         @return The new parameters as an array.
         """
-        # 1) Update GP model with new data (self.x_new from previous call, y_new)
-        # 2) Fit GP model
-        # 3) Optimize acquisition function
-        # 4) Store data
+        # 1) Update the model with the new data
         if self.x_new is not None:
             self._update_model(self.x_new, y_new)
 
+        # 2) Retrieve a new point as response of the service
         if self.x_new is None:
             # Haven't seen any data yet
             self.x_new = self.x_init[0]
-            rospy.loginfo("First data point was selected")
         elif self.n_data < self.n_init:
             # Stil in the initial phase
             self.x_new = self.x_init[self.n_data]
-            rospy.loginfo("Data point from initial data was selected")
         else:
             # Actually optimizing the acquisition function for new points
-            self.x_new = np.random.rand(self.input_dim)
-            rospy.loginfo("Data point was selected from acq func")
+            self.x_new = self._optimize_acq()
 
+        # 3) Save current state to file
         # TODO(lukasfro): Store current model to file.
 
         return self.x_new
@@ -129,6 +137,26 @@ class BayesianOptimization(object):
             # TODO(lukasfro): Choose proper kernel with hyperparameters
             self.gp = GPRegression(X=x_new, Y=y_new)
         self.gp.optimize_restarts(num_restarts=10, verbose=False)
+
+    def _optimize_acq(self) -> np.ndarray:
+        """! Optimizes the acquisition function.
+
+        @return Location of the acquisition function's optimum.
+        """
+        x0 = np.random.uniform(
+            low=self.bounds.lb, high=self.bounds.ub, size=(1, self.input_dim)
+        )
+
+        acq_func = UpperConfidenceBound(gp=self.gp, beta=2.0)
+
+        def fun(x):
+            x = np.atleast_2d(x)
+            return -1 * acq_func(x).squeeze()
+
+        res = minimize(fun=fun, x0=x0, bounds=self.bounds)
+        rospy.logdebug(res)
+
+        return res["x"]
 
     def _initial_design(self, n_init: int) -> np.ndarray:
         """! Create initial data points from a Sobol sequence.
