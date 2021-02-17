@@ -22,12 +22,12 @@ class TestClient(object):
 
     def run(self):
         x_new = self.request(0.0)  # First value is just to trigger the service
-        for iter in range(11):
+        for iter in range(16):
             rospy.loginfo(f"[Client] Iteration {iter + 1}")
             if x_new is not None:
                 p_string = ", ".join([f"{xi:.3f}" for xi in x_new])
                 rospy.loginfo(f"[Client] x_new = [{p_string}]")
-                y_new = quadratic(x_new, dim=3)
+                y_new = quadratic(x_new, dim=2)
                 rospy.loginfo(f"[Client] y_new = {y_new:.2f}")
             else:
                 rospy.logwarn("[Client] Invalid response. Shutting down!")

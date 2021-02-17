@@ -1,8 +1,10 @@
+import json
 from typing import List, Union
 import numpy as np
 import rospy
 import yaml
 import sobol_seq
+import os, shutil
 
 from scipy.optimize import minimize, Bounds
 
@@ -25,16 +27,22 @@ class BayesianOptimization(object):
         input_dim: int,
         max_iter: int,
         bounds: Bounds,
-        acq_func: str,
-        n_init: int,
+        acq_func: str = "UCB",
+        n_init: int = 5,
+        log_dir: str = None,
     ) -> None:
         """! The BayesianOptimization class initializer.
+
+        Note on logging: if a `log_dir` is specified, two different files will
+        be created: 1) evaluations file, 2) model file. These store all and the
+        best input-output pairs as well as the final GP model, respectively.
 
         @param input_dim    Number of input dimensions for the parameters.
         @param max_iter     Maximum number of iterations.
         @param bounds       Bounds specifying the optimization domain.
         @param acq_func     Acquisition function (UCB or EI).
         @param n_init       Number of point for initial design, i.e. Sobol.
+        @param log_dir      Directory to which the log files are stored.
         """
         self.input_dim = input_dim
         self.max_iter = max_iter
@@ -44,6 +52,22 @@ class BayesianOptimization(object):
         self.n_init = n_init
         self.x_init = self._initial_design(n_init)
         self.x_new = None
+
+        self.log_dir = log_dir
+        if self.log_dir is not None:
+            if not os.path.exists(self.log_dir):
+                os.mkdir(self.log_dir)
+                rospy.loginfo(f"Created logging directory: {self.log_dir}")
+            else:
+                # TODO(lukasfro): if non-empty log_dir exists, assume that we want to continue the optimization
+                rospy.logwarn(f"Logging directory already exists: {self.log_dir}")
+                shutil.rmtree(self.log_dir)
+                os.mkdir(self.log_dir)
+            self.evaluations_file = os.path.join(self.log_dir, "evaluations.json")
+            self.model_file = os.path.join(self.log_dir, "model.json")
+        else:
+            # Don't log anything if no directory is specified
+            self.evaluations_file, self.model_file = None, None
 
         assert bounds.lb.shape[0] == bounds.ub.shape[0] == self.input_dim
 
@@ -77,6 +101,7 @@ class BayesianOptimization(object):
             bounds=bounds,
             acq_func=settings["acq_func"],
             n_init=settings["n_init"],
+            log_dir=settings["log_dir"],
         )
 
     def next(self, y_new: float) -> np.ndarray:
@@ -120,6 +145,22 @@ class BayesianOptimization(object):
         """
         return self.gp.X.shape[0]
 
+    @property
+    def y_best(self) -> float:
+        """! Get the best function value observed so far.
+
+        @return The best function value.
+        """
+        return np.max(self.gp.Y)
+
+    @property
+    def x_best(self) -> np.ndarray:
+        """! Get parameters for best function value so far.
+
+        @return The parameters for the best function value.
+        """
+        return self.gp.X[np.argmax(self.gp.Y)]
+
     def _update_model(self, x_new: np.ndarray, y_new: Union[float, np.ndarray]) -> None:
         """! Updates the GP with new data. Creates a model if none exists yet.
 
@@ -149,14 +190,14 @@ class BayesianOptimization(object):
         else:
             raise NotImplementedError("Only UCB is currently implemented.")
 
-        # Takes care of dimensionality mismatch between GPy and scipy.minimize
-        # Recall that acquisition functions are to be maximized but scipy minimizes
-        def fun(x):
+        def acq_fun_wrapper(x):
+            # Takes care of dimensionality mismatch between GPy and scipy.minimize
+            # Recall that acquisition functions are to be maximized but scipy minimizes
             x = np.atleast_2d(x)
             return -1 * acq_func(x).squeeze()
 
         # TODO(lukasfro): Possibly expose the `n0` parameter
-        xopt = minimize_restarts(fun=fun, n0=10, bounds=self.bounds)
+        xopt = minimize_restarts(fun=acq_fun_wrapper, n0=10, bounds=self.bounds)
 
         return xopt
 
@@ -171,3 +212,36 @@ class BayesianOptimization(object):
         # NOTE(lukasfro): Sobol-seq is deprecated as of very recently. The currention development
         # version of Scipy 1.7 has a new subpackage 'QuasiMonteCarlo' which implements Sobol.
         return sobol_seq.i4_sobol_generate(self.input_dim, n_init)
+
+    def _log_results(self) -> None:
+        """! Log evaluations and GP model to file.
+
+        We do this at each iteration and overwrite the existing file in case something
+        goes wrong with either the optimization itself or on the client side. We do
+        not want to loose any valuable experimental data.
+        """
+        if self.log_dir is not None:
+            # Saving GP model to file
+            self.gp._save_model(self.model_file, compress=False)
+
+            # Compute best input/output pair at each iteration so far
+            # TODO(lukasfro): make this better, so ugly... maybe keep x_best/y_best class properties up to date
+            x_best, y_best = [self.gp.X[0]], [self.gp.Y[0]]
+            for i in range(1, self.n_data):
+                if self.gp.Y[i] > y_best[-1]:
+                    y_best.append(self.gp.Y[i])
+                    x_best.append(self.gp.X[i])
+                else:
+                    y_best.append(y_best[-1])
+                    x_best.append(x_best[-1])
+            x_best = np.asarray(x_best)
+            y_best = np.asarray(y_best)
+
+            # Store all and optimal evaluation inputs/outputs to file
+            eval_dict = {
+                "x_eval": self.gp.X.tolist(),
+                "y_eval": self.gp.Y.tolist(),
+                "x_best": x_best.tolist(),
+                "y_best": y_best.tolist(),
+            }
+            json.dump(eval_dict, open(self.evaluations_file, "w"), indent=2)
