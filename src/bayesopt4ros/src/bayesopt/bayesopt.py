@@ -137,5 +137,7 @@ class BayesianOptimization(object):
 
         @return Array containing the initial points.
         """
-        rospy.logwarn("Initial design is still random, no Sobol yet.")
-        return np.random.rand(n_init, self.input_dim)
+        # TODO(lukasfro): Switch from sobol_seq to Scipy.stats.qmc.Sobol when SciPy 1.7 is out
+        # NOTE(lukasfro): Sobol-seq is deprecated as of very recently. The currention development
+        # version of Scipy 1.7 has a new subpackage 'QuasiMonteCarlo' which implements Sobol.
+        return sobol_seq.i4_sobol_generate(self.input_dim, n_init)
