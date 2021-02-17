@@ -4,7 +4,7 @@ import rospy
 
 def service_argparser():
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument(
         "-f",
         "--settings_file",
@@ -13,13 +13,17 @@ def service_argparser():
     )
 
     parser.add_argument(
-        "-v",
         "--log_level",
         help="Specify the verbosity of terminal output",
         type=int,
         choices=[rospy.DEBUG, rospy.INFO, rospy.WARN],
         default=rospy.INFO,
     )
-    
+
+    parser.add_argument(
+        "--silent",
+        help="Prevents printing status/updates for the service.",
+        action="store_true",
+    )
 
     return parser

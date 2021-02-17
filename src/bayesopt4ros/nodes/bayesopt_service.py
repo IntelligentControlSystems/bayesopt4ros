@@ -19,17 +19,17 @@ class BayesOptService(object):
         log_file=None,
         anonymous=True,
         log_level=rospy.INFO,
+        silent=False,
     ):
         rospy.init_node(
             self.__class__.__name__, anonymous=anonymous, log_level=log_level
         )
         self.srv = rospy.Service(service_name, BayesOptSrv, self.handler)
         self.request_count = 0
-        # Non-existing file -> create new one
-        # Existing file -> check if results are consistent (dim, etc.) and start from there
-        self.log_file = log_file  # store all results to this file
+        self.log_file = log_file
         self.settings_file = settings_file
         self.bo = BayesianOptimization.from_file(settings_file)
+        self.silent = silent
 
         rospy.loginfo(self._log_prefix + "Ready to receive requests")
 
@@ -47,31 +47,32 @@ class BayesOptService(object):
 
     @count_requests
     def handler(self, req):
-        if self.max_iter and self.request_count > self.max_iter:
-            rospy.logwarn(
-                "[BayesOpt]: Maximum number of iterations reached. Shutting down!"
-            )
-            rospy.signal_shutdown(
-                "Maximum number of iterations reached. Shutting down BayesOpt."
-            )
-        if self.request_count == 1 and self.verbose:
-            rospy.loginfo(
-                self._log_prefix
-                + f"First request, discarding function value: {req.value}"
-            )
-
-        if self.verbose:
-            rospy.loginfo(self._log_prefix + "Updating GP model...")
-        sleep(0.2)
-
-        if self.verbose:
+        if self.bo.max_iter and self.request_count > self.bo.max_iter:
+            rospy.logwarn("[BayesOpt] Max iter reached. Shutting down!")
+            rospy.signal_shutdown("Maximum number of iterations reached")
+        if not self.silent:
+            if self.request_count == 1:
+                rospy.loginfo(
+                    self._log_prefix
+                    + f"First request, discarding function value: {req.value}"
+                )
+            else:
+                rospy.loginfo(
+                    self._log_prefix + f"Value from previous iteration: {req.value:.3f}"
+                )
             rospy.loginfo(self._log_prefix + "Computing next point...")
         sleep(0.8)
-        next = list(np.random.rand(self.input_dim))
-        if self.verbose:
-            p_string = ", ".join([f"{xi:.3f}" for xi in next])
-            rospy.loginfo(self._log_prefix + f"Next: [{p_string}]")
-        return BayesOptSrvResponse(next)
+
+        x_new = self.bo.next(req.value)
+        x_new = list(x_new)  # ROS service is specified as a list
+
+        if not self.silent:
+            p_string = ", ".join([f"{xi:.3f}" for xi in x_new])
+            rospy.loginfo(self._log_prefix + f"x_new: [{p_string}]")
+            if self.request_count < self.bo.max_iter:
+                rospy.loginfo("[BayesOpt]: Waiting for new request...")
+
+        return BayesOptSrvResponse(x_new)
 
     @staticmethod
     def run():
@@ -85,6 +86,7 @@ if __name__ == "__main__":
         node = BayesOptService(
             settings_file=args.settings_file,
             log_level=args.log_level,
+            silent=args.silent,
         )
         node.run()
     except rospy.ROSInterruptException:
