@@ -9,6 +9,7 @@ from scipy.optimize import minimize, Bounds
 from GPy.models import GPRegression
 
 from bayesopt.acq_func import UpperConfidenceBound
+from bayesopt.optim import minimize_restarts
 
 
 class BayesianOptimization(object):
@@ -143,20 +144,21 @@ class BayesianOptimization(object):
 
         @return Location of the acquisition function's optimum.
         """
-        x0 = np.random.uniform(
-            low=self.bounds.lb, high=self.bounds.ub, size=(1, self.input_dim)
-        )
+        if self.acq_func.upper() == "UCB":
+            acq_func = UpperConfidenceBound(gp=self.gp, beta=2.0)
+        else:
+            raise NotImplementedError("Only UCB is currently implemented.")
 
-        acq_func = UpperConfidenceBound(gp=self.gp, beta=2.0)
-
+        # Takes care of dimensionality mismatch between GPy and scipy.minimize
+        # Recall that acquisition functions are to be maximized but scipy minimizes
         def fun(x):
             x = np.atleast_2d(x)
             return -1 * acq_func(x).squeeze()
 
-        res = minimize(fun=fun, x0=x0, bounds=self.bounds)
-        rospy.logdebug(res)
+        # TODO(lukasfro): Possibly expose the `n0` parameter
+        xopt = minimize_restarts(fun=fun, n0=10, bounds=self.bounds)
 
-        return res["x"]
+        return xopt
 
     def _initial_design(self, n_init: int) -> np.ndarray:
         """! Create initial data points from a Sobol sequence.

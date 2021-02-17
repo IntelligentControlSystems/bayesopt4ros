@@ -7,14 +7,15 @@ A Bayesian Optimisation package for ROS.
 ## ToDo List
 
 Immediate:
-- [ ] [CI] Set up pipeline in circle CI using docker
-- [ ] [BO] Create BO object from settings file
-- [ ] [BO] Actually implement some BO functionality (UCB first)
+- [x] [BO] Create BO object from settings file
+- [x] [BO] Actually implement some BO functionality (UCB first)
 - [ ] [CI] Set up some basic unit tests
 - [ ] [CI] Set up some basic integration tests
 - [ ] [CRS] Figure out how to integrate this with the CRS (or other code bases)
+- [ ] [BO] Add some basic functionality for plotting the results
 
 Long-/midterm:
+- [ ] [CI] Set up pipeline in circle CI using docker
 - [ ] [OS] Make this repository public on Github
 - [ ] [OS] Make this repository be listed on ROS Index
 - [ ] [OS] Using type hinting throughout the project
