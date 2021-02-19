@@ -136,3 +136,5 @@ devel_isolated/
 # VSCode
 .vscode
 
+# Default logging location
+logs/
