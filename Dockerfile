@@ -1,4 +1,5 @@
-FROM arm64v8/ros:noetic
+FROM osrf/ros:noetic-desktop-full
+# FROM arm64v8/ros:noetic   # choose this image if you are working on a MacBook M1
 
 WORKDIR /root/ws/
 COPY . .
