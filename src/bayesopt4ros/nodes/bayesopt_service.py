@@ -22,7 +22,7 @@ class BayesOptService(object):
         anonymous: bool = True,
         log_level: int = rospy.INFO,
         silent: bool = False,
-    ):
+    ) -> None:
         """! The BayesOptService class initializer.
 
         @param config_file      File that describes all settings for Bayesian optimization.
@@ -55,17 +55,11 @@ class BayesOptService(object):
         def wrapper(self, *args, **kwargs):
             self.request_count += 1
             ret_val = func(self, *args, **kwargs)
-            # Handle logging and shutting down the node after max_iter requests
-            # We want this to happen after the function call such that the GP
-            # is still updated with the most recent function value obtained by the
-            # client.
-            if self.bo.max_iter and self.request_count > self.bo.max_iter:
-                rospy.logwarn("[BayesOpt] Max iter reached. Shutting down!")
-                rospy.signal_shutdown("Maximum number of iterations reached")
             return ret_val
 
         return wrapper
 
+    @property
     def _log_prefix(self) -> str:
         """! Convenience property that pre-fixes the logging strings. """
         return f"[BayesOpt] Iteration {self.request_count}: "
@@ -78,6 +72,12 @@ class BayesOptService(object):
 
         @returns The corresponding response to the request. Definition is in /srv/BayesOptSrv.srv
         """
+        if self.bo.max_iter and self.request_count > self.bo.max_iter:
+            # Updates model with last function and logs the final GP model
+            rospy.logwarn("[BayesOpt] Max iter reached. Shutting down!")
+            self.bo.update_last_y(req.value)
+            rospy.signal_shutdown("Maximum number of iterations reached")
+
         if not self.silent:
             if self.request_count == 1:
                 rospy.loginfo(

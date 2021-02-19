@@ -113,7 +113,7 @@ class BayesianOptimization(object):
         2) Retrieve a new point as response of the service.
         3) Save current state to file.
 
-        @param y_new    The function value obtained from the last experiment.
+        @param y_new    The function value obtained from the most recent experiment.
 
         @return The new parameters as an array.
         """
@@ -136,6 +136,16 @@ class BayesianOptimization(object):
         # TODO(lukasfro): Store current model to file.
 
         return self.x_new
+
+    def update_last_y(self, y_last: float) -> None:
+        """! Updates the GP model with the last function value obtained.
+
+        Note: this function is only called once from the service, right before shutting
+        down the node. However, we will want to update the GP model with the latest data.
+
+        @param y_last   The function value obtained from the last experiment.
+        """
+        self._update_model(self.x_new, y_last)
 
     @property
     def n_data(self) -> int:
@@ -179,6 +189,7 @@ class BayesianOptimization(object):
             # TODO(lukasfro): Choose proper kernel with hyperparameters
             self.gp = GPRegression(X=x_new, Y=y_new)
         self.gp.optimize_restarts(num_restarts=10, verbose=False)
+        self._log_results()
 
     def _optimize_acq(self) -> np.ndarray:
         """! Optimizes the acquisition function.
