@@ -111,7 +111,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 5))
-    fig.suptitle(f"BayesOpt4ROS \n Logging directory: {os.path.abspath(args.log_dir)}")
+    fig.suptitle(f"BayesOpt4ROS \n Logging directory: {args.log_dir}")
     show_convergence(args.log_dir, axes[0])
     show_model(args.log_dir, axes[1])
     plt.tight_layout()
