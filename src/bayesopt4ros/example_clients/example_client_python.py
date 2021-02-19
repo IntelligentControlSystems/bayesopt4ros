@@ -15,6 +15,8 @@ def forrester_function(x: Union[np.ndarray, float]) -> np.ndarray:
 
     See definition here: https://www.sfu.ca/~ssurjano/forretal08.html
 
+    Note: We multiply by -1 to maximize the function instead of minimizing.
+
     @param x    Input to the function.
 
     @return Function value at given inputs.
@@ -52,23 +54,27 @@ class TestClient(object):
             response = bayesopt_request(value)
             return response.next
         except rospy.ServiceException as e:
-            print(f"Service call failed: {e}")
+            rospy.logwarn("[Client] Invalid response. Shutting down!")
+            rospy.signal_shutdown("Invalid response from BayesOptService.")
 
     def run(self) -> None:
         """! Method that starts emulates client behavior."""
-        x_new = self.request(0.0)  # First value is just to trigger the service
+        # First value is just to trigger the service
+        x_new = self.request(0.0)
+
+        # Start querying the BayesOpt service until it reached max iterations
         for iter in itertools.count():
             rospy.loginfo(f"[Client] Iteration {iter + 1}")
             p_string = ", ".join([f"{xi:.3f}" for xi in x_new])
             rospy.loginfo(f"[Client] x_new = [{p_string}]")
+
+            # Emulate experiment by querying the objective function
             y_new = self.func(x_new)
             rospy.loginfo(f"[Client] y_new = {y_new:.2f}")
 
+            # Request service and obtain new parameters
             x_new = self.request(y_new)
-            # NOTE(lukasfro): catching rospy.ServiceException does not seem to work here.
             if x_new is None:
-                rospy.logwarn("[Client] Invalid response. Shutting down!")
-                rospy.signal_shutdown("Invalid response from BayesOptService.")
                 break
 
 
