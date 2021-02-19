@@ -30,6 +30,7 @@ class BayesianOptimization(object):
         acq_func: str = "UCB",
         n_init: int = 5,
         log_dir: str = None,
+        config: dict = None,
     ) -> None:
         """! The BayesianOptimization class initializer.
 
@@ -43,6 +44,7 @@ class BayesianOptimization(object):
         @param acq_func     Acquisition function (UCB or EI).
         @param n_init       Number of point for initial design, i.e. Sobol.
         @param log_dir      Directory to which the log files are stored.
+        @param config       The configuration dictionary for the experiment.
         """
         self.input_dim = input_dim
         self.max_iter = max_iter
@@ -52,6 +54,7 @@ class BayesianOptimization(object):
         self.n_init = n_init
         self.x_init = self._initial_design(n_init)
         self.x_new = None
+        self.config = config
 
         self.log_dir = log_dir
         if self.log_dir is not None:
@@ -63,8 +66,9 @@ class BayesianOptimization(object):
                 rospy.logwarn(f"Logging directory already exists: {self.log_dir}")
                 shutil.rmtree(self.log_dir)
                 os.mkdir(self.log_dir)
-            self.evaluations_file = os.path.join(self.log_dir, "evaluations.json")
-            self.model_file = os.path.join(self.log_dir, "model.json")
+            self.evaluations_file = os.path.join(self.log_dir, "evaluations.yaml")
+            self.model_file = os.path.join(self.log_dir, "model")
+            self.config_file = os.path.join(self.log_dir, "config.yaml")
         else:
             # Don't log anything if no directory is specified
             self.evaluations_file, self.model_file = None, None
@@ -83,7 +87,8 @@ class BayesianOptimization(object):
         try:
             with open(config_file, "r") as f:
                 config = yaml.load(f, Loader=yaml.FullLoader)
-        except FileNotFoundError as e:
+
+        except FileNotFoundError:
             rospy.logerr(
                 f"The config file ({config_file}) you specified does not exist."
             )
@@ -102,6 +107,7 @@ class BayesianOptimization(object):
             acq_func=config["acq_func"],
             n_init=config["n_init"],
             log_dir=config["log_dir"],
+            config=config,
         )
 
     def next(self, y_new: float) -> np.ndarray:
@@ -231,9 +237,12 @@ class BayesianOptimization(object):
         goes wrong with either the optimization itself or on the client side. We do
         not want to loose any valuable experimental data.
         """
-        if self.log_dir is not None:
+        if self.log_dir:
             # Saving GP model to file
             self.gp._save_model(self.model_file, compress=False)
+
+            # Save config to file
+            yaml.dump(self.config, open(self.config_file, "w"))
 
             # Compute best input/output pair at each iteration so far
             # TODO(lukasfro): make this better, so ugly... maybe keep x_best/y_best class properties up to date
@@ -255,4 +264,4 @@ class BayesianOptimization(object):
                 "x_best": x_best.tolist(),
                 "y_best": y_best.tolist(),
             }
-            json.dump(eval_dict, open(self.evaluations_file, "w"), indent=2)
+            yaml.dump(eval_dict, open(self.evaluations_file, "w"), indent=2)
