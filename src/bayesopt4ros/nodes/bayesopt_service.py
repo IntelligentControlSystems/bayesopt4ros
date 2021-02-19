@@ -27,8 +27,8 @@ class BayesOptService(object):
         self.srv = rospy.Service(service_name, BayesOptSrv, self.handler)
         self.request_count = 0
         self.log_file = log_file
-        self.settings_file = settings_file
-        self.bo = BayesianOptimization.from_file(settings_file)
+        self.config_file = config_file
+        self.bo = BayesianOptimization.from_file(config_file)
         self.silent = silent
 
         rospy.loginfo(self._log_prefix + "Ready to receive requests")
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     try:
         node = BayesOptService(
-            settings_file=args.settings_file,
+            config_file=args.config_file,
             log_level=args.log_level,
             silent=args.silent,
         )

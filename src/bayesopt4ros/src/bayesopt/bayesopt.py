@@ -72,20 +72,20 @@ class BayesianOptimization(object):
         assert bounds.lb.shape[0] == bounds.ub.shape[0] == self.input_dim
 
     @classmethod
-    def from_file(cls, settings_file: str):
+    def from_file(cls, config_file: str):
         """! Initialize a BayesianOptimization instance from a settings file.
 
-        @param settings_file    The settings file (full path, relative or absolute).
+        @param config_file    The settings file (full path, relative or absolute).
 
         @return An instance of the BayesianOptimization class.
         """
         # Read settings from file
         try:
-            with open(settings_file, "r") as f:
+            with open(config_file, "r") as f:
                 settings = yaml.load(f, Loader=yaml.FullLoader)
         except FileNotFoundError as e:
             rospy.logerr(
-                f"The settings file ({settings_file}) you specified does not exist."
+                f"The settings file ({config_file}) you specified does not exist."
             )
             exit(1)
 
