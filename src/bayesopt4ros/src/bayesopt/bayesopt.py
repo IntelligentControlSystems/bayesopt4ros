@@ -1,14 +1,14 @@
 import json
-from typing import List, Union
 import numpy as np
+import os
 import rospy
-import yaml
+import shutil
 import sobol_seq
-import os, shutil
-
-from scipy.optimize import minimize, Bounds
+import yaml
 
 from GPy.models import GPRegression
+from scipy.optimize import Bounds
+from typing import Union
 
 from bayesopt.acq_func import UpperConfidenceBound
 from bayesopt.optim import minimize_restarts
@@ -73,35 +73,35 @@ class BayesianOptimization(object):
 
     @classmethod
     def from_file(cls, config_file: str):
-        """! Initialize a BayesianOptimization instance from a settings file.
+        """! Initialize a BayesianOptimization instance from a config file.
 
-        @param config_file    The settings file (full path, relative or absolute).
+        @param config_file    The config file (full path, relative or absolute).
 
         @return An instance of the BayesianOptimization class.
         """
-        # Read settings from file
+        # Read config from file
         try:
             with open(config_file, "r") as f:
-                settings = yaml.load(f, Loader=yaml.FullLoader)
+                config = yaml.load(f, Loader=yaml.FullLoader)
         except FileNotFoundError as e:
             rospy.logerr(
-                f"The settings file ({config_file}) you specified does not exist."
+                f"The config file ({config_file}) you specified does not exist."
             )
             exit(1)
 
         # Bring bounds in correct format (2 x input_dim)
-        lb = np.array(settings["lower_bound"])
-        ub = np.array(settings["upper_bound"])
+        lb = np.array(config["lower_bound"])
+        ub = np.array(config["upper_bound"])
         bounds = Bounds(lb=lb, ub=ub)
 
-        # Construct class instance based on the settings
+        # Construct class instance based on the config
         return cls(
-            input_dim=settings["input_dim"],
-            max_iter=settings["max_iter"],
+            input_dim=config["input_dim"],
+            max_iter=config["max_iter"],
             bounds=bounds,
-            acq_func=settings["acq_func"],
-            n_init=settings["n_init"],
-            log_dir=settings["log_dir"],
+            acq_func=config["acq_func"],
+            n_init=config["n_init"],
+            log_dir=config["log_dir"],
         )
 
     def next(self, y_new: float) -> np.ndarray:
