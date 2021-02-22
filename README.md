@@ -31,6 +31,17 @@ If you do not have [Docker](https://www.docker.com/get-started) installed, now w
 
 **Note: If you are working on a MacBook M1 with ARM chip, you need to adapt the Dockerfile to pull the right ROS image. Just have a look [here](Dockerfile) and uncomment the second line.**
 
+### Before you start
+
+**Python and ROS:**
+The following steps are only required if you are not using the provided Docker image or if you want to integrate BayesOpt4ROS into your own workspace.
+Unfortunately, there is no easy way of automating the following steps.
+
+- BayesOpt4ROS uses features from Python3. 
+  If you do not have Python3 installed, please do so now.
+- Additionally, we require some 3rd party packages (although we try to keep the dependencies to other packages as small as possible).
+  All required packages are specified [here](requirements.txt) and can easily be installed via `python3 -m pip install -r requirements.txt`
+
 ### Setup & build
 
 Ok, let's get started by building the images for the first time and runnig the container:
