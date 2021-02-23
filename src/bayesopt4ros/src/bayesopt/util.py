@@ -14,6 +14,7 @@ def service_argparser():
         "--config_file",
         help="File containing the configuration for the Bayesian Optimization service",
         type=str,
+        required=True,
     )
 
     parser.add_argument(

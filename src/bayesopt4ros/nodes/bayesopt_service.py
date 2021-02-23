@@ -112,7 +112,7 @@ class BayesOptService(object):
 
 if __name__ == "__main__":
     parser = util.service_argparser()
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
     try:
         node = BayesOptService(
             config_file=args.config_file,

@@ -81,12 +81,13 @@ class TestClient(object):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-o",
         "--objective",
         help="Name of the objective function",
         type=str,
         choices=["Forrester"],
     )
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
     try:
         node = TestClient(service_name="BayesOpt", objective=args.objective)
         node.run()
