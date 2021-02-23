@@ -10,21 +10,6 @@ on:
     branches: [ main ]
 
 jobs:
-
-#   ros:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - uses: actions/checkout@v2
-#     - uses: ros-tooling/setup-ros@v0.1
-#       with:
-#         required-ros-distributions: noetic
-#     - uses: ros-tooling/action-ros-ci@v0.1
-#       with:
-#         package-name: bayesopt4ros
-#         import-token: ${{ secrets.REPO_TOKEN }}
-#         target-ros1-distro: noetic
-#         vcs-repo-file-url: ""
-
   build:
 
     runs-on: ubuntu-latest
@@ -37,11 +22,6 @@ jobs:
       with:
         required-ros-distributions: noetic
 
-#     - name: Set up Python 3.8
-#       uses: actions/setup-python@v2
-#       with:
-#         python-version: 3.8
-
     - name: Install dependencise
       run: |
       
@@ -53,14 +33,13 @@ jobs:
         python3 -m pip install --upgrade pip
         python3 -m pip install flake8 pytest
         if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
-        # python3 -m pip install em
         sudo apt-get install python3-empy
 
     - name: ROS CI
       run: |
         . /opt/ros/noetic/setup.sh
         catkin_make_isolated
-        source devel_isolate/setup.sh
+        . devel_isolate/setup.sh
         
     - name: Lint with flake8
       run: |
