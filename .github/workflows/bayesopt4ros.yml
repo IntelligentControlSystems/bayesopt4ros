@@ -11,24 +11,25 @@ on:
 
 jobs:
 
-  ros:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ros-tooling/setup-ros@v0.1
-      with:
-        required-ros-distributions: noetic
-    - uses: ros-tooling/action-ros-ci@v0.1
-      with:
-        package-name: bayesopt4ros
-        import-token: ${{ secrets.REPO_TOKEN }}
-        target-ros1-distro: noetic
-        vcs-repo-file-url: ""
+#   ros:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v2
+#     - uses: ros-tooling/setup-ros@v0.1
+#       with:
+#         required-ros-distributions: noetic
+#     - uses: ros-tooling/action-ros-ci@v0.1
+#       with:
+#         package-name: bayesopt4ros
+#         import-token: ${{ secrets.REPO_TOKEN }}
+#         target-ros1-distro: noetic
+#         vcs-repo-file-url: ""
 
   build:
 
     runs-on: ubuntu-latest
-    
+    container: amd64/ros:noetic
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
