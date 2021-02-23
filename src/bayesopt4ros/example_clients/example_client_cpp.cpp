@@ -56,22 +56,10 @@ int main(int argc, char **argv)
     bayesopt4ros::BayesOptSrv srv;
 
     // First value is just to trigger the service
+    node.waitForExistence();
     srv.request.value = 0.0;
     bool success = node.call(srv);
     std::size_t try_count = 0;
-
-    // Try several times before giving up and shutting down
-    while (!success) {
-        ROS_WARN("[Client] No response from service.");
-        success = node.call(srv);
-        usleep(1000000);  // 1000000 mu sec = 1 second
-        try_count++;
-        if (try_count >= 5) {
-            ROS_WARN("[Client] Server is not responding after several tries. Exiting.");
-            ros::shutdown();
-            return 0;
-        }
-    } 
 
     // Reading the answer
     std::vector<double> x_new = srv.response.next;
