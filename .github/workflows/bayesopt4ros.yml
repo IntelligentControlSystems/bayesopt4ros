@@ -28,28 +28,34 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-#     container: ubuntu:focal
-    container: osrf/ros:noetic
+    container: ubuntu:focal
 
     steps:
     - uses: actions/checkout@v2
-#     - name: Set up ROS Noetic 
-#       uses: ros-tooling/setup-ros@v0.1
-#       with:
-#         required-ros-distributions: noetic
+    - name: Set up ROS Noetic 
+      uses: ros-tooling/setup-ros@v0.1
+      with:
+        required-ros-distributions: noetic
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+      
+    - name: ROS CI
+      uses: ros-tooling/action-ros-ci@v0.1
+      with:
+        package-name: bayesopt4ros
+        target-ros1-distro: noetic
+        vcs-repo-file-url: ""
         
     - name: Install dependencise
       run: |
         sudo apt-get update -y
         sudo apt-get install -y python3-pip
         python3 -m pip install --upgrade pip
-        pip3 install flake8 pytest
-        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+        python3 -m pip install flake8 pytest
+        if [ -f requirements.txt ]; then python3-m pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
