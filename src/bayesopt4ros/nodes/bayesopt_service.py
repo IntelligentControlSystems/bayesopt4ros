@@ -3,7 +3,7 @@
 from typing import Callable
 import rospy
 from bayesopt4ros.srv import BayesOptSrv, BayesOptSrvResponse
-from bayesopt import BayesianOptimization, util
+from bayesopt4ros import BayesianOptimization, util
 
 
 class BayesOptService(object):

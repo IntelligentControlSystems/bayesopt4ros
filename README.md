@@ -134,6 +134,13 @@ No matter what clienet you start, the output from the BayesOpt service should lo
 
 Note that the service node shuts down after `max_iter` requests (this can be changed in the configuration file. Choose `max_iter: 0` to let the service run indefinitely).
 
+### Using Roslaunch
+
+For ease of use, you can also start the service and client with a single command:
+```bash
+roslaunch bayesopt4ros bayesopt_service.launch
+```
+
 ### Visualizing the result
 
 If you specify a logging directory in the configuration file, the BayesOpt service will store the evaluated points, the current GP model as well as the configuration itself to the logging directory.
@@ -151,3 +158,18 @@ Which should pop up a window similar to this one:
 
 On the left, we see function values of all evaluated points (black dots) as well as the evolution of the best function value (red line) as a function the of iterations.
 On the right, the final GP model (blue) with all the training data (black dots), as well as the best point (yello star) are visualized.
+
+## Testing
+
+To facilitate easier contribution, we have a continuous integration pipeline set up using Github Actions.
+To run the tests locally you can use the following commands:
+
+### Unit tests
+```bash
+pytest src/bayesopt4ros/test/
+```
+
+### Integration tests
+```bash
+# TODO
+```

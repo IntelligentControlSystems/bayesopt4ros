@@ -10,8 +10,8 @@ from GPy.models import GPRegression
 from scipy.optimize import Bounds
 from typing import Union
 
-from bayesopt.acq_func import UpperConfidenceBound
-from bayesopt.optim import minimize_restarts
+from bayesopt4ros.acq_func import UpperConfidenceBound
+from bayesopt4ros.optim import minimize_restarts
 
 
 class BayesianOptimization(object):
@@ -214,7 +214,7 @@ class BayesianOptimization(object):
             return -1 * acq_func(x).squeeze()
 
         # TODO(lukasfro): Possibly expose the `n0` parameter
-        xopt = minimize_restarts(fun=acq_fun_wrapper, n0=10, bounds=self.bounds)
+        xopt = minimize_restarts(fun=acq_fun_wrapper, bounds=self.bounds, n0=10)
 
         return xopt
 

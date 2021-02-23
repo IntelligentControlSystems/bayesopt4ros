@@ -49,4 +49,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest test
+        pytest src/bayesopt4ros/test/
