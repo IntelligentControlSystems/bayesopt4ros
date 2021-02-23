@@ -32,10 +32,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Set up ROS Noetic 
+      uses: ros-tooling/setup-ros@v0.1
+      with:
+        required-ros-distributions: noetic
+
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+        
     - name: Install dependencise
       run: |
         sudo apt-get update -y
