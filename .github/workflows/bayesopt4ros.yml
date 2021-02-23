@@ -38,7 +38,6 @@ jobs:
       run: |
         . /opt/ros/noetic/setup.sh
         catkin_make_isolated
-        . devel_isolated/setup.sh
         
     - name: Lint with flake8
       run: |
@@ -49,4 +48,5 @@ jobs:
 
     - name: Test with pytest
       run: |
+        . devel_isolated/setup.sh
         pytest src/bayesopt4ros/test/
