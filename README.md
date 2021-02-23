@@ -1,6 +1,6 @@
 # BayesOpt4ROS
 
-[![CircleCI](https://circleci.com/gh/lukasfro/bayesopt4ros.svg?style=shield&circle-token=455400e23bd646c26570706fcdae8b01c3d3611f)]([<>](https://app.circleci.com/pipelines/github/lukasfro/bayesopt4ros))
+![workflow](https://github.com/lukasfro/bayesopt4ros/actions/workflows/bayesopt4ros.yml/badge.svg)
 
 A Bayesian Optimisation package for ROS developed by the [Intelligent Control Systems (ICS)](https://idsc.ethz.ch/research-zeilinger.html) group at ETH Zurich. 
 
@@ -14,7 +14,7 @@ As soon as we have a stable version, we will tag the corresponding commit.
 
 - [ ] [CI] Set up some basic unit tests
 - [ ] [CI] Set up some basic integration tests
-- [ ] [CI] Set up pipeline in circle CI using docker
+- [x] [CI] Set up basic GitHub actions
 - [ ] [BO] Implement expected improvement acqusition function
 - [ ] [BO] Implement max-value entropy search acquisition function
 - [ ] [BO] Scale input space to unit (hyper)cube
