@@ -39,7 +39,7 @@ jobs:
       run: |
         . /opt/ros/noetic/setup.sh
         catkin_make_isolated
-        . devel_isolate/setup.sh
+        . devel_isolated/setup.sh
         
     - name: Lint with flake8
       run: |
