@@ -44,6 +44,7 @@ jobs:
       
     - name: ROS CI
       run: |
+        bash
         . /opt/ros/noetic/setup.bash
         catkin_make_isolated
         source devel_isolate/setup.bash
