@@ -38,6 +38,7 @@ jobs:
         python-version: 3.8
     - name: Install dependencise
       run: |
+        sudo apt-get update -y
         sudo apt-get install -y python3-pip
         python3 -m pip install --upgrade pip
         pip3 install flake8 pytest
