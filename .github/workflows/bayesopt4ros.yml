@@ -43,12 +43,9 @@ jobs:
         python-version: 3.8
       
     - name: ROS CI
-      uses: ros-tooling/action-ros-ci@v0.1
-      with:
-        package-name: bayesopt4ros
-        import-token: ${{ secrets.REPO_TOKEN }}  
-        target-ros1-distro: noetic
-        vcs-repo-file-url: ""
+      run: |
+        catkin_make_isolated
+        source devel_isolate/setup.bash
         
     - name: Install dependencise
       run: |
