@@ -1,7 +1,6 @@
 #include "math.h"
 #include "ros/ros.h"
 
-#include "bayesopt4ros/AddTwoInts.h"
 #include "bayesopt4ros/BayesOptSrv.h"
 
 
