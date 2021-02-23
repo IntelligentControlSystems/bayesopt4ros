@@ -28,14 +28,15 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: ubuntu:focal
+#     container: ubuntu:focal
+    container: osrf/ros:noetic
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up ROS Noetic 
-      uses: ros-tooling/setup-ros@v0.1
-      with:
-        required-ros-distributions: noetic
+#     - name: Set up ROS Noetic 
+#       uses: ros-tooling/setup-ros@v0.1
+#       with:
+#         required-ros-distributions: noetic
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
