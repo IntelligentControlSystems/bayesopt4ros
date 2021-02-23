@@ -10,10 +10,24 @@ on:
     branches: [ main ]
 
 jobs:
+
+  ros:
+    runs-on: ubuntu-latest
+    container: amd64/ros:noetic
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ros-tooling/setup-ros@v0.1
+      with:
+        required-ros-distributions: noetic
+    - uses: ros-tooling/action-ros-ci@v0.1
+      with:
+        package-name: bayesopt4ros
+        target-ros1-distro: noetic
+        vcs-repo-file-url: ""
+
   build:
 
     runs-on: ubuntu-latest
-    container: osrf/ros:noetic
     
     steps:
     - uses: actions/checkout@v2
