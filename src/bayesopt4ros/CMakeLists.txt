@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   roslaunch
+  rostest
 )
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -52,10 +53,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(example_client_cpp example_clients/example_client_cpp.cpp)
-target_link_libraries(example_client_cpp ${catkin_LIBRARIES})
-add_dependencies(example_client_cpp bayesopt4ros_gencpp)
-
 #############
 ## Install ##
 #############
@@ -71,10 +68,8 @@ catkin_install_python(PROGRAMS
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_bayesopt4ros.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+add_rostest_gtest(test_client_cpp test/integration/test_client_cpp.test test/integration/test_client_cpp.cpp)
+target_link_libraries(test_client_cpp ${catkin_LIBRARIES})
 
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+## Add folders to be run by python
+add_rostest(test/integration/test_client_python.test)

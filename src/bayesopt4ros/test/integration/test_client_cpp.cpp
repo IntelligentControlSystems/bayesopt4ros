@@ -1,6 +1,7 @@
 #include "math.h"
 #include "ros/ros.h"
 #include <unistd.h>
+#include <gtest/gtest.h>
 
 #include "bayesopt4ros/BayesOptSrv.h"
 
@@ -42,16 +43,10 @@ double forresterFunction(const std::vector<double>& x) {
 }
 
 
-int main(int argc, char **argv)
+TEST(ClientTestSuite, testForrester)
 {
-    // Set up ROS
-    ros::init(argc, argv, "TestClient");
-    if (argc != 2) {
-        ROS_INFO("Usage: example_client_cpp <objective>  Choices: [Forrester, ]");
-    }
-    ros::NodeHandle n;
-
     // Create client node and corresponding service
+    ros::NodeHandle n;
     ros::ServiceClient node = n.serviceClient<bayesopt4ros::BayesOptSrv>("BayesOpt");
     bayesopt4ros::BayesOptSrv srv;
 
@@ -66,6 +61,9 @@ int main(int argc, char **argv)
 
     // Start querying the BayesOpt service until it reached max iterations
     std::size_t iter = 0;
+    double y_best = std::numeric_limits<double>::min();
+    std::vector<double> x_best;
+
     while (true) {
         ROS_INFO("[Client] Iteration %lu", iter+1);
         std::string result_string = "[Client] x_new = " + vecToString(x_new, 3);
@@ -73,7 +71,11 @@ int main(int argc, char **argv)
         
         // Emulate experiment by querying the objective function
         srv.request.value = forresterFunction(x_new);
-        ROS_INFO("[Client] y_new = %.2f", srv.request.value);
+        if (srv.request.value > y_best) {
+            y_best = srv.request.value;
+            x_best = x_new;
+        }
+        ROS_INFO("[Client] y_new = %.2f, y_best = %.2f", srv.request.value, y_best);
 
         // Request service and obtain new parameters
         success = node.call(srv);
@@ -86,5 +88,15 @@ int main(int argc, char **argv)
         iter++;
     }
     ros::shutdown();
-    return 0;
+
+    // Be kind w.r.t. precision of solution
+    EXPECT_NEAR(y_best, 6.021, 1e-3);
+    EXPECT_NEAR(x_best[0], 0.757, 1e-3);
+}
+
+int main(int argc, char **argv){
+  testing::InitGoogleTest(&argc, argv);
+  ros::init(argc, argv, "tester");
+  ros::NodeHandle nh;
+  return RUN_ALL_TESTS();
 }
