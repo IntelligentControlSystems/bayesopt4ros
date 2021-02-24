@@ -47,7 +47,7 @@ jobs:
     - name: Unittest with pytest
       run: |
         . devel_isolated/setup.sh
-        pytest src/bayesopt4ros/test/
+        pytest src/bayesopt4ros/test/unit/
 
     - name: Integration test with rostest
       run: |
