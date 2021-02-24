@@ -62,7 +62,7 @@ add_dependencies(example_client_cpp bayesopt4ros_gencpp)
 
 catkin_install_python(PROGRAMS
   nodes/bayesopt_service.py
-  example_clients/example_client_python.py
+  test/test_client_python.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

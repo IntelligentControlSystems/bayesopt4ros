@@ -17,6 +17,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    # Ideally we would use a Docker container with ROS already installed
     - name: Set up ROS Noetic 
       uses: ros-tooling/setup-ros@v0.1
       with:
@@ -25,9 +26,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y python3.8
-        sudo apt-get install -y python3.8-dev
-        sudo apt-get install -y python3.8-distutils
         sudo apt-get install -y python3-pip
         python3 -m pip install --upgrade pip
         python3 -m pip install flake8 pytest
@@ -46,7 +44,14 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with pytest
+    - name: Unittest with pytest
       run: |
         . devel_isolated/setup.sh
         pytest src/bayesopt4ros/test/
+
+    - name: Integration test with rostest
+      run: |
+        . devel_isolated/setup.sh
+        rostest bayesopt4ros test_client_python.test
+
+

@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-
-import argparse
+import unittest
 import itertools
 import numpy as np
 import rospy
+import rostest
 
 from typing import Callable, Union
 
@@ -25,7 +24,7 @@ def forrester_function(x: Union[np.ndarray, float]) -> np.ndarray:
     return -1 * ((6.0 * x - 2.0) ** 2 * np.sin(12.0 * x - 4.0)).squeeze()
 
 
-class TestClient(object):
+class ExampleClient(object):
     """! A demonstration on how to use the BayesOpt service from a Python node. """
 
     def __init__(self, service_name: str, objective: Callable) -> None:
@@ -36,6 +35,7 @@ class TestClient(object):
         """
         rospy.init_node(self.__class__.__name__, anonymous=True, log_level=rospy.INFO)
         self.service_name = service_name
+        self.y_best, self.x_best = -np.inf, None
         if objective == "Forrester":
             self.func = forrester_function
         else:
@@ -70,7 +70,10 @@ class TestClient(object):
 
             # Emulate experiment by querying the objective function
             y_new = self.func(x_new)
-            rospy.loginfo(f"[Client] y_new = {y_new:.2f}")
+            if y_new > self.y_best:
+                self.y_best = y_new
+                self.x_best = x_new
+            rospy.loginfo(f"[Client] y_new = {y_new:.2f}, y_best = {self.y_best:.2f}")
 
             # Request service and obtain new parameters
             x_new = self.request(y_new)
@@ -78,18 +81,18 @@ class TestClient(object):
                 break
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-o",
-        "--objective",
-        help="Name of the objective function",
-        type=str,
-        choices=["Forrester"],
-    )
-    args, unknown = parser.parse_known_args()
-    try:
-        node = TestClient(service_name="BayesOpt", objective=args.objective)
+class ClientTestCase(unittest.TestCase):
+    """! Integration test cases for the exemplary Python client. """
+
+    def test_forrester(self) -> None:
+        """! Testing client on 1-dimensional Forrester function."""
+        node = ExampleClient(service_name="BayesOpt", objective="Forrester")
         node.run()
-    except rospy.ROSInterruptException:
-        pass
+
+        # Be kind w.r.t. precision of solution
+        np.testing.assert_almost_equal(node.x_best, np.array([0.757]), decimal=3)
+        np.testing.assert_almost_equal(node.y_best, np.array([6.021]), decimal=3)
+
+
+if __name__ == "__main__":
+    rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCase)
