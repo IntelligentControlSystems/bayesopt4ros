@@ -90,7 +90,7 @@ TEST(ClientTestSuite, testForrester)
     ros::shutdown();
 
     // Be kind w.r.t. precision of solution
-    EXPECT_NEAR(y_best, 6.021, 1e-3);
+    EXPECT_NEAR(y_best, 5.021, 1e-3);
     EXPECT_NEAR(x_best[0], 0.757, 1e-3);
 }
 
