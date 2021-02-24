@@ -1,0 +1,9 @@
+# This configuration file is specific for the Three-Hump camel test function.
+experiment_name: "example_2d_three_hump_camel"
+input_dim: 2
+acq_func: "UCB"
+lower_bound: [-2.0, -2.0]
+upper_bound: [2.0, 2.0]
+max_iter: 30
+n_init: 5
+log_dir: "./logs/"

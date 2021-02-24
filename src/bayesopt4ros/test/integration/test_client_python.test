@@ -1,4 +1,5 @@
 <launch>
-  <node name="BayesOptService" pkg="bayesopt4ros" type="bayesopt_service.py" args="-f $(find bayesopt4ros)/configs/example_config_forrrester.yaml"/>
-  <test test-name="TestClientPython" pkg="bayesopt4ros" type="test_client_python.py"/>
+  <arg name="objective" />
+  <node name="BayesOptService" pkg="bayesopt4ros" type="bayesopt_service.py" args="-f $(find bayesopt4ros)/configs/example_config_$(arg objective).yaml" output="screen"/>
+  <test test-name="TestClientPython" pkg="bayesopt4ros" type="test_client_python.py" args="-o $(arg objective)"/>
 </launch>

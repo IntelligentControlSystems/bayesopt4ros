@@ -67,9 +67,10 @@ catkin_install_python(PROGRAMS
 ## Testing ##
 #############
 
-## Add gtest based cpp test target and link libraries
+# Add gtest based cpp test target and link libraries
 add_rostest_gtest(test_client_cpp test/integration/test_client_cpp.test test/integration/test_client_cpp.cpp)
 target_link_libraries(test_client_cpp ${catkin_LIBRARIES})
 
-## Add folders to be run by python
-add_rostest(test/integration/test_client_python.test)
+# Add folders to be run by python
+add_rostest(test/integration/test_client_python.test ARGS objective:=forrester)
+add_rostest(test/integration/test_client_python.test ARGS objective:=three_hump_camel)
