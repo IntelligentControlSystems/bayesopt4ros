@@ -58,7 +58,7 @@ class ExampleClient(object):
             rospy.signal_shutdown("Invalid response from BayesOptService.")
 
     def run(self) -> None:
-        """! Method that starts emulates client behavior."""
+        """! Method that emulates client behavior."""
         # First value is just to trigger the service
         x_new = self.request(0.0)
 
