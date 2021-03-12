@@ -4,11 +4,12 @@ FROM osrf/ros:noetic-desktop-full
 WORKDIR /root/ws/
 COPY . .
 
-# INSTALL ROS PACKAGES
+# INSTALL ROS AND OTHER DEPENDENCIES
 RUN apt-get update && apt-get install -y \
   ros-${ROS_DISTRO}-ros-tutorials \
   ros-${ROS_DISTRO}-common-tutorials \
-  python3-pip && \
+  python3-pip \
+  flake8 && \
   rm -rf /var/lib/apt/lists/*
 
 # INSTALL PYTHON PACKAGES
