@@ -3,5 +3,5 @@ scipy>=1.6
 matplotlib>=3.3  # required for GPy
 sobol-seq==0.2.0
 numpy>=1.20
-GPy
+GPy==1.9.9
 pytest>=6.2

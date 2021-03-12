@@ -12,8 +12,8 @@ As soon as we have a stable version, we will tag the corresponding commit.
 
 ## ToDo List
 
-- [ ] [CI] Set up some basic unit tests
-- [ ] [CI] Set up some basic integration tests
+- [x] [CI] Set up some basic unit tests
+- [x] [CI] Set up some basic integration tests
 - [x] [CI] Set up basic GitHub actions
 - [ ] [BO] Implement expected improvement acqusition function
 - [ ] [BO] Implement max-value entropy search acquisition function
@@ -154,7 +154,7 @@ python src/visualize.py -d logs
 
 Which should pop up a window similar to this one:
 
-![alt text](docs/readme_example_visualization.png)
+![alt text](doc/readme_example_visualization.png)
 
 On the left, we see function values of all evaluated points (black dots) as well as the evolution of the best function value (red line) as a function the of iterations.
 On the right, the final GP model (blue) with all the training data (black dots), as well as the best point (yello star) are visualized.

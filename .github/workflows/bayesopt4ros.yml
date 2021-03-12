@@ -10,24 +10,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: ubuntu:focal
+    container: lukasfro/bayesopt4ros:ci  # custom image
 
     steps:
     - uses: actions/checkout@v2
-    # Ideally we would use a Docker container with ROS already installed
-    - name: Set up ROS Noetic 
-      uses: ros-tooling/setup-ros@v0.1
-      with:
-        required-ros-distributions: noetic
-
-    - name: Install Python dependencies
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y python3-pip
-        python3 -m pip install --upgrade pip
-        python3 -m pip install flake8 pytest
-        if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
-        sudo apt-get install python3-empy
 
     - name: Build catkin workspace
       run: |
