@@ -16,7 +16,7 @@ jobs:
     - name: Set up catkin workspace
       run: |
         . /opt/ros/noetic/setup.sh
-        catkin init
+        catkin_init_workspace
         mkdir -p src/bayesopt
         
     - uses: actions/checkout@v2
