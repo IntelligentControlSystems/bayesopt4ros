@@ -13,8 +13,16 @@ jobs:
     container: lukasfro/bayesopt4ros:ci  # custom image
 
     steps:
+    - name: Set up catkin workspace
+      run: |
+        . /opt/ros/noetic/setup.sh
+        catkin_init_workspace
+        mkdir -p src/bayesopt4ros
+        
     - uses: actions/checkout@v2
-
+      with:
+        path: "src/bayesopt4ros/"
+        
     - name: Build catkin workspace
       run: |
         . /opt/ros/noetic/setup.sh
