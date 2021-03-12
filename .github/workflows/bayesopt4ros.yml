@@ -17,11 +17,11 @@ jobs:
       run: |
         . /opt/ros/noetic/setup.sh
         catkin_init_workspace
-        mkdir -p src/bayesopt
+        mkdir -p src/bayesopt4ros
         
     - uses: actions/checkout@v2
       with:
-        path: "src/bayesopt/"
+        path: "src/bayesopt4ros/"
         
     - name: Build catkin workspace
       run: |
