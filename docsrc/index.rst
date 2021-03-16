@@ -9,7 +9,6 @@ A Bayesian optimization package for the `Robot Operating System (ROS) <https://w
 
 .. warning:: This project is under active development.
    Therefore you might experience breaking changes without any warnings (sorry in advance).
-   As soon as we have a stable version, we will tag the corresponding commit.
    
 
 Why BayesOpt4ROS
