@@ -5,40 +5,68 @@ from GPy.models import GPRegression
 
 
 class AcquisitionFunction(abc.ABC):
-    """! Abstract base class for acquisition functions. """
+    """Abstract base class for acquisition functions."""
 
     def __init__(self, gp: GPRegression) -> None:
-        """! Initializer for abstract acquisition function class.
+        """Initializer for abstract acquisition function class.
 
-        @param gp   Gaussian process model used for computation.
+        Parameters
+        ----------
+        gp : GPy.models.GPRegression
+            Gaussian process model used for computation.
         """
         self.gp = gp
 
     @abc.abstractmethod
     def __call__(self, x: np.ndarray) -> np.ndarray:
-        """! Evaluate the acquisition function.
+        """Evaluate the acquisition function.
 
-        @param x    The location at which to evaluate.
+        Parameters
+        ----------
+        x : numpy.ndarray
+            The location at which to evaluate the acquisition function.
 
-        @param Acquisition function evaluated at `x`.
+        Returns
+        -------
+        numpy.ndarray
+            Acquisition function values evaluated at `x`.
         """
         return
 
 
 class UpperConfidenceBound(AcquisitionFunction):
-    """! The upper confidence bound (UCB) acquisition function. """
+    """The upper confidence bound (UCB) acquisition function.
+    
+    .. math::
+        \\alpha(x) = \mu(x) + \\beta \sigma(x)
+    """
 
     def __init__(self, gp: GPRegression, beta: float = 2.0) -> None:
-        """! Initializer for UCB acquisition function.
+        """Initializer for UCB acquisition function.
 
-        @param gp   Gaussian process model used for computation.
-        @param beta Confidence multiplier: ucb(x) = mu(x) + beta * std(x)
+        Parameters
+        ----------
+        gp : GPy.models.GPRegression
+            Gaussian process model used for computation.
+        beta : float
+            Confidence multiplier governing exploration/exploitation trade-off.
         """
         super().__init__(gp=gp)
         self.beta = beta
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
-        """! See documentation for abstract base class. """
+        """Evaluate the acquisition function.
+
+        Parameters
+        ----------
+        x : numpy.ndarray
+            The location at which to evaluate the acquisition function.
+
+        Returns
+        -------
+        numpy.ndarray
+            Acquisition function values evaluated at `x`.
+        """
         mu, var = self.gp.predict(x, include_likelihood=False)
         std = np.sqrt(var)
         return mu + self.beta * std

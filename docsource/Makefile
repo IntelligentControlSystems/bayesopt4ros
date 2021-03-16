@@ -11,10 +11,6 @@ BUILDDIR      = _build
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	
-github:
-	@make html
-	@cp -a _build/html/. ../docs
 
 .PHONY: help Makefile
 
@@ -23,3 +19,9 @@ github:
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+
+github:
+	@make clean
+	@make html
+	@cp -a _build/html/. ../docs/
+	@make clean

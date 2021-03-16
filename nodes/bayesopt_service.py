@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from functools import wraps
 from typing import Callable
 import rospy
 from bayesopt4ros.srv import BayesOptSrv, BayesOptSrvResponse
@@ -7,11 +8,11 @@ from bayesopt4ros import BayesianOptimization, util
 
 
 class BayesOptService(object):
-    """! The Bayesian opitmization service node.
+    """The Bayesian optimization service node.
 
     Acts as a layer between the actual Bayesian optimization and ROS.
 
-    Note: We assume that the objective function is to be maximized!
+    .. note:: We assume that the objective function is to be maximized!
     """
 
     def __init__(
@@ -23,14 +24,22 @@ class BayesOptService(object):
         log_level: int = rospy.INFO,
         silent: bool = False,
     ) -> None:
-        """! The BayesOptService class initializer.
+        """The BayesOptService class initializer.
 
-        @param config_file      File that describes all settings for Bayesian optimization.
-        @param service_name     Name of the service that is used for ROS.
-        @log_file               All input/output pairs are logged to this file.
-        @anonymous              Flag if the node should be anonymous or not (see ROS documentation).
-        @log_level              Controls the log_level of the node's output.
-        @silent                 Controls the verbosity of the node's output.
+        Parameters
+        ----------
+        config_file : str
+            File that describes all settings for Bayesian optimization.
+        service_name : str
+            Name of the service that is used for ROS.
+        log_file : str
+            All input/output pairs are logged to this file.
+        anonymous : bool
+            Flag if the node should be anonymous or not (see ROS documentation).
+        log_level : int
+            Controls the log_level of the node's output.
+        silent : bool
+            Controls the verbosity of the node's output.
         """
         rospy.init_node(
             self.__class__.__name__, anonymous=anonymous, log_level=log_level
@@ -45,13 +54,19 @@ class BayesOptService(object):
         rospy.loginfo(self._log_prefix + "Ready to receive requests")
 
     def count_requests(func: Callable) -> Callable:
-        """! Decorator that keeps track of number of requests.
+        """Decorator that keeps track of number of requests.
 
-        @param func     The function to be decorated.
+        Parameters
+        ----------
+        func : Callable
+            The function to be decorated.
 
-        @param The decorated function.
+        Returns
+        -------
+        Callable
+            The decorated function.
         """
-
+        @wraps(func)
         def wrapper(self, *args, **kwargs):
             self.request_count += 1
             ret_val = func(self, *args, **kwargs)
@@ -66,11 +81,21 @@ class BayesOptService(object):
 
     @count_requests
     def handler(self, req: BayesOptSrv) -> BayesOptSrvResponse:
-        """! Function that acts upon the request coming from a client.
+        """Function that acts upon the request coming from a client.
 
-        @param req  The request coming from a client. Definition is in /srv/BayesOptSrv.srv
+        The service request/response are defined here: ``srv/BayesOptSrv.srv``
 
-        @returns The corresponding response to the request. Definition is in /srv/BayesOptSrv.srv
+        .. literalinclude:: ../srv/BayesOptSrv.srv
+
+        Parameters
+        ----------
+        req : BayesOptSrv
+            The request coming from a client.
+
+        Returns
+        -------
+        BayesOptSrvResponse
+            The corresponding response to the request.
         """
         if self.bo.max_iter and self.request_count > self.bo.max_iter:
             # Updates model with last function and logs the final GP model
@@ -106,7 +131,7 @@ class BayesOptService(object):
 
     @staticmethod
     def run() -> None:
-        """! Method that starts the node. """
+        """Method that starts the node. """
         rospy.spin()
 
 

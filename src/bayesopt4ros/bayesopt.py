@@ -15,11 +15,12 @@ from bayesopt4ros.optim import minimize_restarts
 
 
 class BayesianOptimization(object):
-    """! The Bayesian optimization class.
+    """The Bayesian optimization class.
 
-    Implements the actual heavy lifting that is done behind the BayesOpt service.
+    Implements the actual heavy lifting that is done under the hood of  
+    :class:`bayesopt_service.BayesOptService`.
 
-    Note: We assume that the objective function is to be maximized!
+    .. note:: We assume that the objective function is to be maximized!
     """
 
     def __init__(
@@ -32,19 +33,29 @@ class BayesianOptimization(object):
         log_dir: str = None,
         config: dict = None,
     ) -> None:
-        """! The BayesianOptimization class initializer.
+        """The BayesianOptimization class initializer.
 
-        Note on logging: if a `log_dir` is specified, two different files will
-        be created: 1) evaluations file, 2) model file. These store all and the
-        best input-output pairs as well as the final GP model, respectively.
+        .. note:: If a `log_dir` is specified, two different files will be 
+            created: 1) evaluations file, 2) model file. These store all and the
+            best input-output pairs as well as the final GP model, respectively.
 
-        @param input_dim    Number of input dimensions for the parameters.
-        @param max_iter     Maximum number of iterations.
-        @param bounds       Bounds specifying the optimization domain.
-        @param acq_func     Acquisition function (UCB or EI).
-        @param n_init       Number of point for initial design, i.e. Sobol.
-        @param log_dir      Directory to which the log files are stored.
-        @param config       The configuration dictionary for the experiment.
+
+        Parameters
+        ----------
+        input_dim : int
+            Number of input dimensions for the parameters.
+        max_iter : int
+            Maximum number of iterations.
+        bounds : scipy.optimize.Bounds
+            Bounds specifying the optimization domain.
+        acq_func : str  
+            The acquisition function.
+        n_init : int
+            Number of point for initial design, i.e. Sobol.
+        log_dir : str
+            Directory to which the log files are stored.
+        config : dict
+            The configuration dictionary for the experiment.
         """
         self.input_dim = input_dim
         self.max_iter = max_iter
@@ -77,11 +88,17 @@ class BayesianOptimization(object):
 
     @classmethod
     def from_file(cls, config_file: str):
-        """! Initialize a BayesianOptimization instance from a config file.
+        """Initialize a BayesianOptimization instance from a config file.
 
-        @param config_file    The config file (full path, relative or absolute).
+        Parameters
+        ----------
+        config_file : str
+            The config file (full path, relative or absolute).
 
-        @return An instance of the BayesianOptimization class.
+        Returns
+        -------
+        :class:`BayesianOptimization`
+            An instance of the BayesianOptimization class.
         """
         # Read config from file
         try:
@@ -111,17 +128,23 @@ class BayesianOptimization(object):
         )
 
     def next(self, y_new: float) -> np.ndarray:
-        """! Compute new parameters to perform an experiment with.
+        """Compute new parameters to perform an experiment with.
 
-        The functionality of this method can generally be split into three parts:
+        The functionality of this method can generally be split into three steps:
 
         1) Update the model with the new data.
         2) Retrieve a new point as response of the service.
         3) Save current state to file.
 
-        @param y_new    The function value obtained from the most recent experiment.
+        Parameters
+        ----------
+        y_new : float   
+            The function value obtained from the most recent experiment.
 
-        @return The new parameters as an array.
+        Returns
+        -------
+        numpy.ndarray
+            The new parameters as an array.
         """
         # 1) Update the model with the new data
         if self.x_new is not None:
@@ -144,44 +167,43 @@ class BayesianOptimization(object):
         return self.x_new
 
     def update_last_y(self, y_last: float) -> None:
-        """! Updates the GP model with the last function value obtained.
+        """Updates the GP model with the last function value obtained.
 
-        Note: this function is only called once from the service, right before shutting
-        down the node. However, we will want to update the GP model with the latest data.
+        .. note:: This function is only called once from the service, right before
+            shutting down the node. However, we still want to update the GP model
+            with the latest data.
 
-        @param y_last   The function value obtained from the last experiment.
+        Parameters
+        ----------
+        y_last : float
+           The function value obtained from the last experiment.
         """
         self._update_model(self.x_new, y_last)
 
     @property
     def n_data(self) -> int:
-        """! Property for conveniently accessing number of data points.
-
-        @return The number of data points in the GP model.
-        """
+        """Property for conveniently accessing number of data points."""
         return self.gp.X.shape[0]
 
     @property
     def y_best(self) -> float:
-        """! Get the best function value observed so far.
-
-        @return The best function value.
-        """
+        """Get the best function value observed so far."""
         return np.max(self.gp.Y)
 
     @property
     def x_best(self) -> np.ndarray:
-        """! Get parameters for best function value so far.
-
-        @return The parameters for the best function value.
-        """
+        """Get parameters for best function value so far."""
         return self.gp.X[np.argmax(self.gp.Y)]
 
     def _update_model(self, x_new: np.ndarray, y_new: Union[float, np.ndarray]) -> None:
-        """! Updates the GP with new data. Creates a model if none exists yet.
+        """Updates the GP with new data. Creates a model if none exists yet.
 
-        @param x_new    The parameter from the last experiment.
-        @param y_new    The function value obtained from the last experient.
+        Parameters
+        ----------
+        x_new : numpy.ndarray
+            The parameter from the last experiment.
+        y_new : float
+            The function value obtained from the last experient.
         """
         x_new, y_new = np.atleast_2d(x_new), np.atleast_2d(y_new)
         assert x_new.ndim == 2 and y_new.ndim == 2
@@ -198,9 +220,12 @@ class BayesianOptimization(object):
         self._log_results()
 
     def _optimize_acq(self) -> np.ndarray:
-        """! Optimizes the acquisition function.
+        """Optimizes the acquisition function.
 
-        @return Location of the acquisition function's optimum.
+        Returns
+        -------
+        numpy.ndarray
+            Location of the acquisition function's optimum.
         """
         if self.acq_func.upper() == "UCB":
             acq_func = UpperConfidenceBound(gp=self.gp, beta=2.0)
@@ -219,11 +244,17 @@ class BayesianOptimization(object):
         return xopt
 
     def _initial_design(self, n_init: int) -> np.ndarray:
-        """! Create initial data points from a Sobol sequence.
+        """Create initial data points from a Sobol sequence.
 
-        @param n_init   Number of initial points.
-
-        @return Array containing the initial points.
+        Parameters
+        ----------
+        n_init : int
+           Number of initial points.
+        
+        Returns
+        -------
+        numpy.ndarray
+            Array containing the initial points.
         """
         # TODO(lukasfro): Switch from sobol_seq to Scipy.stats.qmc.Sobol when SciPy 1.7 is out
         # NOTE(lukasfro): Sobol-seq is deprecated as of very recently. The currention development
@@ -231,11 +262,11 @@ class BayesianOptimization(object):
         return sobol_seq.i4_sobol_generate(self.input_dim, n_init)
 
     def _log_results(self) -> None:
-        """! Log evaluations and GP model to file.
+        """Log evaluations and GP model to file.
 
-        We do this at each iteration and overwrite the existing file in case something
-        goes wrong with either the optimization itself or on the client side. We do
-        not want to loose any valuable experimental data.
+        .. note:: We do this at each iteration and overwrite the existing file in 
+            case something goes wrong with either the optimization itself or on 
+            the client side. We do not want to loose any valuable experimental data.
         """
         if self.log_dir:
             # Saving GP model to file
