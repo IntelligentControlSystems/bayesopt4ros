@@ -41,6 +41,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Miscealaneous -----------------------------------------------------------
 # Display todos by setting to True
 todo_include_todos = True
+today_fmt = "%A %d %B %Y, %X"
 
 # -- Options for HTML output -------------------------------------------------
 
