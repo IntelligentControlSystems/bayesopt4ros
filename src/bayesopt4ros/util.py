@@ -3,10 +3,7 @@ import rospy
 
 
 def service_argparser():
-    """! Sets up the argument parser used for the BayesOpt service.
-
-    @return The argument parser.
-    """
+    """Sets up the argument parser used for the BayesOpt service."""
     parser = argparse.ArgumentParser()
 
     parser.add_argument(

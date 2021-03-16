@@ -5,18 +5,32 @@ from scipy.optimize import Bounds, minimize
 
 
 def minimize_restarts(fun: Callable, bounds: Bounds, n0: int = 1) -> np.ndarray:
-    """! Thin wrapper around scipy.optimize.minimize with random restarts.
+    """Thin wrapper around ``scipy.optimize.minimize`` with random restarts.
 
-    Note: The starting points are not chosen by a Sobol sequence by design.
-          Since already the initial design relies on the Sobol sequence and
-          we do not want to start the local optimizer at the data points.
+    .. note:: The starting points are not chosen by a Sobol sequence by design.
+        Since already the initial design relies on the Sobol sequence and we do
+        not want to start the local optimizer at the data points.
 
-    @param fun      Function to be optimized.
-    @param bounds   Bounds for optimization.
-    @param n0       Number of restarts.
+    .. todo:: Improved random starting points: sample many (>> n0) and evaluate
+        acquisition function at those locations. Then randomly choose n0 points
+        from the initial points where the probabilities depend on the respective
+        acquisition function value.
+        
+    Parameters
+    ----------
+    fun : Callable
+        Function to be minimized.
+    bounds : scipy.optimize.Bounds
+        Bounds for optimization.
+    n0 : int
+        Number of restarts.
 
-    @return The location of the best local optimum.
+    Returns
+    -------
+    numpy.ndarray
+        The location of the best local optimum found.
     """
+
     dim = bounds.lb.shape[0]
     x_rand = np.random.uniform(low=bounds.lb, high=bounds.ub, size=(n0, dim))
 
