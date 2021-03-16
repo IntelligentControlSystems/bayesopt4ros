@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Welcome to BayesOpt4ROS’s documentation! &mdash; BayesOpt4ROS  documentation</title>
+  <title>BayesOpt4ROS &mdash; BayesOpt4ROS  documentation</title>
   
 
   
@@ -32,6 +32,7 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -84,7 +85,19 @@
             
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Welcome to BayesOpt4ROS’s documentation!</a></li>
+<li><a class="reference internal" href="#">BayesOpt4ROS</a><ul>
+<li><a class="reference internal" href="#why-bayesopt4ros">Why BayesOpt4ROS</a></li>
+<li><a class="reference internal" href="#introduction-to-bayesian-optimization">Introduction to Bayesian Optimization</a></li>
+<li><a class="reference internal" href="#how-to-use-bayesopt4ros">How to Use BayesOpt4ROS</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#documentation">Documentation</a><ul>
+<li><a class="reference internal" href="#module-bayesopt_service">The Bayesian Optimization Service Class</a></li>
+<li><a class="reference internal" href="#module-bayesopt4ros.bayesopt">The Bayesian Optimizer</a></li>
+<li><a class="reference internal" href="#module-bayesopt4ros.acq_func">Acquisition Functions</a></li>
+<li><a class="reference internal" href="#module-bayesopt4ros.optim">Optimization</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 </div>
@@ -134,7 +147,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Welcome to BayesOpt4ROS’s documentation!</li>
+      <li>BayesOpt4ROS</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,19 +166,295 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-bayesopt4ros-s-documentation">
-<h1>Welcome to BayesOpt4ROS’s documentation!<a class="headerlink" href="#welcome-to-bayesopt4ros-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="bayesopt4ros">
+<h1>BayesOpt4ROS<a class="headerlink" href="#bayesopt4ros" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<p>Tuesday 16 March 2021, 3:57:31 PM</p>
+<p>A Bayesian optimization package for the <a class="reference external" href="https://www.ros.org">Robot Operating System (ROS)</a> developed by the <a class="reference external" href="https://idsc.ethz.ch/research-zeilinger.html">Intelligent Control Systems (ICS)</a> group at ETH Zurich.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This project is under active development.
+Therefore you might experience breaking changes without any warnings (sorry in advance).</p>
+</div>
+<div class="section" id="why-bayesopt4ros">
+<h2>Why BayesOpt4ROS<a class="headerlink" href="#why-bayesopt4ros" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="introduction-to-bayesian-optimization">
+<h2>Introduction to Bayesian Optimization<a class="headerlink" href="#introduction-to-bayesian-optimization" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="how-to-use-bayesopt4ros">
+<h2>How to Use BayesOpt4ROS<a class="headerlink" href="#how-to-use-bayesopt4ros" title="Permalink to this headline">¶</a></h2>
+<p>The following instructions will help you to get started with the BayesOpt4ROS package.
+You can directly clone the repository into your <code class="docutils literal notranslate"><span class="pre">catkin_workspace/src/</span></code> directory alongside your other packages.
+For the sake of this short tutorial, we have set up an exemplary workspace in <a class="reference external" href="https://github.com/lukasfro/bayesopt4ros_workspace">this repository</a> and for easy reproducibility we are are using Docker.
+However, feel free to set up the package to your preferences.
+If you do not have <a class="reference external" href="https://www.docker.com/get-started">Docker</a> installed, now would be a good time to do so.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are working on a MacBook M1 with ARM chip, you need to adapt the Dockerfile to pull the right ROS image.
+Just have a look <a class="reference external" href="https://github.com/lukasfro/bayesopt4ros_workspace/blob/main/Dockerfile">here</a> and uncomment the second line.
+The image based on ARM does not contain all the ROS tools that you need for development (e.g., rviz) but is typically used only for production.</p>
+</div>
+</div>
+</div>
+<div class="section" id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-bayesopt_service">
+<span id="the-bayesian-optimization-service-class"></span><h2>The Bayesian Optimization Service Class<a class="headerlink" href="#module-bayesopt_service" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="bayesopt_service.BayesOptService">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt_service.</span></code><code class="sig-name descname"><span class="pre">BayesOptService</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Bayesian optimization service node.</p>
+<p>Acts as a layer between the actual Bayesian optimization and ROS.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We assume that the objective function is to be maximized!</p>
+</div>
+<dl class="py method">
+<dt id="bayesopt_service.BayesOptService.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The BayesOptService class initializer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> (<em>str</em>) – File that describes all settings for Bayesian optimization.</p></li>
+<li><p><strong>service_name</strong> (<em>str</em>) – Name of the service that is used for ROS.</p></li>
+<li><p><strong>log_file</strong> (<em>str</em>) – All input/output pairs are logged to this file.</p></li>
+<li><p><strong>anonymous</strong> (<em>bool</em>) – Flag if the node should be anonymous or not (see ROS documentation).</p></li>
+<li><p><strong>log_level</strong> (<em>int</em>) – Controls the log_level of the node’s output.</p></li>
+<li><p><strong>silent</strong> (<em>bool</em>) – Controls the verbosity of the node’s output.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt_service.BayesOptService.handler">
+<code class="sig-name descname"><span class="pre">handler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">req</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.srv._BayesOptSrv.BayesOptSrv</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bayesopt4ros.srv._BayesOptSrv.BayesOptSrvResponse</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService.handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService.handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that acts upon the request coming from a client.</p>
+<p>The service request/response are defined here: <code class="docutils literal notranslate"><span class="pre">srv/BayesOptSrv.srv</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">float64</span> <span class="n">value</span>
+<span class="o">---</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="nb">next</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>req</strong> (<em>BayesOptSrv</em>) – The request coming from a client.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The corresponding response to the request.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>BayesOptSrvResponse</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt_service.BayesOptService.run">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that starts the node.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bayesopt4ros.bayesopt">
+<span id="the-bayesian-optimizer"></span><h2>The Bayesian Optimizer<a class="headerlink" href="#module-bayesopt4ros.bayesopt" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt4ros.bayesopt.</span></code><code class="sig-name descname"><span class="pre">BayesianOptimization</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">scipy.optimize._constraints.Bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'UCB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Bayesian optimization class.</p>
+<p>Implements the actual heavy lifting that is done under the hood of
+<a class="reference internal" href="#bayesopt_service.BayesOptService" title="bayesopt_service.BayesOptService"><code class="xref py py-class docutils literal notranslate"><span class="pre">bayesopt_service.BayesOptService</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We assume that the objective function is to be maximized!</p>
+</div>
+<dl class="py method">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">scipy.optimize._constraints.Bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'UCB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The BayesianOptimization class initializer.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a <cite>log_dir</cite> is specified, two different files will be
+created: 1) evaluations file, 2) model file. These store all and the
+best input-output pairs as well as the final GP model, respectively.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_dim</strong> (<em>int</em>) – Number of input dimensions for the parameters.</p></li>
+<li><p><strong>max_iter</strong> (<em>int</em>) – Maximum number of iterations.</p></li>
+<li><p><strong>bounds</strong> (<em>scipy.optimize.Bounds</em>) – Bounds specifying the optimization domain.</p></li>
+<li><p><strong>acq_func</strong> (<em>str</em>) – The acquisition function.</p></li>
+<li><p><strong>n_init</strong> (<em>int</em>) – Number of point for initial design, i.e. Sobol.</p></li>
+<li><p><strong>log_dir</strong> (<em>str</em>) – Directory to which the log files are stored.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – The configuration dictionary for the experiment.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization.from_file">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a BayesianOptimization instance from a config file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – The config file (full path, relative or absolute).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An instance of the BayesianOptimization class.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bayesopt4ros.bayesopt.BayesianOptimization" title="bayesopt4ros.bayesopt.BayesianOptimization"><code class="xref py py-class docutils literal notranslate"><span class="pre">BayesianOptimization</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization.n_data">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_data</span></code><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.n_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property for conveniently accessing number of data points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization.next">
+<code class="sig-name descname"><span class="pre">next</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_new</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute new parameters to perform an experiment with.</p>
+<p>The functionality of this method can generally be split into three steps:</p>
+<ol class="arabic simple">
+<li><p>Update the model with the new data.</p></li>
+<li><p>Retrieve a new point as response of the service.</p></li>
+<li><p>Save current state to file.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>y_new</strong> (<em>float</em>) – The function value obtained from the most recent experiment.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The new parameters as an array.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization.update_last_y">
+<code class="sig-name descname"><span class="pre">update_last_y</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_last</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.update_last_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.update_last_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the GP model with the last function value obtained.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is only called once from the service, right before
+shutting down the node. However, we still want to update the GP model
+with the latest data.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>y_last</strong> (<em>float</em>) – The function value obtained from the last experiment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization.x_best">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">x_best</span></code><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.x_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get parameters for best function value so far.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.bayesopt.BayesianOptimization.y_best">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">y_best</span></code><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.y_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the best function value observed so far.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bayesopt4ros.acq_func">
+<span id="acquisition-functions"></span><h2>Acquisition Functions<a class="headerlink" href="#module-bayesopt4ros.acq_func" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="bayesopt4ros.acq_func.UpperConfidenceBound">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt4ros.acq_func.</span></code><code class="sig-name descname"><span class="pre">UpperConfidenceBound</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound" title="Permalink to this definition">¶</a></dt>
+<dd><p>The upper confidence bound (UCB) acquisition function.</p>
+<div class="math notranslate nohighlight">
+\[\alpha(x) = \mu(x) + \beta \sigma(x)\]</div>
+<dl class="py method">
+<dt id="bayesopt4ros.acq_func.UpperConfidenceBound.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the acquisition function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>) – The location at which to evaluate the acquisition function.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Acquisition function values evaluated at <cite>x</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.acq_func.UpperConfidenceBound.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for UCB acquisition function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gp</strong> (<em>GPy.models.GPRegression</em>) – Gaussian process model used for computation.</p></li>
+<li><p><strong>beta</strong> (<em>float</em>) – Confidence multiplier governing exploration/exploitation trade-off.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bayesopt4ros.optim">
+<span id="optimization"></span><h2>Optimization<a class="headerlink" href="#module-bayesopt4ros.optim" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="bayesopt4ros.optim.minimize_restarts">
+<code class="sig-prename descclassname"><span class="pre">bayesopt4ros.optim.</span></code><code class="sig-name descname"><span class="pre">minimize_restarts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fun</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">scipy.optimize._constraints.Bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="_modules/bayesopt4ros/optim.html#minimize_restarts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.optim.minimize_restarts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thin wrapper around <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> with random restarts.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The starting points are not chosen by a Sobol sequence by design.
+Since already the initial design relies on the Sobol sequence and we do
+not want to start the local optimizer at the data points.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fun</strong> (<em>Callable</em>) – Function to be minimized.</p></li>
+<li><p><strong>bounds</strong> (<em>scipy.optimize.Bounds</em>) – Bounds for optimization.</p></li>
+<li><p><strong>n0</strong> (<em>int</em>) – Number of restarts.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The location of the best local optimum found.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
+<p>Documentation generated: Tuesday 16 March 2021, 3:59:22 PM</p>
 </div>
 
 
