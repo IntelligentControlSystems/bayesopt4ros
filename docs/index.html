@@ -92,6 +92,7 @@
 <li><a class="reference internal" href="#">BayesOpt4ROS</a><ul>
 <li><a class="reference internal" href="#why-bayesopt4ros">Why BayesOpt4ROS</a></li>
 <li><a class="reference internal" href="#introduction-to-bayesian-optimization">Introduction to Bayesian Optimization</a></li>
+<li><a class="reference internal" href="#how-to-use-bayesopt4ros">How to Use BayesOpt4ROS</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#documentation">Documentation</a><ul>
@@ -173,7 +174,13 @@
 <h1>BayesOpt4ROS<a class="headerlink" href="#bayesopt4ros" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<p>A Bayesian optimization package for the <a class="reference external" href="https://www.ros.org">Robot Operating System (ROS)</a>.</p>
+<p>A Bayesian optimization package for the <a class="reference external" href="https://www.ros.org">Robot Operating System (ROS)</a> developed by the <a class="reference external" href="https://idsc.ethz.ch/research-zeilinger.html">Intelligent Control Systems (ICS)</a> group at ETH Zurich.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This project is under active development.
+Therefore you might experience breaking changes without any warnings (sorry in advance).
+As soon as we have a stable version, we will tag the corresponding commit.</p>
+</div>
 <div class="section" id="why-bayesopt4ros">
 <h2>Why BayesOpt4ROS<a class="headerlink" href="#why-bayesopt4ros" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-todo admonition" id="id1">
@@ -186,6 +193,20 @@
 <div class="admonition-todo admonition" id="id2">
 <p class="admonition-title">Todo</p>
 <p>Short introduction to Bayesian Optimization</p>
+</div>
+</div>
+<div class="section" id="how-to-use-bayesopt4ros">
+<h2>How to Use BayesOpt4ROS<a class="headerlink" href="#how-to-use-bayesopt4ros" title="Permalink to this headline">¶</a></h2>
+<p>The following instructions will help you to get started with the BayesOpt4ROS package.
+You can directly clone the repository into your <code class="docutils literal notranslate"><span class="pre">catkin_workspace/src/</span></code> directory alongside your other packages.
+For the sake of this short tutorial, we have set up an exemplary workspace in <a class="reference external" href="https://github.com/lukasfro/bayesopt4ros_workspace">this repository</a> and for easy reproducibility we are are using Docker.
+However, feel free to set up the package to your preferences.
+If you do not have <a class="reference external" href="https://www.docker.com/get-started">Docker</a> installed, now would be a good time to do so.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are working on a MacBook M1 with ARM chip, you need to adapt the Dockerfile to pull the right ROS image.
+Just have a look <a class="reference external" href="https://github.com/lukasfro/bayesopt4ros_workspace/blob/main/Dockerfile">here</a> and uncomment the second line.
+The image based on ARM does not contain all the ROS tools that you need for development (e.g., rviz) but is typically used only for production.</p>
 </div>
 </div>
 </div>
