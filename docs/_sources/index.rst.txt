@@ -10,7 +10,7 @@ Welcome to BayesOpt4ROS's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+|today|
 
 Indices and tables
 ==================
