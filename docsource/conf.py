@@ -35,7 +35,7 @@ templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Miscealaneous -----------------------------------------------------------
-# todo_include_todos = True
+todo_include_todos = True
 today_fmt = "%A %d %B %Y, %X"
 
 # -- Options for HTML output -------------------------------------------------

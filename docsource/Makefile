@@ -24,3 +24,4 @@ github:
 	@make clean
 	@make html
 	@cp -a _build/html/. ../docs/
+	@make clean
