@@ -1,9 +1,13 @@
+#include "actionlib/client/simple_action_client.h"
 #include "math.h"
 #include "ros/ros.h"
-#include <unistd.h>
-#include <gtest/gtest.h>
+#include "unistd.h"
+#include "gtest/gtest.h"
 
-#include "bayesopt4ros/BayesOptSrv.h"
+#include "bayesopt4ros/BayesOptAction.h"
+
+using namespace bayesopt4ros;
+typedef actionlib::SimpleActionClient<BayesOptAction> Client;
 
 
 std::string vecToString(const std::vector<double> &v, int precision) {
@@ -44,80 +48,113 @@ double forresterFunction(const std::vector<double>& x) {
 
 
 class ExampleClient {
-    // ! A demonstration on how to use the BayesOpt service from a C++ node.
+    // ! A demonstration on how to use the BayesOpt server from a C++ node.
     public:
-        ExampleClient(std::string service_name, std::string objective) {
-            /*! Constructor of the client that queries the BayesOpt service.
+        ExampleClient(std::string server_name) : client_node_(server_name) {
+            /*! Constructor of the client that queries the BayesOpt server.
 
-            @param service_name     Name of the service (needs to be consistent with service node).
-            @param objective        Name of the example objective.
+            @param server_name    Name of the server (needs to be consistent with server node).
             */
             ros::NodeHandle nh;
-            objective_ = objective;
-            node_ = nh.serviceClient<bayesopt4ros::BayesOptSrv>(service_name);
+            ROS_WARN("[Client] Waiting for BayesOpt server to start.");
+            client_node_.waitForServer();
+
+            // First value is just to trigger the server
+            BayesOptGoal goal;
+            goal.y_new = 0.0;
+
+            // Need boost::bind to pass in the 'this' pointer
+            // For details see this tutorial:
+            // http://wiki.ros.org/actionlib_tutorials/Tutorials/Writing%20a%20Callback%20Based%20Simple%20Action%20Client
+            client_node_.sendGoal(goal, boost::bind(&ExampleClient::bayesOptCallback, this, _1, _2));
+            ROS_INFO("[Client] Sent initial request to server.");
+        }
+
+        void bayesOptCallback(const actionlib::SimpleClientGoalState& state,
+                          const BayesOptResultConstPtr& result) {
+
+            /*! This method is called everytime an iteration of BayesOpt finishes.*/
+            ROS_INFO("[Client] doneCallback is being called.");
+            x_new_ = result->x_new;
+            parametersWereUpdated_ = true;
+            std::string result_string = "[Client] x_new = " + vecToString(x_new_, 3);
+            ROS_INFO_STREAM(result_string);
+        }
+
+        bool checkServer() {
+            /*! Small helper that checks if server is online. If not, shutdown. */
+            bool isOnline = client_node_.waitForServer(ros::Duration(2.0));
+            if (isOnline) return true;
+            ROS_WARN("[Client] Server seems to be offline. Shutting down.");
+            ros::shutdown();
+            return false;
         }
 
         void run() {
             /*! Method that emulates client behavior. */
-
-            // First value is just to trigger the service
-            node_.waitForExistence();
-            srv_.request.value = 0.0;
-            bool success = node_.call(srv_);
-            std::vector<double> x_new = srv_.response.next;
-
-            // Start querying the BayesOpt service until it reached max iterations
-            std::size_t iter = 0;
-            while (true) {
-                ROS_INFO("[Client] Iteration %lu", iter+1);
-                std::string result_string = "[Client] x_new = " + vecToString(x_new, 3);
-                ROS_INFO_STREAM(result_string);
-                
+            if (checkServer() && parametersWereUpdated_)
+            {
                 // Emulate experiment by querying the objective function
-                if (objective_.compare("Forrester") == 0) {
-                    srv_.request.value = forresterFunction(x_new);
-                } else {
-                    ROS_ERROR("[Client] No such objective: %s", objective_.c_str());
-                    break;
+                double y_new = forresterFunction(x_new_);
+                parametersWereUpdated_ = false;
+                ROS_INFO("[Client] y_new = %.2f", y_new);   
+                
+                // Keeping track of best point so far for the integration test
+                if (y_new > y_best_) {
+                    y_best_ = y_new;
+                    x_best_ = x_new_;
                 }
 
-                if (srv_.request.value > y_best) {
-                    y_best = srv_.request.value;
-                    x_best = x_new;
-                }
-                ROS_INFO("[Client] y_new = %.2f, y_best = %.2f", srv_.request.value, y_best);
-
-                // Request service and obtain new parameters
-                success = node_.call(srv_);
-                if (success) {
-                    x_new = srv_.response.next;
-                } else {
-                    ROS_WARN("[Client] Invalid response. Shutting down!");
-                    break;
-                }
-                iter++;
+                // Send new goal to server
+                BayesOptGoal goal;
+                goal.y_new = y_new;
+                client_node_.sendGoal(goal, boost::bind(&ExampleClient::bayesOptCallback, this, _1, _2));
             }
         }
 
-        double y_best = std::numeric_limits<double>::min();
-        std::vector<double> x_best;
+        // Require those for checking the test condition
+        double y_best_ = std::numeric_limits<double>::min();
+        std::vector<double> x_best_;
     private:
-        ros::ServiceClient node_;
-        bayesopt4ros::BayesOptSrv srv_;
+        Client client_node_;
         std::string objective_;
+        bool parametersWereUpdated_ = false;
+        std::vector<double> x_new_;
 };
 
+
+// int main(int argc, char **argv)
+// {
+//     ros::init(argc, argv, "test_bayesopt_cpp_client");
+//     ExampleClient client("BayesOpt");
+//     ros::Rate loop_rate(10);
+
+//     while (ros::ok())
+//     {
+//         ros::spinOnce();
+//         client.run();
+//         loop_rate.sleep();
+//     }
+
+//     ros::shutdown();
+// }
 
 TEST(ClientTestSuite, testForrester)
 {
     // Create client node and corresponding service
-    ExampleClient client("BayesOpt", "Forrester");
-    client.run();
+    ExampleClient client("BayesOpt");
+    ros::Rate loop_rate(10);
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        client.run();
+        loop_rate.sleep();
+    }
     ros::shutdown();
 
     // Be kind w.r.t. precision of solution
-    ASSERT_NEAR(client.y_best, 6.021, 1e-3);
-    ASSERT_NEAR(client.x_best[0], 0.757, 1e-3);
+    ASSERT_NEAR(client.y_best_, 6.021, 1e-3);
+    ASSERT_NEAR(client.x_best_[0], 0.757, 1e-3);
 }
 
 int main(int argc, char **argv){
