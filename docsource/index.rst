@@ -40,12 +40,12 @@ If you do not have `Docker <https://www.docker.com/get-started>`_ installed, now
 Documentation
 =============
 
-The Bayesian Optimization Service Class
+The Bayesian Optimization Server Class
 ---------------------------------------
 
-.. automodule:: bayesopt_service
-.. autoclass:: BayesOptService
-   :members: __init__, handler, run
+.. automodule:: bayesopt_server
+.. autoclass:: BayesOptServer
+   :members: __init__, execute_callback, run
 
 The Bayesian Optimizer
 ----------------------
