@@ -33,12 +33,6 @@ add_action_files(
   FILES BayesOpt.action
 )
 
-## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  BayesOptSrv.srv
-)
-
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
@@ -67,9 +61,8 @@ include_directories(
 #############
 
 catkin_install_python(PROGRAMS
-  nodes/bayesopt_service.py
   nodes/bayesopt_server.py
-  test/integration/test_client_python.py
+#   test/integration/test_client_python.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
