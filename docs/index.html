@@ -92,7 +92,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#documentation">Documentation</a><ul>
-<li><a class="reference internal" href="#module-bayesopt_service">The Bayesian Optimization Service Class</a></li>
+<li><a class="reference internal" href="#module-bayesopt_server">The Bayesian Optimization Server Class</a></li>
 <li><a class="reference internal" href="#module-bayesopt4ros.bayesopt">The Bayesian Optimizer</a></li>
 <li><a class="reference internal" href="#module-bayesopt4ros.acq_func">Acquisition Functions</a></li>
 <li><a class="reference internal" href="#module-bayesopt4ros.optim">Optimization</a></li>
@@ -207,62 +207,66 @@ The image based on ARM does not contain all the ROS tools that you need for deve
 </div>
 <div class="section" id="documentation">
 <h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-bayesopt_service">
-<span id="the-bayesian-optimization-service-class"></span><h2>The Bayesian Optimization Service Class<a class="headerlink" href="#module-bayesopt_service" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-bayesopt_server">
+<span id="the-bayesian-optimization-server-class"></span><h2>The Bayesian Optimization Server Class<a class="headerlink" href="#module-bayesopt_server" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="bayesopt_service.BayesOptService">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt_service.</span></code><code class="sig-name descname"><span class="pre">BayesOptService</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService" title="Permalink to this definition">¶</a></dt>
-<dd><p>The Bayesian optimization service node.</p>
+<dt id="bayesopt_server.BayesOptServer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt_server.</span></code><code class="sig-name descname"><span class="pre">BayesOptServer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Bayesian optimization server node.</p>
 <p>Acts as a layer between the actual Bayesian optimization and ROS.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>We assume that the objective function is to be maximized!</p>
 </div>
 <dl class="py method">
-<dt id="bayesopt_service.BayesOptService.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>The BayesOptService class initializer.</p>
+<dt id="bayesopt_server.BayesOptServer.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The BayesOptServer class initializer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config_file</strong> (<em>str</em>) – File that describes all settings for Bayesian optimization.</p></li>
-<li><p><strong>service_name</strong> (<em>str</em>) – Name of the service that is used for ROS.</p></li>
+<li><p><strong>server_name</strong> (<em>str</em>) – Name of the server that is used for ROS.</p></li>
 <li><p><strong>log_file</strong> (<em>str</em>) – All input/output pairs are logged to this file.</p></li>
 <li><p><strong>anonymous</strong> (<em>bool</em>) – Flag if the node should be anonymous or not (see ROS documentation).</p></li>
 <li><p><strong>log_level</strong> (<em>int</em>) – Controls the log_level of the node’s output.</p></li>
 <li><p><strong>silent</strong> (<em>bool</em>) – Controls the verbosity of the node’s output.</p></li>
+<li><p><strong>node_rate</strong> (<em>float</em>) – Rate at which the server gives feedback.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="bayesopt_service.BayesOptService.handler">
-<code class="sig-name descname"><span class="pre">handler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">req</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.srv._BayesOptSrv.BayesOptSrv</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bayesopt4ros.srv._BayesOptSrv.BayesOptSrvResponse</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService.handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService.handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function that acts upon the request coming from a client.</p>
-<p>The service request/response are defined here: <code class="docutils literal notranslate"><span class="pre">srv/BayesOptSrv.srv</span></code></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">float64</span> <span class="n">value</span>
+<dt id="bayesopt_server.BayesOptServer.execute_callback">
+<code class="sig-name descname"><span class="pre">execute_callback</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer.execute_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer.execute_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that acts upon an action coming from a client.</p>
+<p>When the BayesOpt iteration is finished, the server internal state is
+set to ‘succeeded’ such that the respective <code class="docutils literal notranslate"><span class="pre">done_callback()</span></code> method
+of the client is called.</p>
+<p>The action message (goal/result/feedback) is defined here:
+<code class="docutils literal notranslate"><span class="pre">action/BayesOpt.action</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Goal: corresponds to the &quot;output valuee&quot; for BayesOpt</span>
+<span class="n">float64</span> <span class="n">y_new</span>
 <span class="o">---</span>
-<span class="n">float64</span><span class="p">[]</span> <span class="nb">next</span>
+<span class="c1"># Result: corresponds to the new parameters</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="n">x_new</span>
+<span class="o">---</span>
+<span class="c1"># Feedback: as of now we do not use this</span>
+<span class="nb">bool</span> <span class="n">feedback</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>req</strong> (<em>BayesOptSrv</em>) – The request coming from a client.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The corresponding response to the request.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>BayesOptSrvResponse</p>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptAction</em>) – The action (goal) coming from a client.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="bayesopt_service.BayesOptService.run">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt_service.html#BayesOptService.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_service.BayesOptService.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method that starts the node.</p>
+<dt id="bayesopt_server.BayesOptServer.run">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simply starts the server.</p>
 </dd></dl>
 
 </dd></dl>
@@ -275,7 +279,7 @@ The image based on ARM does not contain all the ROS tools that you need for deve
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt4ros.bayesopt.</span></code><code class="sig-name descname"><span class="pre">BayesianOptimization</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">scipy.optimize._constraints.Bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'UCB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization" title="Permalink to this definition">¶</a></dt>
 <dd><p>The Bayesian optimization class.</p>
 <p>Implements the actual heavy lifting that is done under the hood of
-<a class="reference internal" href="#bayesopt_service.BayesOptService" title="bayesopt_service.BayesOptService"><code class="xref py py-class docutils literal notranslate"><span class="pre">bayesopt_service.BayesOptService</span></code></a>.</p>
+<a class="reference internal" href="#bayesopt_server.BayesOptServer" title="bayesopt_server.BayesOptServer"><code class="xref py py-class docutils literal notranslate"><span class="pre">bayesopt_server.BayesOptServer</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>We assume that the objective function is to be maximized!</p>
@@ -335,7 +339,7 @@ best input-output pairs as well as the final GP model, respectively.</p>
 <p>The functionality of this method can generally be split into three steps:</p>
 <ol class="arabic simple">
 <li><p>Update the model with the new data.</p></li>
-<li><p>Retrieve a new point as response of the service.</p></li>
+<li><p>Retrieve a new point as response of the server.</p></li>
 <li><p>Save current state to file.</p></li>
 </ol>
 <dl class="field-list simple">
@@ -357,7 +361,7 @@ best input-output pairs as well as the final GP model, respectively.</p>
 <dd><p>Updates the GP model with the last function value obtained.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This function is only called once from the service, right before
+<p>This function is only called once from the server, right before
 shutting down the node. However, we still want to update the GP model
 with the latest data.</p>
 </div>
@@ -469,7 +473,7 @@ acquisition function value.</p>
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 </ul>
-<p>Documentation generated: Tuesday 16 March 2021, 4:10:40 PM</p>
+<p>Documentation generated: Friday 19 March 2021, 3:57:39 PM</p>
 </div>
 
 

@@ -1,4 +1,4 @@
 <launch>
-  <node name="BayesOptService" pkg="bayesopt4ros" type="bayesopt_service.py" args="-f $(find bayesopt4ros)/configs/example_config_forrester.yaml"/>
+  <node name="BayesOptServer" pkg="bayesopt4ros" type="bayesopt_server.py" args="-f $(find bayesopt4ros)/configs/example_config_forrester.yaml"/>
   <test test-name="TestClientCpp" pkg="bayesopt4ros" type="test_client_cpp"/>
 </launch>

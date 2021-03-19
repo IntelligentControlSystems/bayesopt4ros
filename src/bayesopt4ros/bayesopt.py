@@ -18,7 +18,7 @@ class BayesianOptimization(object):
     """The Bayesian optimization class.
 
     Implements the actual heavy lifting that is done under the hood of  
-    :class:`bayesopt_service.BayesOptService`.
+    :class:`bayesopt_server.BayesOptServer`.
 
     .. note:: We assume that the objective function is to be maximized!
     """
@@ -133,7 +133,7 @@ class BayesianOptimization(object):
         The functionality of this method can generally be split into three steps:
 
         1) Update the model with the new data.
-        2) Retrieve a new point as response of the service.
+        2) Retrieve a new point as response of the server.
         3) Save current state to file.
 
         Parameters
@@ -150,7 +150,7 @@ class BayesianOptimization(object):
         if self.x_new is not None:
             self._update_model(self.x_new, y_new)
 
-        # 2) Retrieve a new point as response of the service
+        # 2) Retrieve a new point as response of the server
         if self.x_new is None:
             # Haven't seen any data yet
             self.x_new = self.x_init[0]
@@ -169,7 +169,7 @@ class BayesianOptimization(object):
     def update_last_y(self, y_last: float) -> None:
         """Updates the GP model with the last function value obtained.
 
-        .. note:: This function is only called once from the service, right before
+        .. note:: This function is only called once from the server, right before
             shutting down the node. However, we still want to update the GP model
             with the latest data.
 
