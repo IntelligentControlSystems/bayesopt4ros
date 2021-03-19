@@ -8,6 +8,8 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  actionlib
+  actionlib_msgs
   roscpp
   rospy
   std_msgs
@@ -25,6 +27,12 @@ catkin_python_setup()
 ## Declare ROS messages, services and actions ##
 ################################################
 
+## Generate actions in the 'action' folder
+add_action_files(
+  DIRECTORY action
+  FILES BayesOpt.action
+)
+
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
@@ -34,6 +42,7 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
+  actionlib_msgs
   std_msgs
 )
 
@@ -42,7 +51,7 @@ generate_messages(
 ###################################
 
 catkin_package(
- CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+ CATKIN_DEPENDS actionlib actionlib_msgs roscpp rospy std_msgs message_runtime
 )
 
 ###########
@@ -59,6 +68,7 @@ include_directories(
 
 catkin_install_python(PROGRAMS
   nodes/bayesopt_service.py
+  nodes/bayesopt_server.py
   test/integration/test_client_python.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

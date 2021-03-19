@@ -1,0 +1,8 @@
+# Goal: corresponds to the "output valuee" for BayesOpt
+float64 y_new
+---
+# Result: corresponds to the new parameters
+float64[] x_new
+---
+# Feedback: as of now we do not use this
+bool feedback
