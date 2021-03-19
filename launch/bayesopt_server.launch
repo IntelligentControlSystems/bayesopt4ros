@@ -1,4 +1,4 @@
 <launch>
   <arg name="bayesopt_config" default="$(find bayesopt4ros)/configs/example_config_forrester.yaml"/>
-  <node name="BayesOptService" pkg="bayesopt4ros" type="bayesopt_service.py" args="-f $(arg bayesopt_config)" output="screen"/>
+  <node name="BayesOptServer" pkg="bayesopt4ros" type="bayesopt_server.py" args="-f $(arg bayesopt_config)" output="screen"/>
 </launch>

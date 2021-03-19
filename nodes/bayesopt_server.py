@@ -11,7 +11,7 @@ from bayesopt4ros.msg import BayesOptResult, BayesOptAction
 
 
 class BayesOptServer(object):
-    """The Bayesian optimization service node.
+    """The Bayesian optimization server node.
 
     Acts as a layer between the actual Bayesian optimization and ROS.
 
@@ -150,16 +150,17 @@ class BayesOptServer(object):
 
     @property
     def _log_prefix(self) -> str:
-        """! Convenience property that pre-fixes the logging strings. """
+        """Convenience property that pre-fixes the logging strings. """
         return f"[BayesOpt] Iteration {self.request_count}: "
 
     @staticmethod
     def run() -> None:
+        """Simply starts the server."""
         rospy.spin()
 
 
 if __name__ == "__main__":
-    parser = util.service_argparser()
+    parser = util.server_argparser()
     args, unknown = parser.parse_known_args()
     try:
         server = BayesOptServer(

@@ -2,14 +2,14 @@ import argparse
 import rospy
 
 
-def service_argparser():
-    """Sets up the argument parser used for the BayesOpt service."""
+def server_argparser():
+    """Sets up the argument parser used for the BayesOpt server."""
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "-f",
         "--config_file",
-        help="File containing the configuration for the Bayesian Optimization service",
+        help="File containing the configuration for the Bayesian Optimization server",
         type=str,
         required=True,
     )
@@ -24,7 +24,7 @@ def service_argparser():
 
     parser.add_argument(
         "--silent",
-        help="Prevents printing status/updates for the service",
+        help="Prevents printing status/updates for the server",
         action="store_true",
     )
 

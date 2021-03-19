@@ -122,26 +122,9 @@ class ExampleClient {
         std::vector<double> x_new_;
 };
 
-
-// int main(int argc, char **argv)
-// {
-//     ros::init(argc, argv, "test_bayesopt_cpp_client");
-//     ExampleClient client("BayesOpt");
-//     ros::Rate loop_rate(10);
-
-//     while (ros::ok())
-//     {
-//         ros::spinOnce();
-//         client.run();
-//         loop_rate.sleep();
-//     }
-
-//     ros::shutdown();
-// }
-
 TEST(ClientTestSuite, testForrester)
 {
-    // Create client node and corresponding service
+    // Create client node
     ExampleClient client("BayesOpt");
     ros::Rate loop_rate(10);
     while (ros::ok())
