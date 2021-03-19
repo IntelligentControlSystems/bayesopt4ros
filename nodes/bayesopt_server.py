@@ -146,7 +146,6 @@ class BayesOptServer(object):
         # Trigger done_callback of the client
         self.result.x_new = x_new
         self.server.set_succeeded(self.result)
-        rospy.loginfo(self._log_prefix + f"Set to succeded.")
 
     @property
     def _log_prefix(self) -> str:

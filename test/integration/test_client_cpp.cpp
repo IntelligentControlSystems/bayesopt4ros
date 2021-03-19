@@ -67,14 +67,12 @@ class ExampleClient {
             // For details see this tutorial:
             // http://wiki.ros.org/actionlib_tutorials/Tutorials/Writing%20a%20Callback%20Based%20Simple%20Action%20Client
             client_node_.sendGoal(goal, boost::bind(&ExampleClient::bayesOptCallback, this, _1, _2));
-            ROS_INFO("[Client] Sent initial request to server.");
         }
 
         void bayesOptCallback(const actionlib::SimpleClientGoalState& state,
-                          const BayesOptResultConstPtr& result) {
+                              const BayesOptResultConstPtr& result) {
 
             /*! This method is called everytime an iteration of BayesOpt finishes.*/
-            ROS_INFO("[Client] doneCallback is being called.");
             x_new_ = result->x_new;
             parametersWereUpdated_ = true;
             std::string result_string = "[Client] x_new = " + vecToString(x_new_, 3);
