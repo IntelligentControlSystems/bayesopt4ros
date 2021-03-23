@@ -32,8 +32,8 @@ def test_ucb_grad(test_gp):
     acq_func = UpperConfidenceBound(test_gp, beta=2.0)
 
     f = lambda x: acq_func(x, jac=False).squeeze()
-    g = lambda x: acq_func(x, jac=True)[0].squeeze()
+    g = lambda x: acq_func(x, jac=True)[1].squeeze()
 
     for _ in range(100):
         x_eval = np.random.uniform(low=-1.0, high=1.0, size=(dim,))
-        assert check_grad(f, g, x_eval)
+        assert check_grad(f, g, x_eval) < 1e-3
