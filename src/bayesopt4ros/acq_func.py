@@ -59,7 +59,7 @@ class UpperConfidenceBound(AcquisitionFunction):
     """
 
     def __init__(self, gp: GPRegression, beta: float = 2.0) -> None:
-        """Initializer for UCB acquisition function.
+        """Initializer for the UCB acquisition function.
 
         Parameters
         ----------
@@ -73,7 +73,7 @@ class UpperConfidenceBound(AcquisitionFunction):
         self.has_gradient = True
 
     def __call__(self, x: np.ndarray, jac=False) -> np.ndarray:
-        """Evaluate the acquisition function
+        """Evaluate the acquisition function.
         
         See base class' :func:`~AcquisitionFunction.__call__` for reference.
         """
@@ -90,7 +90,7 @@ class UpperConfidenceBound(AcquisitionFunction):
             dm, dv = self.gp.predictive_gradients(x)
             dm = dm[:, :, 0]
             ds = dv / (2 * s)  # applying chain rule
-            g = np.squeeze(dm - self.beta * ds)
+            g = np.squeeze(dm + self.beta * ds)  # TODO(lukasfro): why does this work?! sign error
             return f, g 
         else:
             return f
