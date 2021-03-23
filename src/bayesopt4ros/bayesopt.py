@@ -1,4 +1,3 @@
-import json
 import numpy as np
 import os
 import rospy
@@ -10,7 +9,7 @@ from GPy.models import GPRegression
 from scipy.optimize import Bounds
 from typing import Union
 
-from bayesopt4ros.acq_func import UpperConfidenceBound
+from bayesopt4ros.acq_func import UpperConfidenceBound, ExpectedImprovement
 from bayesopt4ros.optim import minimize_restarts
 
 
@@ -111,7 +110,7 @@ class BayesianOptimization(object):
             )
             exit(1)
 
-        # Bring bounds in correct format (2 x input_dim)
+        # Bring bounds in correct format
         lb = np.array(config["lower_bound"])
         ub = np.array(config["upper_bound"])
         bounds = Bounds(lb=lb, ub=ub)
@@ -228,9 +227,11 @@ class BayesianOptimization(object):
             Location of the acquisition function's optimum.
         """
         if self.acq_func.upper() == "UCB":
-            acq_func = UpperConfidenceBound(gp=self.gp, beta=2.0)
+            acq_func = UpperConfidenceBound(gp=self.gp)
+        elif self.acq_func.upper() == "EI":
+            acq_func = ExpectedImprovement(gp=self.gp)
         else:
-            raise NotImplementedError("Only UCB is currently implemented.")
+            raise NotImplementedError(f"{self.acq_func} is not a valid acquisition function")
 
         def acq_fun_wrapper(x):
             # Takes care of dimensionality mismatch between GPy and scipy.minimize
