@@ -1,5 +1,5 @@
 <launch>
   <arg name="objective" default="forrester" />
-  <node name="BayesOptService" pkg="bayesopt4ros" type="bayesopt_service.py" args="-f $(find bayesopt4ros)/configs/example_config_$(arg objective).yaml" output="screen"/>
+  <node name="BayesOptServer" pkg="bayesopt4ros" type="bayesopt_server.py" args="-f $(find bayesopt4ros)/configs/example_config_$(arg objective).yaml" output="screen"/>
   <test test-name="TestClientPython" pkg="bayesopt4ros" type="test_client_python.py" args="-o $(arg objective)"/>
 </launch>

@@ -1,40 +1,58 @@
+#!/usr/bin/env python3
+
+import actionlib
 import unittest
 import itertools
 import numpy as np
 import rospy
 import rostest
-import sys
 
 from typing import Callable, Union
 
-from bayesopt4ros.srv import BayesOptSrv
+from bayesopt4ros.msg import BayesOptAction, BayesOptGoal
 
 
 def forrester_function(x: Union[np.ndarray, float]) -> np.ndarray:
-    """! The Forrester test function for global optimization.
+    """The Forrester test function for global optimization.
 
     See definition here: https://www.sfu.ca/~ssurjano/forretal08.html
 
-    Note: We multiply by -1 to maximize the function instead of minimizing.
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Input to the function.
 
-    @param x    Input to the function.
+    Returns
+    -------
+    numpy.ndarray
+        Function value a given inputs.
 
-    @return Function value at given inputs.
+    Notes
+    -----
+    We multiply by -1 to maximize the function instead of minimizing.
     """
     x = np.array(x)
     return -1 * ((6.0 * x - 2.0) ** 2 * np.sin(12.0 * x - 4.0)).squeeze()
 
 
 def three_hump_camel_function(x: np.ndarray) -> np.ndarray:
-    """! The Three-Hump Camel test function for global optimization.
+    """The Three-Hump Camel test function for global optimization.
 
     See definition here: https://www.sfu.ca/~ssurjano/camel3.html
 
-    Note: We multiply by -1 to maximize the function instead of minimizing.
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Input to the function.
 
-    @param x    Input to the function.
+    Returns
+    -------
+    numpy.ndarray
+        Function value a given inputs.
 
-    @return Function value at given inputs.
+    Notes
+    -----
+    We multiply by -1 to maximize the function instead of minimizing.
     """
     x = np.atleast_2d(x)
     x1_terms = 2 * x[:, 0] ** 2 - 1.05 * x[:, 0] ** 4 + x[:, 0] ** 6 / 6
@@ -44,16 +62,23 @@ def three_hump_camel_function(x: np.ndarray) -> np.ndarray:
 
 
 class ExampleClient(object):
-    """! A demonstration on how to use the BayesOpt service from a Python node. """
+    """A demonstration on how to use the BayesOpt server from a Python node. """
 
-    def __init__(self, service_name: str, objective: Callable) -> None:
-        """! Initializer of the client that queries the BayesOpt service.
+    def __init__(self, server_name: str, objective: Callable) -> None:
+        """Initializer of the client that queries the BayesOpt server.
 
-        @param service_name     Name of the service (needs to be consistent with service node).
-        @param objective        Name of the example objective.
+        Parameters
+        ----------
+        server_name : str
+            Name of the server (needs to be consistent with server node).
+        objective : str
+            Name of the example objective.
         """
         rospy.init_node(self.__class__.__name__, anonymous=True, log_level=rospy.INFO)
-        self.service_name = service_name
+        self.client = actionlib.SimpleActionClient(server_name, BayesOptAction)
+        self.client.wait_for_server()
+
+        self.server_name = server_name
         self.y_best, self.x_best = -np.inf, None
         if objective == "Forrester":
             self.func = forrester_function
@@ -62,28 +87,31 @@ class ExampleClient(object):
         else:
             raise ValueError("No such objective.")
 
-    def request(self, value: float) -> np.ndarray:
-        """! Method that handles interaction with the service node.
+    def request(self, y_new: float) -> np.ndarray:
+        """Method that handles interaction with the server node.
 
-        @param value    The function value obtained from the objective/experiment.
+        Parameters
+        ----------
+        value : float
+            The function value obtained from the objective/experiment.
 
-        @return An array containing the new parameters suggested by BayesOpt service.
+        Returns
+        -------
+        numpy.ndarray
+            An array containing the new parameters suggested by BayesOpt server.
         """
-        rospy.wait_for_service(self.service_name)
-        try:
-            bayesopt_request = rospy.ServiceProxy(self.service_name, BayesOptSrv)
-            response = bayesopt_request(value)
-            return response.next
-        except rospy.ServiceException as e:
-            rospy.logwarn("[Client] Invalid response. Shutting down!")
-            rospy.signal_shutdown("Invalid response from BayesOptService.")
+        goal = BayesOptGoal(y_new=y_new)
+        self.client.send_goal(goal)
+        self.client.wait_for_result()
+        result = self.client.get_result()
+        return result.x_new
 
     def run(self) -> None:
-        """! Method that emulates client behavior."""
-        # First value is just to trigger the service
+        """Method that emulates client behavior."""
+        # First value is just to trigger the server
         x_new = self.request(0.0)
 
-        # Start querying the BayesOpt service until it reached max iterations
+        # Start querying the BayesOpt server until it reached max iterations
         for iter in itertools.count():
             rospy.loginfo(f"[Client] Iteration {iter + 1}")
             p_string = ", ".join([f"{xi:.3f}" for xi in x_new])
@@ -96,18 +124,19 @@ class ExampleClient(object):
                 self.x_best = x_new
             rospy.loginfo(f"[Client] y_new = {y_new:.2f}, y_best = {self.y_best:.2f}")
 
-            # Request service and obtain new parameters
+            # Request server and obtain new parameters
             x_new = self.request(y_new)
-            if x_new is None:
+            if not len(x_new):
+                rospy.loginfo("[Client] Terminating - invalid response from server.")
                 break
 
 
 class ClientTestCaseForrester(unittest.TestCase):
-    """! Integration test cases for exemplary Python client. """
+    """Integration test cases for exemplary Python client. """
 
     def test_forrester(self) -> None:
-        """! Testing client on 1-dimensional Forrester function."""
-        node = ExampleClient(service_name="BayesOpt", objective="Forrester")
+        """Testing client on 1-dimensional Forrester function."""
+        node = ExampleClient(server_name="BayesOpt", objective="Forrester")
         node.run()
 
         # Be kind w.r.t. precision of solution
@@ -116,11 +145,11 @@ class ClientTestCaseForrester(unittest.TestCase):
 
 
 class ClientTestCaseThreeHumpCamel(unittest.TestCase):
-    """! Integration test cases for exemplary Python client. """
+    """Integration test cases for exemplary Python client. """
 
     def test_three_hump_camel(self) -> None:
-        """! Testing client on 2-dimensional Three-Hump camel function."""
-        node = ExampleClient(service_name="BayesOpt", objective="ThreeHumpCamel")
+        """Testing client on 2-dimensional Three-Hump camel function."""
+        node = ExampleClient(server_name="BayesOpt", objective="ThreeHumpCamel")
         node.run()
 
         # Be kind w.r.t. precision of solution
