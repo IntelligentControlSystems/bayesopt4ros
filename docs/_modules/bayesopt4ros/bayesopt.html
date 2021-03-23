@@ -148,8 +148,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for bayesopt4ros.bayesopt</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">rospy</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
@@ -160,7 +159,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">Bounds</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">bayesopt4ros.acq_func</span> <span class="kn">import</span> <span class="n">UpperConfidenceBound</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.acq_func</span> <span class="kn">import</span> <span class="n">UpperConfidenceBound</span><span class="p">,</span> <span class="n">ExpectedImprovement</span>
 <span class="kn">from</span> <span class="nn">bayesopt4ros.optim</span> <span class="kn">import</span> <span class="n">minimize_restarts</span>
 
 
@@ -261,7 +260,7 @@
             <span class="p">)</span>
             <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="c1"># Bring bounds in correct format (2 x input_dim)</span>
+        <span class="c1"># Bring bounds in correct format</span>
         <span class="n">lb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;lower_bound&quot;</span><span class="p">])</span>
         <span class="n">ub</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;upper_bound&quot;</span><span class="p">])</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="n">ub</span><span class="p">)</span>
@@ -378,9 +377,11 @@
 <span class="sd">            Location of the acquisition function&#39;s optimum.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;UCB&quot;</span><span class="p">:</span>
-            <span class="n">acq_func</span> <span class="o">=</span> <span class="n">UpperConfidenceBound</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+            <span class="n">acq_func</span> <span class="o">=</span> <span class="n">UpperConfidenceBound</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;EI&quot;</span><span class="p">:</span>
+            <span class="n">acq_func</span> <span class="o">=</span> <span class="n">ExpectedImprovement</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Only UCB is currently implemented.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span><span class="si">}</span><span class="s2"> is not a valid acquisition function&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">acq_fun_wrapper</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
             <span class="c1"># Takes care of dimensionality mismatch between GPy and scipy.minimize</span>

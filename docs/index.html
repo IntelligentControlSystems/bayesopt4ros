@@ -390,32 +390,104 @@ with the latest data.</p>
 <div class="section" id="module-bayesopt4ros.acq_func">
 <span id="acquisition-functions"></span><h2>Acquisition Functions<a class="headerlink" href="#module-bayesopt4ros.acq_func" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="bayesopt4ros.acq_func.UpperConfidenceBound">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt4ros.acq_func.</span></code><code class="sig-name descname"><span class="pre">UpperConfidenceBound</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound" title="Permalink to this definition">¶</a></dt>
-<dd><p>The upper confidence bound (UCB) acquisition function.</p>
-<div class="math notranslate nohighlight">
-\[\alpha(x) = \mu(x) + \beta \sigma(x)\]</div>
+<dt id="bayesopt4ros.acq_func.AcquisitionFunction">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt4ros.acq_func.</span></code><code class="sig-name descname"><span class="pre">AcquisitionFunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#AcquisitionFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.AcquisitionFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract base class for acquisition functions.</p>
 <dl class="py method">
-<dt id="bayesopt4ros.acq_func.UpperConfidenceBound.__call__">
-<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound.__call__" title="Permalink to this definition">¶</a></dt>
+<dt id="bayesopt4ros.acq_func.AcquisitionFunction.__call__">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#AcquisitionFunction.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.AcquisitionFunction.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the acquisition function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>) – The location at which to evaluate the acquisition function.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>numpy.ndarray</em>) – The location at which to evaluate the acquisition function.</p></li>
+<li><p><strong>jac</strong> (<em>bool</em><em>, </em><em>optional: False</em>) – Specify if gradient should be returned as well (see notes).</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Acquisition function values evaluated at <cite>x</cite>.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>numpy.ndarray</p>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>numpy.ndarray</em> – Function values evaluated at <cite>x</cite> (if jac == False).</p></li>
+<li><p><em>(numpy.ndarray, numpy.ndarray)</em> – Function values and gradients evaluted at <cite>x</cite> (if jac == True).</p></li>
+</ul>
+</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Neat interfacing trick when using scipy.optimize.minimize:
+From the scipy documentation: “If jac is a Boolean and is True, fun is
+assumed to return the gradient along with the objective function. If
+False, the gradient will be estimated using ‘2-point’ finite difference
+estimation.”</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.acq_func.AcquisitionFunction.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#AcquisitionFunction.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.AcquisitionFunction.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for abstract acquisition function class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gp</strong> (<em>GPy.models.GPRegression</em>) – Gaussian process model used for computation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="bayesopt4ros.acq_func.ExpectedImprovement">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt4ros.acq_func.</span></code><code class="sig-name descname"><span class="pre">ExpectedImprovement</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#ExpectedImprovement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.ExpectedImprovement" title="Permalink to this definition">¶</a></dt>
+<dd><p>The expected improvement (EI) acquisition function.</p>
+<div class="math notranslate nohighlight">
+\[\alpha(x) = \sigma(x) \left( \phi(\gamma(x)) + \gamma(x)\Phi(\gamma(x))  \right)\]</div>
+<p>with <span class="math notranslate nohighlight">\(\gamma(x) = (\mu(x) - y^* - \xi)/\sigma(x)\)</span> and
+<span class="math notranslate nohighlight">\(\mu(x), \sigma(x)\)</span> being the posterior predictive mean and
+uncertainty of the Gaussian process model, respectively. <span class="math notranslate nohighlight">\(y^*\)</span> denotes
+the best observed function value so far and the parameter <span class="math notranslate nohighlight">\(\xi\)</span> governs
+the exploration behavior (larger -&gt; more exploration).</p>
+<dl class="py method">
+<dt id="bayesopt4ros.acq_func.ExpectedImprovement.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#ExpectedImprovement.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.ExpectedImprovement.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the acquisition function.</p>
+<p>See base class’ <a class="reference internal" href="#bayesopt4ros.acq_func.AcquisitionFunction.__call__" title="bayesopt4ros.acq_func.AcquisitionFunction.__call__"><code class="xref py py-func docutils literal notranslate"><span class="pre">__call__()</span></code></a> for reference.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bayesopt4ros.acq_func.ExpectedImprovement.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#ExpectedImprovement.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.ExpectedImprovement.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for the EI acquisition function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gp</strong> (<em>GPy.models.GPRegression</em>) – Gaussian process model used for computation.</p></li>
+<li><p><strong>xi</strong> (<em>float</em>) – Added jitter governing exploration/exploitation trade-off.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="bayesopt4ros.acq_func.UpperConfidenceBound">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bayesopt4ros.acq_func.</span></code><code class="sig-name descname"><span class="pre">UpperConfidenceBound</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound" title="Permalink to this definition">¶</a></dt>
+<dd><p>The upper confidence bound (UCB) acquisition function:</p>
+<div class="math notranslate nohighlight">
+\[\alpha(x) = \mu(x) + \beta \sigma(x)\]</div>
+<p>with <span class="math notranslate nohighlight">\(\mu(x), \sigma(x)\)</span> being the posterior predictive mean and
+uncertainty of the Gaussian process model, respectively. The uncertainty
+multiplier <span class="math notranslate nohighlight">\(\beta\)</span> governs the exploration/exploitation trade-off
+(larger -&gt; more exploration).</p>
+<dl class="py method">
+<dt id="bayesopt4ros.acq_func.UpperConfidenceBound.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the acquisition function.</p>
+<p>See base class’ <a class="reference internal" href="#bayesopt4ros.acq_func.AcquisitionFunction.__call__" title="bayesopt4ros.acq_func.AcquisitionFunction.__call__"><code class="xref py py-func docutils literal notranslate"><span class="pre">__call__()</span></code></a> for reference.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="bayesopt4ros.acq_func.UpperConfidenceBound.__init__">
 <code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">GPy.models.gp_regression.GPRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="_modules/bayesopt4ros/acq_func.html#UpperConfidenceBound.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.acq_func.UpperConfidenceBound.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializer for UCB acquisition function.</p>
+<dd><p>Initializer for the UCB acquisition function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -473,7 +545,7 @@ acquisition function value.</p>
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 </ul>
-<p>Documentation generated: Tuesday 23 March 2021, 9:01:15 AM</p>
+<p>Documentation generated: Tuesday 23 March 2021, 2:33:15 PM</p>
 </div>
 
 

@@ -151,13 +151,16 @@
 <span></span><span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span> <span class="k">as</span> <span class="n">gaussian</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">from</span> <span class="nn">GPy.models</span> <span class="kn">import</span> <span class="n">GPRegression</span>
 
 
-<span class="k">class</span> <span class="nc">AcquisitionFunction</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="AcquisitionFunction"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.AcquisitionFunction">[docs]</a><span class="k">class</span> <span class="nc">AcquisitionFunction</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract base class for acquisition functions.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GPRegression</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="AcquisitionFunction.__init__"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.AcquisitionFunction.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GPRegression</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Initializer for abstract acquisition function class.</span>
 
 <span class="sd">        Parameters</span>
@@ -167,32 +170,109 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="n">gp</span>
 
-    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="c1"># overwrite this if acquisition function has gradient implementation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_gradient</span> <span class="o">=</span> <span class="kc">False</span>  </div>
+
+<div class="viewcode-block" id="AcquisitionFunction.__call__"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.AcquisitionFunction.__call__">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;Evaluate the acquisition function.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        x : numpy.ndarray</span>
 <span class="sd">            The location at which to evaluate the acquisition function.</span>
+<span class="sd">        jac : bool, optional: False</span>
+<span class="sd">            Specify if gradient should be returned as well (see notes).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        numpy.ndarray</span>
-<span class="sd">            Acquisition function values evaluated at `x`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span>
+<span class="sd">            Function values evaluated at `x` (if jac == False).</span>
+<span class="sd">        (numpy.ndarray, numpy.ndarray)</span>
+<span class="sd">            Function values and gradients evaluted at `x` (if jac == True).</span>
 
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Neat interfacing trick when using scipy.optimize.minimize:</span>
+<span class="sd">        From the scipy documentation: &quot;If jac is a Boolean and is True, fun is</span>
+<span class="sd">        assumed to return the gradient along with the objective function. If</span>
+<span class="sd">        False, the gradient will be estimated using ‘2-point’ finite difference</span>
+<span class="sd">        estimation.&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span></div></div>
+
+
+<div class="viewcode-block" id="ExpectedImprovement"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.ExpectedImprovement">[docs]</a><span class="k">class</span> <span class="nc">ExpectedImprovement</span><span class="p">(</span><span class="n">AcquisitionFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The expected improvement (EI) acquisition function.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\alpha(x) = \sigma(x) \left( \phi(\gamma(x)) + \gamma(x)\Phi(\gamma(x))  \\right)</span>
+
+<span class="sd">    with :math:`\gamma(x) = (\mu(x) - y^* - \\xi)/\sigma(x)` and</span>
+<span class="sd">    :math:`\mu(x), \sigma(x)` being the posterior predictive mean and</span>
+<span class="sd">    uncertainty of the Gaussian process model, respectively. :math:`y^*` denotes</span>
+<span class="sd">    the best observed function value so far and the parameter :math:`\\xi` governs</span>
+<span class="sd">    the exploration behavior (larger -&gt; more exploration).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ExpectedImprovement.__init__"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.ExpectedImprovement.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span><span class="n">GPRegression</span><span class="p">,</span> <span class="n">xi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initializer for the EI acquisition function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        gp : GPy.models.GPRegression</span>
+<span class="sd">            Gaussian process model used for computation.</span>
+<span class="sd">        xi : float</span>
+<span class="sd">            Added jitter governing exploration/exploitation trade-off.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="n">xi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_gradient</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="ExpectedImprovement.__call__"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.ExpectedImprovement.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate the acquisition function.</span>
+<span class="sd">        </span>
+<span class="sd">        See base class&#39; :func:`~AcquisitionFunction.__call__` for reference.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gradient</span> <span class="k">if</span> <span class="n">jac</span> <span class="k">else</span> <span class="kc">True</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">kern</span><span class="o">.</span><span class="n">input_dim</span>
+
+        <span class="n">m</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">include_likelihood</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span> <span class="o">-</span> <span class="n">ys</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">)</span> <span class="o">/</span> <span class="n">s</span>
+
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">gaussian</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="n">Phi</span> <span class="o">=</span> <span class="n">gaussian</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="n">phi</span> <span class="o">+</span> <span class="n">u</span> <span class="o">*</span> <span class="n">Phi</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">jac</span><span class="p">:</span>
+            <span class="n">dm</span><span class="p">,</span> <span class="n">dv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predictive_gradients</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">dm</span> <span class="o">=</span> <span class="n">dm</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="n">dv</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">s</span><span class="p">)</span>  <span class="c1"># applying chain rule</span>
+            
+            <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">ds</span> <span class="o">*</span> <span class="n">phi</span> <span class="o">+</span> <span class="n">Phi</span> <span class="o">*</span> <span class="n">dm</span><span class="p">)</span>  <span class="c1"># TODO(lukasfro): check this visually</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span>    </div></div>
 
 <div class="viewcode-block" id="UpperConfidenceBound"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.UpperConfidenceBound">[docs]</a><span class="k">class</span> <span class="nc">UpperConfidenceBound</span><span class="p">(</span><span class="n">AcquisitionFunction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The upper confidence bound (UCB) acquisition function.</span>
+    <span class="sd">&quot;&quot;&quot;The upper confidence bound (UCB) acquisition function:</span>
 <span class="sd">    </span>
 <span class="sd">    .. math::</span>
 <span class="sd">        \\alpha(x) = \mu(x) + \\beta \sigma(x)</span>
+
+<span class="sd">    with :math:`\mu(x), \sigma(x)` being the posterior predictive mean and</span>
+<span class="sd">    uncertainty of the Gaussian process model, respectively. The uncertainty</span>
+<span class="sd">    multiplier :math:`\\beta` governs the exploration/exploitation trade-off</span>
+<span class="sd">    (larger -&gt; more exploration).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="UpperConfidenceBound.__init__"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.UpperConfidenceBound.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="n">GPRegression</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Initializer for UCB acquisition function.</span>
+        <span class="sd">&quot;&quot;&quot;Initializer for the UCB acquisition function.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -202,24 +282,32 @@
 <span class="sd">            Confidence multiplier governing exploration/exploitation trade-off.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_gradient</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="UpperConfidenceBound.__call__"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.UpperConfidenceBound.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="UpperConfidenceBound.__call__"><a class="viewcode-back" href="../../index.html#bayesopt4ros.acq_func.UpperConfidenceBound.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Evaluate the acquisition function.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        x : numpy.ndarray</span>
-<span class="sd">            The location at which to evaluate the acquisition function.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        numpy.ndarray</span>
-<span class="sd">            Acquisition function values evaluated at `x`.</span>
+<span class="sd">        </span>
+<span class="sd">        See base class&#39; :func:`~AcquisitionFunction.__call__` for reference.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">mu</span><span class="p">,</span> <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">include_likelihood</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">mu</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">std</span></div></div>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gradient</span> <span class="k">if</span> <span class="n">jac</span> <span class="k">else</span> <span class="kc">True</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">kern</span><span class="o">.</span><span class="n">input_dim</span>
+
+        <span class="n">m</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">include_likelihood</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">m</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">s</span>
+
+        <span class="k">if</span> <span class="n">jac</span><span class="p">:</span>
+            <span class="n">dm</span><span class="p">,</span> <span class="n">dv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">predictive_gradients</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">dm</span> <span class="o">=</span> <span class="n">dm</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="n">dv</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">s</span><span class="p">)</span>  <span class="c1"># applying chain rule</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">dm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">ds</span><span class="p">)</span>  <span class="c1"># TODO(lukasfro): why does this work?! sign error</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span></div></div>
+        
 </pre></div>
 
            </div>
