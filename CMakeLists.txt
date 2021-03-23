@@ -75,5 +75,20 @@ add_rostest_gtest(test_client_cpp test/integration/test_client_cpp.test test/int
 target_link_libraries(test_client_cpp ${catkin_LIBRARIES})
 
 # Add folders to be run by python
-add_rostest(test/integration/test_client_python.test ARGS objective:=forrester)
-add_rostest(test/integration/test_client_python.test ARGS objective:=three_hump_camel)
+# Note: I have not found a way to make this more automatic.
+
+# Upper Confidence Bound 
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=forrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/forrester_ucb.yaml)
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=three_hump_camel
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/three_hump_camel_ucb.yaml)
+
+# Expected Improvement
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=forrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/forrester_ei.yaml)
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=three_hump_camel
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/three_hump_camel_ei.yaml)
