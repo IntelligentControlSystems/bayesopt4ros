@@ -254,7 +254,8 @@ class BayesianOptimization(object):
         # TODO(lukasfro): Switch from sobol_seq to Scipy.stats.qmc.Sobol when SciPy 1.7 is out
         # NOTE(lukasfro): Sobol-seq is deprecated as of very recently. The currention development
         # version of Scipy 1.7 has a new subpackage 'QuasiMonteCarlo' which implements Sobol.
-        return sobol_seq.i4_sobol_generate(self.input_dim, n_init)
+        x0 = sobol_seq.i4_sobol_generate(self.input_dim, n_init)
+        return self.bounds.lb + (self.bounds.ub - self.bounds.lb) * x0
 
     def _log_results(self) -> None:
         """Log evaluations and GP model to file.
