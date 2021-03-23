@@ -58,8 +58,12 @@ Acquisition Functions
 ---------------------
 
 .. automodule:: bayesopt4ros.acq_func
+.. autoclass:: AcquisitionFunction
+   :members: __init__, __call__   
+.. autoclass:: ExpectedImprovement
+   :members: __init__, __call__
 .. autoclass:: UpperConfidenceBound
-    :members: __init__, __call__
+   :members: __init__, __call__
 
 Optimization
 ------------
