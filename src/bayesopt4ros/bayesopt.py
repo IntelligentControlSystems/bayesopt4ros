@@ -10,7 +10,7 @@ from scipy.optimize import Bounds
 from typing import Union
 
 from bayesopt4ros.acq_func import UpperConfidenceBound, ExpectedImprovement
-from bayesopt4ros.optim import minimize_restarts
+from bayesopt4ros.optim import maximize_restarts
 
 
 class BayesianOptimization(object):
@@ -233,14 +233,8 @@ class BayesianOptimization(object):
         else:
             raise NotImplementedError(f"{self.acq_func} is not a valid acquisition function")
 
-        def acq_fun_wrapper(x):
-            # Takes care of dimensionality mismatch between GPy and scipy.minimize
-            # Recall that acquisition functions are to be maximized but scipy minimizes
-            x = np.atleast_2d(x)
-            return -1 * acq_func(x).squeeze()
-
         # TODO(lukasfro): Possibly expose the `n0` parameter
-        xopt = minimize_restarts(fun=acq_fun_wrapper, bounds=self.bounds, n0=10)
+        xopt = maximize_restarts(acq_func=acq_func, bounds=self.bounds, n0=10)
 
         return xopt
 
