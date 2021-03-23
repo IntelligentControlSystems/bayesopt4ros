@@ -17,6 +17,8 @@ def forrester_function(x: Union[np.ndarray, float]) -> np.ndarray:
 
     See definition here: https://www.sfu.ca/~ssurjano/forretal08.html
 
+    .. note:: We multiply by -1 to maximize the function instead of minimizing.
+
     Parameters
     ----------
     x : numpy.ndarray
@@ -26,10 +28,6 @@ def forrester_function(x: Union[np.ndarray, float]) -> np.ndarray:
     -------
     numpy.ndarray
         Function value a given inputs.
-
-    Notes
-    -----
-    We multiply by -1 to maximize the function instead of minimizing.
     """
     x = np.array(x)
     return -1 * ((6.0 * x - 2.0) ** 2 * np.sin(12.0 * x - 4.0)).squeeze()
@@ -40,6 +38,9 @@ def three_hump_camel_function(x: np.ndarray) -> np.ndarray:
 
     See definition here: https://www.sfu.ca/~ssurjano/camel3.html
 
+    .. note:: We multiply by -1 to maximize the function instead of minimizing.
+        Also shift the inputs as the initial design would hit the optimum directly.
+
     Parameters
     ----------
     x : numpy.ndarray
@@ -49,12 +50,10 @@ def three_hump_camel_function(x: np.ndarray) -> np.ndarray:
     -------
     numpy.ndarray
         Function value a given inputs.
-
-    Notes
-    -----
-    We multiply by -1 to maximize the function instead of minimizing.
     """
     x = np.atleast_2d(x)
+    x[:, 0] -= 0.5
+    x[:, 1] -= 0.5
     x1_terms = 2 * x[:, 0] ** 2 - 1.05 * x[:, 0] ** 4 + x[:, 0] ** 6 / 6
     x12_terms = x[:, 0] * x[:, 1]
     x2_terms = x[:, 1] ** 2
@@ -140,8 +139,8 @@ class ClientTestCaseForrester(unittest.TestCase):
         node.run()
 
         # Be kind w.r.t. precision of solution
-        np.testing.assert_almost_equal(node.x_best, np.array([0.757]), decimal=3)
-        np.testing.assert_almost_equal(node.y_best, np.array([6.021]), decimal=3)
+        np.testing.assert_almost_equal(node.x_best, np.array([0.757]), decimal=2)
+        np.testing.assert_almost_equal(node.y_best, np.array([6.021]), decimal=2)
 
 
 class ClientTestCaseThreeHumpCamel(unittest.TestCase):
@@ -153,8 +152,8 @@ class ClientTestCaseThreeHumpCamel(unittest.TestCase):
         node.run()
 
         # Be kind w.r.t. precision of solution
-        np.testing.assert_almost_equal(node.x_best, np.array([0.0, 0.0]), decimal=2)
-        np.testing.assert_almost_equal(node.y_best, np.array([0.0]), decimal=3)
+        np.testing.assert_almost_equal(node.x_best, np.array([0.5, 0.5]), decimal=2)
+        np.testing.assert_almost_equal(node.y_best, np.array([0.0]), decimal=2)
 
 
 if __name__ == "__main__":
