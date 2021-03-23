@@ -4,6 +4,6 @@ input_dim: 2
 acq_func: "UCB"
 lower_bound: [-2.0, -2.0]
 upper_bound: [2.0, 2.0]
-max_iter: 30
+max_iter: 50
 n_init: 5
-log_dir: "./logs/"
+log_dir: "/root/ws/logs/three_hump_camel_ucb/"

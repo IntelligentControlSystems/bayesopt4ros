@@ -4,6 +4,6 @@ input_dim: 1
 acq_func: "EI"
 lower_bound: [0.0]
 upper_bound: [1.0]
-max_iter: 15
+max_iter: 25
 n_init: 1
-log_dir: "./logs/"
+log_dir: "/root/ws/logs/forrester_ei/"
