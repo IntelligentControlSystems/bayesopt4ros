@@ -59,12 +59,3 @@ jobs:
       run: |
         . devel_isolated/setup.sh
         catkin_make_isolated -j1 --catkin-make-args run_tests && catkin_test_results
-    
-    - name: Deploy API documentation
-      if: success() && github.ref == 'refs/heads/master' && github.event == 'push' 
-      uses: crazy-max/ghaction-github-pages@v2
-      with:
-        target_branch: gh-pages
-        build_dir: src/bayesopt4ros/docs/_build/html
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

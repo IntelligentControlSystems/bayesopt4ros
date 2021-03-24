@@ -1,0 +1,48 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+    container: lukasfro/bayesopt4ros:ci
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        path: "src/bayesopt4ros/"
+
+    - name: Set up catkin workspace
+      run: |
+        . /opt/ros/noetic/setup.sh
+        catkin_init_workspace
+        mkdir -p src/bayesopt4ros
+      
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        path: "src/bayesopt4ros/"
+
+    - name: Build catkin workspace
+      run: |
+        . /opt/ros/noetic/setup.sh
+        catkin_make_isolated
+
+    - name: Build sphinx documentation
+      run: |
+        . devel_isolated/setup.sh
+        cd src/bayesopt4ros/docs
+        make html
+        touch _build/html/.nojekyll
+
+    - name: Deploy API documentation
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v2
+      with:
+        target_branch: gh-pages
+        build_dir: src/bayesopt4ros/docs/_build/html
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
