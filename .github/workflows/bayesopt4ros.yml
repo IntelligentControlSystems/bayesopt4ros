@@ -30,6 +30,7 @@ jobs:
 
     - name: Build sphinx documentation
       run: |
+        . devel_isolated/setup.sh
         cd src/bayesopt4ros/docs
         make html
 
