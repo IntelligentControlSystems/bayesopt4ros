@@ -2,7 +2,7 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, generate-pages]
   pull_request:
     branches: [ main ]
 
