@@ -2,7 +2,7 @@ name: BayesOpt4ROS
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, generate-pages ]
   pull_request:
     branches: [ main ]
 
@@ -27,8 +27,12 @@ jobs:
       run: |
         . /opt/ros/noetic/setup.sh
         catkin_make_isolated
-        
-  test:
+
+    - name: Build sphinx documentation
+      run: |
+        cd src/bayesopt4ros/docs
+        make html
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
