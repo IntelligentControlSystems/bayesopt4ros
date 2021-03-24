@@ -12,7 +12,7 @@ jobs:
     container: lukasfro/bayesopt4ros:ci
 
     steps:
-    - uses: ./.github/actions/setup@v1
+    - uses: ./.github/actions/setup
     # - name: Set up catkin workspace
     #   run: |
     #     . /opt/ros/noetic/setup.sh
