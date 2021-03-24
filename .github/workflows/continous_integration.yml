@@ -17,7 +17,7 @@ jobs:
       with:
         path: "src/bayesopt4ros/"
 
-    - uses: ./.github/actions/setup/
+    - uses: ./src/bayesopt4ros/.github/actions/setup/
     # - name: Set up catkin workspace
     #   run: |
     #     . /opt/ros/noetic/setup.sh
