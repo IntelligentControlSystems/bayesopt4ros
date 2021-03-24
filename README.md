@@ -1,6 +1,14 @@
 # BayesOpt4ROS
 
-![workflow](https://github.com/lukasfro/bayesopt4ros/actions/workflows/bayesopt4ros.yml/badge.svg)
+<p align="center">
+  <a href="https://github.com/lukasfro/bayesopt4ros/actions">
+    <img src="https://github.com/lukasfro/bayesopt4ros/actions/workflows/continuous_integration.yml/badge.svg" alt="Integration test status badge">
+  </a>
+  
+  <a href="https://github.com/lukasfro/bayesopt4ros/actions">
+    <img src="https://github.com/lukasfro/bayesopt4ros/actions/workflows/pages_deployment.yml/badge.svg" alt="Documentation deployment status badge">
+  </a>
+</p>
 
 A Bayesian Optimisation package for ROS developed by the [Intelligent Control Systems (ICS)](https://idsc.ethz.ch/research-zeilinger.html) group at ETH Zurich. 
 
