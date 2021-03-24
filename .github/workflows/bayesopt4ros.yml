@@ -47,3 +47,9 @@ jobs:
       run: |
         . devel_isolated/setup.sh
         catkin_make_isolated -j1 --catkin-make-args run_tests && catkin_test_results
+
+  deploy:
+    - name: Build sphinx documentation
+      run: |
+        cd docs
+        make html
