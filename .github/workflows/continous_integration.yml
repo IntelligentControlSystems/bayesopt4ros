@@ -1,28 +1,29 @@
-name: BayesOpt4ROS
+name: Continuous Integration
 
 on:
   push:
-    branches: [ main, generate-pages ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build:
-
+  continuous-integration:
     runs-on: ubuntu-latest
-    container: lukasfro/bayesopt4ros:ci  # custom image
+    container: lukasfro/bayesopt4ros:ci
 
     steps:
-    - name: Set up catkin workspace
-      run: |
-        . /opt/ros/noetic/setup.sh
-        catkin_init_workspace
-        mkdir -p src/bayesopt4ros
-        
-    - uses: actions/checkout@v2
-      with:
-        path: "src/bayesopt4ros/"
-        
+    - uses: actions/setup@v1
+    # - name: Set up catkin workspace
+    #   run: |
+    #     . /opt/ros/noetic/setup.sh
+    #     catkin_init_workspace
+    #     mkdir -p src/bayesopt4ros
+      
+    # - name: Checkout repository
+    #   uses: actions/checkout@v2
+    #   with:
+    #     path: "src/bayesopt4ros/"
+
     - name: Build catkin workspace
       run: |
         . /opt/ros/noetic/setup.sh
@@ -35,20 +36,12 @@ jobs:
         make html
         touch _build/html/.nojekyll
 
-    - name: Deploy pages
-      if: success()
-      uses: crazy-max/ghaction-github-pages@v2
-      with:
-        target_branch: gh-pages
-        build_dir: src/bayesopt4ros/docs/_build/html
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Lint with flake8
+      # stop the build if there are Python syntax errors or undefined names
+      # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      # TODO(lukasfro): possibly adapt the settings to suite the project better
       run: |
-        # stop the build if there are Python syntax errors or undefined names
         flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Unittest with pytest
@@ -62,3 +55,12 @@ jobs:
       run: |
         . devel_isolated/setup.sh
         catkin_make_isolated -j1 --catkin-make-args run_tests && catkin_test_results
+    
+    - name: Deploy API documentation
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v2
+      with:
+        target_branch: gh-pages
+        build_dir: src/bayesopt4ros/docs/_build/html
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
