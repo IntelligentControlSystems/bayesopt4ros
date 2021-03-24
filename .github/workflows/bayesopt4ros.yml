@@ -33,6 +33,7 @@ jobs:
         . devel_isolated/setup.sh
         cd src/bayesopt4ros/docs
         make html
+        touch .nojekyll
 
     - name: Deploy pages
       if: success()
