@@ -2,7 +2,7 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ main, generate-pages]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -17,17 +17,16 @@ jobs:
       with:
         path: "src/bayesopt4ros/"
 
-    - uses: ./src/bayesopt4ros/.github/actions/setup/
-    # - name: Set up catkin workspace
-    #   run: |
-    #     . /opt/ros/noetic/setup.sh
-    #     catkin_init_workspace
-    #     mkdir -p src/bayesopt4ros
+    - name: Set up catkin workspace
+      run: |
+        . /opt/ros/noetic/setup.sh
+        catkin_init_workspace
+        mkdir -p src/bayesopt4ros
       
-    # - name: Checkout repository
-    #   uses: actions/checkout@v2
-    #   with:
-    #     path: "src/bayesopt4ros/"
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        path: "src/bayesopt4ros/"
 
     - name: Build catkin workspace
       run: |

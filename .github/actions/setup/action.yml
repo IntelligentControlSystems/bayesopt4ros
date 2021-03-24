@@ -1,9 +1,0 @@
-runs:
-  using: "composite"
-  steps:
-  - name: Set up catkin workspace
-    run: |
-      . /opt/ros/noetic/setup.sh
-      catkin_init_workspace
-      mkdir -p src/bayesopt4ros
-    
