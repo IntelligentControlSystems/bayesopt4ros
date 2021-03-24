@@ -7,7 +7,3 @@ runs:
       catkin_init_workspace
       mkdir -p src/bayesopt4ros
     
-  - name: Checkout repository
-    uses: actions/checkout@v2
-    with:
-      path: "src/bayesopt4ros/"

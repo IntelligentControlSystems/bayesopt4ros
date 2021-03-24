@@ -12,6 +12,11 @@ jobs:
     container: lukasfro/bayesopt4ros:ci
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        path: "src/bayesopt4ros/"
+
     - uses: ./.github/actions/setup/
     # - name: Set up catkin workspace
     #   run: |
