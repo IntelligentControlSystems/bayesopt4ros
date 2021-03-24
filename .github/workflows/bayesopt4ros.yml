@@ -33,12 +33,14 @@ jobs:
         cd src/bayesopt4ros/docs
         make html
 
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@4.1.0
+    - name: Deploy pages
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v2
       with:
-        branch: gh-pages # The branch the action should deploy to.
-        folder: src/bayesopt4ros/docs/_build/html # The folder the action should deploy.
-        workspace: src/bayesopt4ros
+        target_branch: gh-pages
+          build_dir: src/bayesopt4ros/docs/_build/html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Lint with flake8
       run: |
