@@ -38,6 +38,7 @@ jobs:
       with:
         branch: gh-pages # The branch the action should deploy to.
         folder: src/bayesopt4ros/docs/_build/html # The folder the action should deploy.
+        workspace: src/bayesopt4ros
 
     - name: Lint with flake8
       run: |
