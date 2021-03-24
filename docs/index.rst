@@ -69,7 +69,17 @@ Optimization
 ------------
 
 .. automodule:: bayesopt4ros.optim
-    :members: minimize_restarts
+    :members: maximize_restarts, get_anchor_points
+
+
+Integration Tests
+-----------------
+
+.. automodule:: test_client_python
+   :members: forrester_function, three_hump_camel_function
+.. autoclass:: ExampleClient
+   :members: __init__, request, run
+
 
 Indices and tables
 ==================

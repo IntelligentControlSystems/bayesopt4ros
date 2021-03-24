@@ -11,6 +11,8 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../src/bayesopt4ros"))
 sys.path.insert(0, os.path.abspath("../nodes"))
+sys.path.insert(0, os.path.abspath("../test/integration"))
+
 
 
 # -- Project information -----------------------------------------------------
