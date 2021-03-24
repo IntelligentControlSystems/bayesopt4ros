@@ -31,6 +31,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
+    "sphinx.ext.autosectionlabel",
 ]
 
 templates_path = ["_templates"]
