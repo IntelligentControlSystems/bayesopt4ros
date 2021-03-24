@@ -6,7 +6,7 @@
   </a>
   
   <a href="https://github.com/lukasfro/bayesopt4ros/actions">
-    <img src="https://github.com/lukasfro/bayesopt4ros/actions/workflows/pages_deployment.yml/badge.svg" alt="Documentation deployment status badge">
+    <img src="https://github.com/lukasfro/bayesopt4ros/actions/workflows/documentation_deployment.yml/badge.svg" alt="Documentation deployment status badge">
   </a>
 </p>
 
