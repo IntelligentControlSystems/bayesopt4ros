@@ -22,10 +22,15 @@ class BayesianOptimization(object):
 
     .. note:: We assume that the objective function is to be maximized!
 
+<<<<<<< Updated upstream
     .. note:: We normalize the input data to [0, 1]^d and the output data to
         zero median and unit variance. The convention within this class is that
         'x' or 'y' with a trailing zero, i.e., 'x0'/'y0' denotes that the data
         is normalized.
+
+=======
+>>>>>>> Stashed changes
+    .. todo:: Add flag to optinally minimize the objective instead.
     """
 
     def __init__(
@@ -40,10 +45,10 @@ class BayesianOptimization(object):
     ) -> None:
         """The BayesianOptimization class initializer.
 
-        .. note:: If a `log_dir` is specified, two different files will be 
-            created: 1) evaluations file, 2) model file. These store all and the
-            best input-output pairs as well as the final GP model, respectively.
-
+        .. note:: If a `log_dir` is specified, three different files will be 
+            created: 1) evaluations file, 2) model file, 3) config file. As the
+            names suggest, these store the evaluated points, the final GP model
+            as well as the configuration, respectively.
 
         Parameters
         ----------
@@ -86,10 +91,7 @@ class BayesianOptimization(object):
             self.evaluations_file = os.path.join(self.log_dir, "evaluations.yaml")
             self.model_file = os.path.join(self.log_dir, "model")
             self.config_file = os.path.join(self.log_dir, "config.yaml")
-        else:
-            # Don't log anything if no directory is specified
-            self.evaluations_file, self.model_file = None, None
-
+        
         if not (bounds.lb.shape[0] == bounds.ub.shape[0] == self.input_dim):
             raise ValueError("Shape of the bounds and input dimensionality does not match.")
 
