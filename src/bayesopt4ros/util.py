@@ -96,11 +96,11 @@ class DataHandler(object):
 
     @property
     def x_best(self):
-        return None
+        return self.data.x[np.argmax(self.data.y)]
 
     @property
     def y_best(self):
-        return None
+        return np.max(self.data.y)
 
     def __len__(self):
         return self.n_data

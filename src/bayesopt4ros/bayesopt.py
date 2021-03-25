@@ -192,17 +192,17 @@ class BayesianOptimization(object):
     @property
     def n_data(self) -> int:
         """Property for conveniently accessing number of data points."""
-        return self.gp.X.shape[0]
+        return self.data_handler.n_data
 
     @property
     def y_best(self) -> float:
         """Get the best function value observed so far."""
-        return np.max(self.gp.Y)
+        return self.data_handler.y_best
 
     @property
     def x_best(self) -> np.ndarray:
         """Get parameters for best function value so far."""
-        return self.gp.X[np.argmax(self.gp.Y)]
+        return self.data_handler.x_best
 
     def _update_model(self, y_new: float) -> None:
         """Updates the GP with new data. Creates a model if none exists yet.
