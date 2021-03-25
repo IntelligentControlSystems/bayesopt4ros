@@ -277,24 +277,15 @@ class BayesianOptimization(object):
             # Save config to file
             yaml.dump(self.config, open(self.config_file, "w"))
 
-            # Compute best input/output pair at each iteration so far
-            # TODO(lukasfro): make this better, so ugly... maybe keep x_best/y_best class properties up to date
-            x_best, y_best = [self.gp.X[0]], [self.gp.Y[0]]
-            for i in range(1, self.n_data):
-                if self.gp.Y[i] > y_best[-1]:
-                    y_best.append(self.gp.Y[i])
-                    x_best.append(self.gp.X[i])
-                else:
-                    y_best.append(y_best[-1])
-                    x_best.append(x_best[-1])
-            x_best = np.asarray(x_best)
-            y_best = np.asarray(y_best)
+            # Compute rolling best input/ouput pair
+            x, y = self.data_handler.get_xy(norm=False)
+
+            idx_best = np.array([np.argmax(y[:i+1]) for i in range(y.shape[0])])
+            x_best = x[idx_best]
+            y_best = y[idx_best]
 
             # Store all and optimal evaluation inputs/outputs to file
-            eval_dict = {
-                "x_eval": self.gp.X.tolist(),
-                "y_eval": self.gp.Y.tolist(),
-                "x_best": x_best.tolist(),
-                "y_best": y_best.tolist(),
-            }
-            yaml.dump(eval_dict, open(self.evaluations_file, "w"), indent=2)
+            data = self.data_handler.to_dict()
+            data.update({"x_best": x_best, "y_best": y_best})
+            data = {k: v.tolist() for k, v in data.items()}
+            yaml.dump(data, open(self.evaluations_file, "w"), indent=2)
