@@ -1,3 +1,4 @@
+import GPy
 import numpy as np
 import os
 import rospy
@@ -5,7 +6,6 @@ import shutil
 import sobol_seq
 import yaml
 
-from GPy.models import GPRegression
 from scipy.optimize import Bounds
 from typing import Union
 
@@ -218,8 +218,12 @@ class BayesianOptimization(object):
         if self.gp:
             self.gp.set_XY(**x0y0)
         else:
-            # TODO(lukasfro): Choose proper kernel with hyperparameters
-            self.gp = GPRegression(**x0y0)
+            kernel = GPy.kern.Matern52(input_dim=self.input_dim)
+            self.gp = GPy.models.GPRegression(**x0y0, kernel=kernel)
+            self.gp.likelihood.variance.set_prior(GPy.priors.Gamma(1.1, 0.05))
+            self.gp.kern.variance.set_prior(GPy.priors.Gamma(2.0, 0.15))
+            self.gp.kern.lengthscale.set_prior(GPy.priors.Gamma(3.0, 6.0))
+
         self.gp.optimize_restarts(num_restarts=10, verbose=False)
 
     def _optimize_acq(self) -> np.ndarray:
