@@ -32,6 +32,12 @@ Optimization
 .. automodule:: bayesopt4ros.optim
     :members: maximize_restarts, get_anchor_points
 
+Utilities
+---------
+
+.. automodule:: bayesopt4ros.util
+.. autoclass:: DataHandler
+   :members: __init__, get_xy, set_xy, add_xy, normalize_input, denormalize_input, normalize_output, denormalize_output, n_data, x_best, y_best, to_dict
 
 Integration Tests
 -----------------

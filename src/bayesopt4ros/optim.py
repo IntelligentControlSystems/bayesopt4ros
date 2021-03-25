@@ -9,7 +9,7 @@ from bayesopt4ros.acq_func import AcquisitionFunction
 
 def maximize_restarts(
     acq_func: AcquisitionFunction,
-    bounds: Bounds,
+    bounds: Bounds = None,
     n0: int = 1,
 ) -> np.ndarray:
     """Thin wrapper around ``scipy.optimize.minimize`` with random restarts.
@@ -23,7 +23,7 @@ def maximize_restarts(
     acq_func : :class:`~acq_func.AcquisitionFunction`
         Acquisition function to be maximized.
     bounds : scipy.optimize.Bounds
-        Bounds for optimization.
+        Bounds for optimization. If no bounds are provided, uses [0, 1]^d.
     n0 : int
         Number of restarts.
 
@@ -32,6 +32,10 @@ def maximize_restarts(
     numpy.ndarray
         The location of the best local optimum found.
     """
+    if bounds is None:
+        dim = acq_func.gp.kern.input_dim
+        bounds = Bounds(lb=np.zeros((dim,)), ub=np.ones((dim,)))
+
     x_anchor = get_anchor_points(acq_func, bounds, n0)
 
     def func(x):

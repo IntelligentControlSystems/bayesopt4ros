@@ -11,6 +11,7 @@ from typing import Union
 
 from bayesopt4ros.acq_func import UpperConfidenceBound, ExpectedImprovement
 from bayesopt4ros.optim import maximize_restarts
+from bayesopt4ros.util import DataHandler
 
 
 class BayesianOptimization(object):
@@ -20,6 +21,11 @@ class BayesianOptimization(object):
     :class:`bayesopt_server.BayesOptServer`.
 
     .. note:: We assume that the objective function is to be maximized!
+
+    .. note:: We normalize the input data to [0, 1]^d and the output data to
+        zero median and unit variance. The convention within this class is that
+        'x' or 'y' with a trailing zero, i.e., 'x0'/'y0' denotes that the data
+        is normalized.
     """
 
     def __init__(
@@ -62,9 +68,10 @@ class BayesianOptimization(object):
         self.acq_func = acq_func
         self.gp = None  # GP is initialized in self._update_model()
         self.n_init = n_init
-        self.x_init = self._initial_design(n_init)
-        self.x_new = None
+        self.x0_init = self._initial_design(n_init)
+        self.x0_new = None
         self.config = config
+        self.data_handler = DataHandler(bounds)
 
         self.log_dir = log_dir
         if self.log_dir is not None:
@@ -83,7 +90,8 @@ class BayesianOptimization(object):
             # Don't log anything if no directory is specified
             self.evaluations_file, self.model_file = None, None
 
-        assert bounds.lb.shape[0] == bounds.ub.shape[0] == self.input_dim
+        if not (bounds.lb.shape[0] == bounds.ub.shape[0] == self.input_dim):
+            raise ValueError("Shape of the bounds and input dimensionality does not match.")
 
     @classmethod
     def from_file(cls, config_file: str):
@@ -146,24 +154,25 @@ class BayesianOptimization(object):
             The new parameters as an array.
         """
         # 1) Update the model with the new data
-        if self.x_new is not None:
-            self._update_model(self.x_new, y_new)
+        if self.x0_new is not None:
+            self._update_model(y_new)
 
         # 2) Retrieve a new point as response of the server
-        if self.x_new is None:
+        if self.x0_new is None:
             # Haven't seen any data yet
-            self.x_new = self.x_init[0]
+            self.x0_new = self.x0_init[0]
         elif self.n_data < self.n_init:
             # Stil in the initial phase
-            self.x_new = self.x_init[self.n_data]
+            self.x0_new = self.x0_init[self.n_data]
         else:
             # Actually optimizing the acquisition function for new points
-            self.x_new = self._optimize_acq()
+            self.x0_new = self._optimize_acq()
 
         # 3) Save current state to file
-        # TODO(lukasfro): Store current model to file.
+        if self.gp is not None:
+            self._log_results()
 
-        return self.x_new
+        return self.data_handler.denormalize_input(self.x0_new)
 
     def update_last_y(self, y_last: float) -> None:
         """Updates the GP model with the last function value obtained.
@@ -177,7 +186,8 @@ class BayesianOptimization(object):
         y_last : float
            The function value obtained from the last experiment.
         """
-        self._update_model(self.x_new, y_last)
+        self._update_model(y_last)
+        self._log_results()
 
     @property
     def n_data(self) -> int:
@@ -194,29 +204,23 @@ class BayesianOptimization(object):
         """Get parameters for best function value so far."""
         return self.gp.X[np.argmax(self.gp.Y)]
 
-    def _update_model(self, x_new: np.ndarray, y_new: Union[float, np.ndarray]) -> None:
+    def _update_model(self, y_new: float) -> None:
         """Updates the GP with new data. Creates a model if none exists yet.
 
         Parameters
         ----------
-        x_new : numpy.ndarray
-            The parameter from the last experiment.
         y_new : float
-            The function value obtained from the last experient.
+            The function value obtained from the last experiment.
         """
-        x_new, y_new = np.atleast_2d(x_new), np.atleast_2d(y_new)
-        assert x_new.ndim == 2 and y_new.ndim == 2
-        assert x_new.shape[0] == y_new.shape[0]
+        self.data_handler.add_xy(x0=self.x0_new, y=y_new)
+        x0y0 = self.data_handler.get_xy(norm=True, as_dict=True)
 
         if self.gp:
-            X = np.concatenate((self.gp.X, x_new))
-            Y = np.concatenate((self.gp.Y, y_new))
-            self.gp.set_XY(X=X, Y=Y)
+            self.gp.set_XY(**x0y0)
         else:
             # TODO(lukasfro): Choose proper kernel with hyperparameters
-            self.gp = GPRegression(X=x_new, Y=y_new)
+            self.gp = GPRegression(**x0y0)
         self.gp.optimize_restarts(num_restarts=10, verbose=False)
-        self._log_results()
 
     def _optimize_acq(self) -> np.ndarray:
         """Optimizes the acquisition function.
@@ -234,9 +238,8 @@ class BayesianOptimization(object):
             raise NotImplementedError(f"{self.acq_func} is not a valid acquisition function")
 
         # TODO(lukasfro): Possibly expose the `n0` parameter
-        xopt = maximize_restarts(acq_func=acq_func, bounds=self.bounds, n0=10)
-
-        return xopt
+        x0_opt = maximize_restarts(acq_func=acq_func, n0=10)
+        return x0_opt
 
     def _initial_design(self, n_init: int) -> np.ndarray:
         """Create initial data points from a Sobol sequence.
@@ -254,8 +257,7 @@ class BayesianOptimization(object):
         # TODO(lukasfro): Switch from sobol_seq to Scipy.stats.qmc.Sobol when SciPy 1.7 is out
         # NOTE(lukasfro): Sobol-seq is deprecated as of very recently. The currention development
         # version of Scipy 1.7 has a new subpackage 'QuasiMonteCarlo' which implements Sobol.
-        x0 = sobol_seq.i4_sobol_generate(self.input_dim, n_init)
-        return self.bounds.lb + (self.bounds.ub - self.bounds.lb) * x0
+        return sobol_seq.i4_sobol_generate(self.input_dim, n_init)
 
     def _log_results(self) -> None:
         """Log evaluations and GP model to file.
