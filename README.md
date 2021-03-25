@@ -34,8 +34,6 @@ In case you find our package helpful and want to contribute, please either raise
 
 These are some issues that need to be addressed for the first release of the package.
 
-- [ ] [BO] Scale input space to unit (hyper)cube
-- [ ] [BO] Scale output space to zero mean / unit variance
 - [ ] [BO] Set up reasonable hyper priors for GP parameters
 
 ## Testing
