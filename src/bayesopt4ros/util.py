@@ -163,7 +163,7 @@ class DataHandler(object):
 
     def to_dict(self):
         """Writes all data to a dictionary."""
-        raise NotImplementedError()
+        return self.data.toDict()
 
 
 def server_argparser():
