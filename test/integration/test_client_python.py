@@ -1,63 +1,45 @@
 #!/usr/bin/env python3
 
 import actionlib
-import unittest
 import itertools
+import unittest
 import numpy as np
 import rospy
 import rostest
+import torch
 
-from typing import Callable, Union
+from botorch.test_functions import SyntheticTestFunction, ThreeHumpCamel
+from typing import Callable
 
 from bayesopt4ros.msg import BayesOptAction, BayesOptGoal
 
 
-def forrester_function(x: Union[np.ndarray, float]) -> np.ndarray:
+class Forrester(SyntheticTestFunction):
     """The Forrester test function for global optimization.
-
     See definition here: https://www.sfu.ca/~ssurjano/forretal08.html
-
-    .. note:: We multiply by -1 to maximize the function instead of minimizing.
-
-    Parameters
-    ----------
-    x : numpy.ndarray
-        Input to the function.
-
-    Returns
-    -------
-    numpy.ndarray
-        Function value a given inputs.
     """
-    x = np.array(x)
-    return -1 * ((6.0 * x - 2.0) ** 2 * np.sin(12.0 * x - 4.0)).squeeze()
+
+    dim = 1
+    _bounds = [(0.0, 1.0)]
+    _optimal_value = -6.021
+    _optimizers = [(0.757)]
+
+    def evaluate_true(self, X: torch.Tensor) -> torch.Tensor:
+        return (6.0 * X - 2.0) ** 2 * torch.sin(12.0 * X - 4.0)
 
 
-def three_hump_camel_function(x: np.ndarray) -> np.ndarray:
+class ShiftedThreeHumpCamel(ThreeHumpCamel):
     """The Three-Hump Camel test function for global optimization.
 
     See definition here: https://www.sfu.ca/~ssurjano/camel3.html
 
-    .. note:: We multiply by -1 to maximize the function instead of minimizing.
-        Also shift the inputs as the initial design would hit the optimum directly.
-
-    Parameters
-    ----------
-    x : numpy.ndarray
-        Input to the function.
-
-    Returns
-    -------
-    numpy.ndarray
-        Function value a given inputs.
+    .. note:: We shift the inputs as the initial design would hit the optimum directly.
     """
-    x = np.atleast_2d(x)
-    x[:, 0] -= 0.5
-    x[:, 1] -= 0.5
-    x1_terms = 2 * x[:, 0] ** 2 - 1.05 * x[:, 0] ** 4 + x[:, 0] ** 6 / 6
-    x12_terms = x[:, 0] * x[:, 1]
-    x2_terms = x[:, 1] ** 2
-    return -1 * (x1_terms + x12_terms + x2_terms).squeeze()
+
+    _optimizers = [(0.5, 0.5)]
+
+    def evaluate_true(self, X: torch.Tensor) -> torch.Tensor:
+        return super().evaluate_true(X - 0.5)
 
 
 class ExampleClient(object):
@@ -80,9 +62,9 @@ class ExampleClient(object):
         self.server_name = server_name
         self.y_best, self.x_best = -np.inf, None
         if objective == "Forrester":
-            self.func = forrester_function
+            self.func = Forrester(negate=True)
         elif objective == "ThreeHumpCamel":
-            self.func = three_hump_camel_function
+            self.func = ShiftedThreeHumpCamel(negate=True)
         else:
             raise ValueError("No such objective.")
 
@@ -116,7 +98,7 @@ class ExampleClient(object):
             p_string = ", ".join([f"{xi:.3f}" for xi in x_new])
             rospy.loginfo(f"[Client] x_new = [{p_string}]")
             # Emulate experiment by querying the objective function
-            y_new = self.func(x_new)
+            y_new = self.func(torch.atleast_2d(torch.tensor(x_new))).squeeze().item()
 
             if y_new > self.y_best:
                 self.y_best = y_new
@@ -130,50 +112,41 @@ class ExampleClient(object):
                 break
 
 
-class ClientTestCaseForrester(unittest.TestCase):
-    """Integration test cases for exemplary Python client. """
+class ClientTestCase(unittest.TestCase):
+    """Integration test cases for exemplary Python client."""
 
-    def test_forrester(self) -> None:
-        """Testing client on 1-dimensional Forrester function."""
-        node = ExampleClient(server_name="BayesOpt", objective="Forrester")
+    _objective_name = None
+
+    def test_objective(self) -> None:
+        """Testing the client on the defined objective_function function. """
+        node = ExampleClient(server_name="BayesOpt", objective=self._objective_name)
         node.run()
 
-        # Be kind w.r.t. precision of solution
-        np.testing.assert_almost_equal(node.x_best, np.array([0.757]), decimal=2)
-        np.testing.assert_almost_equal(node.y_best, np.array([6.021]), decimal=2)
-
-
-class ClientTestCaseThreeHumpCamel(unittest.TestCase):
-    """Integration test cases for exemplary Python client. """
-
-    def test_three_hump_camel(self) -> None:
-        """Testing client on 2-dimensional Three-Hump camel function."""
-        node = ExampleClient(server_name="BayesOpt", objective="ThreeHumpCamel")
-        node.run()
+        x_opt = np.array(node.func.optimizers[0])
+        y_opt = np.array(node.func.optimal_value)
 
         # Be kind w.r.t. precision of solution
-        np.testing.assert_almost_equal(node.x_best, np.array([0.5, 0.5]), decimal=2)
-        np.testing.assert_almost_equal(node.y_best, np.array([0.0]), decimal=2)
+        np.testing.assert_almost_equal(node.x_best, x_opt, decimal=2)
+        np.testing.assert_almost_equal(node.y_best, y_opt, decimal=2)
+
+
+class ClientTestCaseForrester(ClientTestCase):
+    _objective_name = "Forrester"
+
+
+class ClientTestCaseThreeHumpCamel(ClientTestCase):
+    _objective_name = "ThreeHumpCamel"
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-o",
-        "--objective",
-        help="Objective's name",
-        choices=["forrester", "three_hump_camel"],
-    )
-    args, unknown = parser.parse_known_args()
-
     # Note: unfortunately, rostest.rosrun does not allow to parse arguments
     # This can probably be done more efficiently but honestly, the ROS documentation for
     # integration testing is kind of outdated and not very thorough...
-    if args.objective == "forrester":
+    objective = rospy.get_param("/objective")
+
+    if objective == "Forrester":
         rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCaseForrester)
-    elif args.objective == "three_hump_camel":
+    elif objective == "ThreeHumpCamel":
         rostest.rosrun(
             "bayesopt4ros", "test_python_client", ClientTestCaseThreeHumpCamel
         )
