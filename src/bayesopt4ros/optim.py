@@ -16,7 +16,9 @@ def maximize_restarts(
 
     .. note:: The starting points are not chosen by a Sobol sequence by design.
         Since already the initial design relies on the Sobol sequence and we do
-        not want to start the local optimizer at the data points.
+        not want to start the local optimizer at the data points. Instead, we
+        evaluate the function at many locations and randomly sample `n0` of
+        those locations based on the function value, see :ref:`~get_anchor_points`.
 
     Parameters
     ----------
