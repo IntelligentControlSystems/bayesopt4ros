@@ -61,10 +61,15 @@ class BayesOptServer(object):
         )
         self.server.start()
 
+        try:
+            self.bo = BayesianOptimization.from_file(config_file)
+        except Exception as e:
+            rospy.logerr(f"[BayesOpt] Something went wrong with initialization: '{e}'")
+            rospy.signal_shutdown("Initialization of BayesOpt failed.")
+
         self.request_count = 0
         self.log_file = log_file
         self.config_file = config_file
-        self.bo = BayesianOptimization.from_file(config_file)
         self.silent = silent
         self.result = BayesOptResult()
         self.rosrate = rospy.Rate(node_rate)
