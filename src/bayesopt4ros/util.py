@@ -1,11 +1,9 @@
 import argparse
-import numpy as np
 import rospy
 import torch
 
 from botorch.exceptions.errors import BotorchTensorDimensionError
 from botorch.utils.containers import TrainingData
-from dotmap import DotMap
 from torch import Tensor
 from typing import Union
 
