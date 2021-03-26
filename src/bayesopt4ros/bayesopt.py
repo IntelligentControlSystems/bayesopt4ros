@@ -22,15 +22,12 @@ class BayesianOptimization(object):
 
     .. note:: We assume that the objective function is to be maximized!
 
-<<<<<<< Updated upstream
     .. note:: We normalize the input data to [0, 1]^d and the output data to
         zero median and unit variance. The convention within this class is that
         'x' or 'y' with a trailing zero, i.e., 'x0'/'y0' denotes that the data
         is normalized.
 
-=======
->>>>>>> Stashed changes
-    .. todo:: Add flag to optinally minimize the objective instead.
+    .. todo:: Add flag to optionally minimize the objective instead.
     """
 
     def __init__(
