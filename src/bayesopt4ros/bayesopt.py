@@ -1,6 +1,7 @@
 import os
 import rospy
 import shutil
+import time
 import torch
 import yaml
 
@@ -82,6 +83,8 @@ class BayesianOptimization(object):
         self.log_dir = log_dir
         # TODO(lukasfro): make a separate function for this
         if self.log_dir is not None:
+            self.log_dir = os.path.join(self.log_dir, time.strftime("%Y-%m-%d-%H-%M-%S"))
+
             if not os.path.exists(self.log_dir):
                 os.mkdir(self.log_dir)
                 rospy.loginfo(f"Created logging directory: {self.log_dir}")
