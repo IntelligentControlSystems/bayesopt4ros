@@ -79,16 +79,16 @@ target_link_libraries(test_client_cpp ${catkin_LIBRARIES})
 
 # Upper Confidence Bound 
 add_rostest(test/integration/test_client_python.test ARGS
-  objective:=forrester
+  objective:=Forrester
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/forrester_ucb.yaml)
 add_rostest(test/integration/test_client_python.test ARGS
-  objective:=three_hump_camel
+  objective:=ThreeHumpCamel
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/three_hump_camel_ucb.yaml)
 
 # Expected Improvement
 add_rostest(test/integration/test_client_python.test ARGS
-  objective:=forrester
+  objective:=Forrester
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/forrester_ei.yaml)
 add_rostest(test/integration/test_client_python.test ARGS
-  objective:=three_hump_camel
+  objective:=ThreeHumpCamel
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/three_hump_camel_ei.yaml)
