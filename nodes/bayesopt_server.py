@@ -164,6 +164,7 @@ class BayesOptServer(object):
 
 
 if __name__ == "__main__":
+    # TODO(lukasfro): use rospy.getparam()
     parser = util.server_argparser()
     args, unknown = parser.parse_known_args()
     try:

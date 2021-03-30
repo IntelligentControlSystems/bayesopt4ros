@@ -86,7 +86,7 @@ class BayesianOptimization(object):
             self.log_dir = os.path.join(self.log_dir, time.strftime("%Y-%m-%d-%H-%M-%S"))
 
             if not os.path.exists(self.log_dir):
-                os.mkdir(self.log_dir)
+                os.makedirs(self.log_dir, )
                 rospy.loginfo(f"Created logging directory: {self.log_dir}")
             else:
                 # TODO(lukasfro): if non-empty log_dir exists, assume that we want to continue the optimization
