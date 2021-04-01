@@ -1,4 +1,4 @@
-# Goal: corresponds to the "output valuee" for BayesOpt
+# Goal: corresponds to the "output value" for BayesOpt
 float64 y_new
 ---
 # Result: corresponds to the new parameters
