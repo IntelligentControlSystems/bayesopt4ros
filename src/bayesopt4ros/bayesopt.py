@@ -159,7 +159,7 @@ class BayesianOptimization(object):
             The new parameters as an array.
         """
         # 1) Update the model with the new data
-        self._update_model(goal.y_new)
+        self._update_model(goal)
 
         # 2) Retrieve a new point as response of the server
         self.x_new = self._get_next_x()
@@ -181,7 +181,7 @@ class BayesianOptimization(object):
         goal : BayesOptAction
             The goal sent from the client for the last recent experiment.
         """
-        self._update_model(goal.y_new)
+        self._update_model(goal)
         self._log_results()
 
     def _get_next_x(self):
@@ -211,20 +211,20 @@ class BayesianOptimization(object):
         """Get parameters for best function value so far."""
         return self.data_handler.x_best
 
-    def _update_model(self, y_new: float) -> None:
+    def _update_model(self, goal) -> None:
         """Updates the GP with new data. Creates a model if none exists yet.
 
         Parameters
         ----------
-        y_new : float
-            The function value obtained from the last experiment.
+        goal : BayesOptAction
+            The goal sent from the client for the most recent experiment.
         """
         if self.x_new is None:
             # The very first function value we obtain from the client is just to
             # trigger the server. At that point, there is no new input point,
             # hence, no need to need to update the model.
             return
-        self.data_handler.add_xy(x=self.x_new, y=torch.tensor([[y_new]]))
+        self.data_handler.add_xy(x=self.x_new, y=torch.tensor([[goal.y_new]]))
 
         if self.n_data >= self.n_init:
             # Only create model once we are done with the initial design phase
