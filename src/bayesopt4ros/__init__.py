@@ -1,1 +1,2 @@
 from .bayesopt import BayesianOptimization
+from .contextual_bayesopt import ContextualBayesianOptimization

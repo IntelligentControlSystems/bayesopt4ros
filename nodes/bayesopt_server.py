@@ -14,8 +14,6 @@ class BayesOptServer(object):
     """The Bayesian optimization server node.
 
     Acts as a layer between the actual Bayesian optimization and ROS.
-
-    .. note:: We assume that the objective function is to be maximized!
     """
 
     def __init__(

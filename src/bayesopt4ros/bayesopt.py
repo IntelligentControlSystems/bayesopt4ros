@@ -100,7 +100,7 @@ class BayesianOptimization(object):
             raise ValueError("Bounds do not match input dimensionality.")
 
     @classmethod
-    def from_file(cls, config_file: str):
+    def from_file(cls, config_file: str) -> BayesianOptimization:
         """Initialize a BayesianOptimization instance from a config file.
 
         Parameters
