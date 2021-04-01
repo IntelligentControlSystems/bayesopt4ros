@@ -43,11 +43,19 @@ class DataHandler(object):
         return self.data.X.shape[0]
 
     @property
-    def x_best(self):
+    def x_min(self):
+        return self.data.X[torch.argmin(self.data.Y)]
+
+    @property
+    def y_min(self):
+        return torch.min(self.data.Y)
+
+    @property
+    def x_max(self):
         return self.data.X[torch.argmax(self.data.Y)]
 
     @property
-    def y_best(self):
+    def y_max(self):
         return torch.max(self.data.Y)
 
     def __len__(self):

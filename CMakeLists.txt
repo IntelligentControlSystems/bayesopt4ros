@@ -92,3 +92,8 @@ add_rostest(test/integration/test_client_python.test ARGS
 add_rostest(test/integration/test_client_python.test ARGS
   objective:=ThreeHumpCamel
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/three_hump_camel_ei.yaml)
+
+# Negating the objective
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=NegativeForrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/neg_forrester_ucb.yaml)

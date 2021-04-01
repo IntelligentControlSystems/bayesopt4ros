@@ -45,7 +45,7 @@ class ShiftedThreeHumpCamel(ThreeHumpCamel):
 class ExampleClient(object):
     """A demonstration on how to use the BayesOpt server from a Python node. """
 
-    def __init__(self, server_name: str, objective: Callable) -> None:
+    def __init__(self, server_name: str, objective: Callable, maximize=True) -> None:
         """Initializer of the client that queries the BayesOpt server.
 
         Parameters
@@ -54,19 +54,25 @@ class ExampleClient(object):
             Name of the server (needs to be consistent with server node).
         objective : str
             Name of the example objective.
+        maximize : bool
+            If True, consider the problem a maximization problem.
         """
         rospy.init_node(self.__class__.__name__, anonymous=True, log_level=rospy.INFO)
         self.client = actionlib.SimpleActionClient(server_name, BayesOptAction)
         self.client.wait_for_server()
-
         self.server_name = server_name
-        self.y_best, self.x_best = -np.inf, None
         if objective == "Forrester":
+            self.func = Forrester()
+        elif objective == "NegativeForrester":
             self.func = Forrester(negate=True)
         elif objective == "ThreeHumpCamel":
-            self.func = ShiftedThreeHumpCamel(negate=True)
+            self.func = ShiftedThreeHumpCamel()
         else:
             raise ValueError("No such objective.")
+
+        self.maximize = maximize
+        self.y_best = -np.inf if maximize else np.inf
+        self.x_best = None
 
     def request(self, y_new: float) -> np.ndarray:
         """Method that handles interaction with the server node.
@@ -100,9 +106,10 @@ class ExampleClient(object):
             # Emulate experiment by querying the objective function
             y_new = self.func(torch.atleast_2d(torch.tensor(x_new))).squeeze().item()
 
-            if y_new > self.y_best:
+            if (self.maximize and y_new > self.y_best) or (not self.maximize and y_new < self.y_best):
                 self.y_best = y_new
                 self.x_best = x_new
+
             rospy.loginfo(f"[Client] y_new = {y_new:.2f}, y_best = {self.y_best:.2f}")
 
             # Request server and obtain new parameters
@@ -116,26 +123,32 @@ class ClientTestCase(unittest.TestCase):
     """Integration test cases for exemplary Python client."""
 
     _objective_name = None
+    _maximize = True
 
     def test_objective(self) -> None:
         """Testing the client on the defined objective_function function. """
-        node = ExampleClient(server_name="BayesOpt", objective=self._objective_name)
+        node = ExampleClient(server_name="BayesOpt", objective=self._objective_name, maximize=self._maximize)
         node.run()
 
         x_opt = np.array(node.func.optimizers[0])
         y_opt = np.array(node.func.optimal_value)
 
         # Be kind w.r.t. precision of solution
-        np.testing.assert_almost_equal(node.x_best, x_opt, decimal=2)
         np.testing.assert_almost_equal(node.y_best, y_opt, decimal=2)
+        np.testing.assert_almost_equal(node.x_best, x_opt, decimal=2)
 
 
 class ClientTestCaseForrester(ClientTestCase):
     _objective_name = "Forrester"
+    _maximize = False
 
+class ClientTestCaseNegativeForrester(ClientTestCase):
+    _objective_name = "NegativeForrester"
+    _maximize = True
 
 class ClientTestCaseThreeHumpCamel(ClientTestCase):
     _objective_name = "ThreeHumpCamel"
+    _maximize = False
 
 
 if __name__ == "__main__":
@@ -146,6 +159,8 @@ if __name__ == "__main__":
 
     if objective == "Forrester":
         rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCaseForrester)
+    elif objective == "NegativeForrester":
+        rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCaseNegativeForrester)
     elif objective == "ThreeHumpCamel":
         rostest.rosrun(
             "bayesopt4ros", "test_python_client", ClientTestCaseThreeHumpCamel

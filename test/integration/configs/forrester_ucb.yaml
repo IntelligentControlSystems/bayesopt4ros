@@ -7,3 +7,4 @@ upper_bound: [1.0]
 max_iter: 15
 n_init: 3
 log_dir: "/root/ws/logs/forrester_ucb/"
+maximize: false

@@ -43,7 +43,7 @@ double forresterFunction(const std::vector<double>& x) {
     @return Function value at given inputs.
     */
     double x0 = x[0];
-    return -1.0 * (pow(6.0 * x0 - 2.0, 2) * sin(12.0 * x0 - 4.0));
+    return pow(6.0 * x0 - 2.0, 2) * sin(12.0 * x0 - 4.0);
 }
 
 
@@ -98,7 +98,7 @@ class ExampleClient {
                 ROS_INFO("[Client] y_new = %.2f", y_new);   
                 
                 // Keeping track of best point so far for the integration test
-                if (y_new > y_best_) {
+                if (y_new < y_best_) {
                     y_best_ = y_new;
                     x_best_ = x_new_;
                 }
@@ -134,7 +134,7 @@ TEST(ClientTestSuite, testForrester)
     ros::shutdown();
 
     // Be kind w.r.t. precision of solution
-    ASSERT_NEAR(client.y_best_, 6.021, 1e-3);
+    ASSERT_NEAR(client.y_best_, -6.021, 1e-3);
     ASSERT_NEAR(client.x_best_[0], 0.757, 1e-3);
 }
 

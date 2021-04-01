@@ -31,9 +31,6 @@ class BayesianOptimization(object):
     Implements the actual heavy lifting that is done under the hood of
     :class:`bayesopt_server.BayesOptServer`.
 
-    .. note:: We assume that the objective function is to be maximized!
-
-    .. todo:: Add flag to optionally minimize the objective instead.
     """
 
     def __init__(
@@ -45,6 +42,7 @@ class BayesianOptimization(object):
         n_init: int = 5,
         log_dir: str = None,
         config: dict = None,
+        maximize : bool = True,
     ) -> None:
         """The BayesianOptimization class initializer.
 
@@ -69,6 +67,8 @@ class BayesianOptimization(object):
             Directory to which the log files are stored.
         config : dict
             The configuration dictionary for the experiment.
+        maximize : bool
+            If True, consider the problem a maximization problem.
         """
         self.input_dim = input_dim
         self.max_iter = max_iter
@@ -79,6 +79,7 @@ class BayesianOptimization(object):
         self.x_init = self._initial_design(n_init)
         self.x_new = None
         self.config = config
+        self.maximize = maximize
         self.data_handler = DataHandler()
 
         self.log_dir = log_dir
@@ -136,6 +137,7 @@ class BayesianOptimization(object):
             acq_func=config["acq_func"],
             n_init=config["n_init"],
             log_dir=config["log_dir"],
+            maximize=config["maximize"],
             config=config,
         )
 
@@ -204,12 +206,12 @@ class BayesianOptimization(object):
     @property
     def y_best(self) -> float:
         """Get the best function value observed so far."""
-        return self.data_handler.y_best
+        return self.data_handler.y_max if self.maximize else self.data_handler.y_min
 
     @property
     def x_best(self) -> Tensor:
         """Get parameters for best function value so far."""
-        return self.data_handler.x_best
+        return self.data_handler.x_max if self.maximize else self.data_handler.x_min
 
     def _update_model(self, goal) -> None:
         """Updates the GP with new data. Creates a model if none exists yet.
@@ -261,10 +263,10 @@ class BayesianOptimization(object):
             Location of the acquisition function's optimum.
         """
         if self.acq_func.upper() == "UCB":
-            acq_func = UpperConfidenceBound(model=self.gp, beta=4.0)
+            acq_func = UpperConfidenceBound(model=self.gp, beta=4.0, maximize=self.maximize)
         elif self.acq_func.upper() == "EI":
-            best_f = self.data_handler.y_best  # note that EI assumes noiseless
-            acq_func = ExpectedImprovement(model=self.gp, best_f=best_f)
+            best_f = self.y_best  # note that EI assumes noiseless
+            acq_func = ExpectedImprovement(model=self.gp, best_f=best_f, maximize=self.maximize)
         elif self.acq_func.upper() == "NEI":
             raise NotImplementedError("Coming soon...")
         else:
