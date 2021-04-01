@@ -62,7 +62,6 @@ class BayesOptServer(object):
         self.config_file = config_file
         self.silent = silent
         self.rosrate = rospy.Rate(node_rate)
-        rospy.logwarn("!!!!!!!!!!!!!!!!!!!!")
         rospy.loginfo(self._log_prefix + "Ready to receive requests.")
 
     def count_requests(func: Callable) -> Callable:
