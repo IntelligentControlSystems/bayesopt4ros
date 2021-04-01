@@ -75,6 +75,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # Construct class instance based on the config
         return cls(
             input_dim=config["input_dim"],
+            context_dim=config["context_dim"],
             max_iter=config["max_iter"],
             bounds=bounds,
             acq_func=config["acq_func"],
