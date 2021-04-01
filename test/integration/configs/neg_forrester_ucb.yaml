@@ -1,0 +1,10 @@
+# This configuration file is specific for the Forrester test function.
+experiment_name: "example_1d_forrester"
+input_dim: 1
+acq_func: "UCB"
+lower_bound: [0.0]
+upper_bound: [1.0]
+max_iter: 15
+n_init: 3
+log_dir: "/root/ws/logs/neg_forrester_ucb/"
+maximize: true
