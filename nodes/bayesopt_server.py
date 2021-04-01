@@ -53,27 +53,16 @@ class BayesOptServer(object):
             log_level=log_level,
         )
 
-        self.server = actionlib.SimpleActionServer(
-            server_name,
-            BayesOptAction,
-            execute_cb=self.execute_callback,
-            auto_start=False,
-        )
+        self._initialize_server(server_name)
         self.server.start()
-
-        try:
-            self.bo = BayesianOptimization.from_file(config_file)
-        except Exception as e:
-            rospy.logerr(f"[BayesOpt] Something went wrong with initialization: '{e}'")
-            rospy.signal_shutdown("Initialization of BayesOpt failed.")
+        self._initialize_bayesopt(config_file)
 
         self.request_count = 0
         self.log_file = log_file
         self.config_file = config_file
         self.silent = silent
-        self.result = BayesOptResult()
         self.rosrate = rospy.Rate(node_rate)
-
+        rospy.logwarn("!!!!!!!!!!!!!!!!!!!!")
         rospy.loginfo(self._log_prefix + "Ready to receive requests.")
 
     def count_requests(func: Callable) -> Callable:
@@ -117,45 +106,60 @@ class BayesOptServer(object):
             The action (goal) coming from a client.
         """
 
+        self._print_goal(goal) if not self.silent else None
+        if self._check_final_iter(goal):
+            return  # Do not continue once we reached maximum iterations
+
+        # Obtain the new parameter values.
+        # (ROS messages can only deal with list, not torch.tensor)
+        self.result.x_new = list(self.bo.next(goal))
+        self.server.set_succeeded(self.result)
+        self._print_result(self.result) if not self.silent else None
+
+    def _initialize_bayesopt(self, config_file):
+        try:
+            self.bo = BayesianOptimization.from_file(config_file)
+        except Exception as e:
+            rospy.logerr(f"[BayesOpt] Something went wrong with initialization: '{e}'")
+            rospy.signal_shutdown("Initialization of BayesOpt failed.")
+        self.result = BayesOptResult()
+
+    def _initialize_server(self, server_name):
+        self.server = actionlib.SimpleActionServer(
+            server_name,
+            BayesOptAction,
+            execute_cb=self.execute_callback,
+            auto_start=False,
+        )
+
+    def _check_final_iter(self, goal):
         if self.bo.max_iter and self.request_count > self.bo.max_iter:
             # Updates model with last function and logs the final GP model
             rospy.logwarn("[BayesOpt] Max iter reached. Shutting down!")
-            self.bo.update_last_y(goal.y_new)
+            self.bo.update_last_goal(goal)
             self.server.set_aborted()
             rospy.signal_shutdown("Maximum number of iterations reached")
-            return
+            return True
+        else:
+            return False
             
-        if not self.silent:
-            if self.request_count == 1:
-                rospy.loginfo(
-                    self._log_prefix
-                    + f"First request, discarding function value: {goal.y_new:.3f}"
-                )
-            else:
-                rospy.loginfo(
-                    self._log_prefix + f"Value from previous iteration: {goal.y_new:.3f}"
-                )
-            rospy.loginfo(self._log_prefix + "Computing next point...")
+    def _print_goal(self, goal):
+        if not self.request_count == 1:
+            rospy.loginfo(self._log_prefix + f"New value: {goal.y_new:.3f}")
+        else:
+            rospy.loginfo(self._log_prefix + f"Discard value: {goal.y_new:.3f}")
 
-        # Obtain the new parameter values.
-        # (ROS messages can only deal with lists, not np.ndarrays)
-        x_new = list(self.bo.next(goal.y_new))
-
-        # Pretty-log the response to std out
-        if not self.silent:
-            s = ", ".join([f"{xi:.3f}" for xi in x_new])
-            rospy.loginfo(self._log_prefix + f"x_new: [{s}]")
-            if self.request_count < self.bo.max_iter:
-                rospy.loginfo(self._log_prefix + "Waiting for new request...")
-
-        # Trigger done_callback of the client
-        self.result.x_new = x_new
-        self.server.set_succeeded(self.result)
+    def _print_result(self, result):
+        s = ", ".join([f"{xi:.3f}" for xi in result.x_new])
+        rospy.loginfo(self._log_prefix + f"x_new: [{s}]")
+        if self.request_count < self.bo.max_iter:
+            rospy.loginfo(self._log_prefix + "Waiting for new request...")
 
     @property
     def _log_prefix(self) -> str:
         """Convenience property that pre-fixes the logging strings. """
         return f"[BayesOpt] Iteration {self.request_count}: "
+
 
     @staticmethod
     def run() -> None:

@@ -8,6 +8,7 @@ import yaml
 from torch import Tensor
 
 from bayesopt4ros.util import DataHandler
+from bayesopt4ros.msg import BayesOptAction
 
 from botorch.acquisition import (
     UpperConfidenceBound,
@@ -138,7 +139,7 @@ class BayesianOptimization(object):
             config=config,
         )
 
-    def next(self, y_new: float) -> Tensor:
+    def next(self, goal: BayesOptAction) -> Tensor:
         """Compute new parameters to perform an experiment with.
 
         The functionality of this method can generally be split into three steps:
@@ -149,8 +150,8 @@ class BayesianOptimization(object):
 
         Parameters
         ----------
-        y_new : float
-            The function value obtained from the most recent experiment.
+        goal : BayesOptAction
+            The goal sent from the client for the most recent experiment.
 
         Returns
         -------
@@ -158,7 +159,7 @@ class BayesianOptimization(object):
             The new parameters as an array.
         """
         # 1) Update the model with the new data
-        self._update_model(y_new)
+        self._update_model(goal.y_new)
 
         # 2) Retrieve a new point as response of the server
         self.x_new = self._get_next_x()
@@ -168,7 +169,7 @@ class BayesianOptimization(object):
 
         return self.x_new.squeeze(0)
 
-    def update_last_y(self, y_last: float) -> None:
+    def update_last_goal(self, goal: float) -> None:
         """Updates the GP model with the last function value obtained.
 
         .. note:: This function is only called once from the server, right before
@@ -177,10 +178,10 @@ class BayesianOptimization(object):
 
         Parameters
         ----------
-        y_last : float
-           The function value obtained from the last experiment.
+        goal : BayesOptAction
+            The goal sent from the client for the last recent experiment.
         """
-        self._update_model(y_last)
+        self._update_model(goal.y_new)
         self._log_results()
 
     def _get_next_x(self):
