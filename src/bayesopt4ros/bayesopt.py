@@ -43,6 +43,7 @@ class BayesianOptimization(object):
         acq_func: str = "UCB",
         n_init: int = 5,
         log_dir: str = None,
+        load_dir: str = None,
         config: dict = None,
         maximize : bool = True,
     ) -> None:
@@ -67,6 +68,8 @@ class BayesianOptimization(object):
             Number of point for initial design, i.e. Sobol.
         log_dir : str
             Directory to which the log files are stored.
+        load_dir : str
+            Directory from which initial data points are loaded.
         config : dict
             The configuration dictionary for the experiment.
         maximize : bool
@@ -76,13 +79,19 @@ class BayesianOptimization(object):
         self.max_iter = max_iter
         self.bounds = bounds
         self.acq_func = acq_func
-        self.gp = None  # GP is initialized when first data arrives
         self.n_init = n_init
         self.x_init = self._initial_design(n_init)
         self.x_new = None
         self.config = config
         self.maximize = maximize
-        self.data_handler = DataHandler()
+        self.load_dir = load_dir
+        if self.load_dir is not None:
+            # TODO(lukasfro): check if the configuration file is the same
+            self.data_handler = DataHandler.from_file(os.path.join(load_dir, "evaluations.yaml"))
+            self.gp = self._initialize_model(*self.data_handler.get_xy())
+        else:
+            self.data_handler = DataHandler()
+            self.gp = None  # GP is initialized when first data arrives
 
         self.log_dir = log_dir
         # TODO(lukasfro): make a separate function for this
@@ -116,15 +125,8 @@ class BayesianOptimization(object):
             An instance of the BayesianOptimization class.
         """
         # Read config from file
-        try:
-            with open(config_file, "r") as f:
-                config = yaml.load(f, Loader=yaml.FullLoader)
-
-        except FileNotFoundError:
-            rospy.logerr(
-                f"The config file ({config_file}) you specified does not exist."
-            )
-            exit(1)
+        with open(config_file, "r") as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
 
         # Bring bounds in correct format
         lb = torch.tensor(config["lower_bound"])
@@ -139,6 +141,7 @@ class BayesianOptimization(object):
             acq_func=config["acq_func"],
             n_init=config["n_init"],
             log_dir=config["log_dir"],
+            load_dir=config.get("load_dir"),
             maximize=config["maximize"],
             config=config,
         )
@@ -189,14 +192,11 @@ class BayesianOptimization(object):
         self._log_results()
 
     def _get_next_x(self):
-        if self.x_new is None:
-            # Haven't seen any data yet
+        if self.n_data == 0:  # Haven't seen any data yet
             x_new = self.x_init[[0]]
-        elif self.n_data < self.n_init:
-            # Stil in the initial phase
+        elif self.n_data < self.n_init:  # Stil in the initial phase
             x_new = self.x_init[[self.n_data]]
-        else:
-            # Actually optimizing the acquisition function for new points
+        else:  # Actually optimizing the acquisition function for new points
             x_new = self._optimize_acq()
         return x_new
 

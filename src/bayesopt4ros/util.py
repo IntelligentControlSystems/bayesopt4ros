@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import rospy
 import torch
+import yaml
 
 from botorch.exceptions.errors import BotorchTensorDimensionError
 from botorch.utils.containers import TrainingData
@@ -11,14 +12,33 @@ from typing import Union
 
 
 class DataHandler(object):
+    # TODO(lukasfro): documentation for DataHandler
     """Helper class that handles all data for BayesOpt."""
 
     def __init__(self, x: Tensor = None, y: Tensor = None) -> None:
-        # This stores the actual normalized and original data
         if x is not None and y is not None:
             self.set_xy(x=x, y=y)
         else:
             self.data = TrainingData(X=torch.tensor([]), Y=torch.tensor([]))
+        
+    @classmethod
+    def from_file(cls, file: str) -> DataHandler:
+        """Creates a DataHandler instance with input/target values from the
+        specified file.
+
+        Returns an empty DataHandler object if file could not be found.
+        """
+        try:
+            with open(file, "r") as f:
+                # TODO(lukasfro): check validity of data (also given the config)
+                eval_dict = yaml.load(f, Loader=yaml.FullLoader)
+                x = torch.tensor(eval_dict["train_inputs"])
+                y = torch.tensor(eval_dict["train_targets"])
+            return cls(x=x, y=y)
+        except FileNotFoundError:
+            rospy.logwarn(f"The evaluations file '{file}' could not be found.")
+            rospy.logwarn("Creating an empty DataHandler object instead.")
+            return cls(x=None, y=None)
 
     def get_xy(self, as_dict: dict = False):
         if as_dict:
