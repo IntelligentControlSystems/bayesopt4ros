@@ -319,7 +319,10 @@ class BayesianOptimization(object):
             # Compute rolling best input/ouput pair
             x, y = self.data_handler.get_xy()
 
-            idx_best = torch.tensor([torch.argmax(y[: i + 1]) for i in range(y.shape[0])])
+            if self.maximize:
+                idx_best = torch.tensor([torch.argmax(y[: i + 1]) for i in range(y.shape[0])])
+            else:
+                idx_best = torch.tensor([torch.argmin(y[: i + 1]) for i in range(y.shape[0])])
             x_best = x[idx_best]
             y_best = y[idx_best]
 
