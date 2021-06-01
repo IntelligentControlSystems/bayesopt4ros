@@ -16,10 +16,7 @@ class DataHandler(object):
     """Helper class that handles all data for BayesOpt."""
 
     def __init__(self, x: Tensor = None, y: Tensor = None) -> None:
-        if x is not None and y is not None:
-            self.set_xy(x=x, y=y)
-        else:
-            self.data = TrainingData(X=torch.tensor([]), Y=torch.tensor([]))
+        self.set_xy(x=x, y=y)
         
     @classmethod
     def from_file(cls, file: str) -> DataHandler:
@@ -47,10 +44,13 @@ class DataHandler(object):
             return (self.data.X, self.data.Y)
 
     def set_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
-        if not isinstance(y, Tensor):
-            y = torch.tensor([[y]])
-        self._validate_data_args(x, y)
-        self.data = TrainingData(X=x, Y=y)
+        if x is None or y is None:
+            self.data = TrainingData(X=torch.tensor([]), Y=torch.tensor([]))
+        else:
+            if not isinstance(y, Tensor):
+                y = torch.tensor([[y]])
+            self._validate_data_args(x, y)
+            self.data = TrainingData(X=x, Y=y)
         
     def add_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
         if not isinstance(y, Tensor):
