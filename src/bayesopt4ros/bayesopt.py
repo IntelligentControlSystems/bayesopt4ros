@@ -61,9 +61,9 @@ class BayesianOptimization(object):
         max_iter : int
             Maximum number of iterations.
         bounds : torch.Tensor
-            A [2, dim]-dim tensor specifying the optimization domain.
+            A [2, input_dim] shaped tensor specifying the optimization domain.
         acq_func : str
-            The acquisition function.
+            The acquisition function specifier.
         n_init : int
             Number of point for initial design, i.e. Sobol.
         log_dir : str
@@ -197,7 +197,7 @@ class BayesianOptimization(object):
         elif self.n_data < self.n_init:  # Stil in the initial phase
             x_new = self.x_init[[self.n_data]]
         else:  # Actually optimizing the acquisition function for new points
-            x_new = self._optimize_acq()
+            x_new = self._optimize_acqf()
         return x_new
 
     @property
@@ -239,14 +239,13 @@ class BayesianOptimization(object):
                 self.gp = self._initialize_model(*self.data_handler.get_xy())
             self._optimize_model()
 
-    @staticmethod
-    def _initialize_model(x, y) -> GPyTorchModel:
+    def _initialize_model(self, x, y) -> GPyTorchModel:
         # Note: the default values from BoTorch are quite good
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),  # zero mean, unit variance
-            input_transform=Normalize(d=x.shape[1]),  # unit cube
+            input_transform=Normalize(d=self.input_dim),  # unit cube
         )
         return gp
 
