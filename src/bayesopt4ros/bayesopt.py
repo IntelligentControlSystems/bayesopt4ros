@@ -46,7 +46,7 @@ class BayesianOptimization(object):
         log_dir: str = None,
         load_dir: str = None,
         config: dict = None,
-        maximize : bool = True,
+        maximize: bool = True,
     ) -> None:
         """The BayesianOptimization class initializer.
 
@@ -88,7 +88,9 @@ class BayesianOptimization(object):
         self.load_dir = load_dir
         if self.load_dir is not None:
             # TODO(lukasfro): check if the configuration file is the same
-            self.data_handler = DataHandler.from_file(os.path.join(load_dir, "evaluations.yaml"))
+            self.data_handler = DataHandler.from_file(
+                os.path.join(load_dir, "evaluations.yaml")
+            )
             self.gp = self._initialize_model(*self.data_handler.get_xy())
         else:
             self.data_handler = DataHandler()
@@ -97,10 +99,12 @@ class BayesianOptimization(object):
         self.log_dir = log_dir
         # TODO(lukasfro): make a separate function for this
         if self.log_dir is not None:
-            self.log_dir = os.path.join(self.log_dir, time.strftime("%Y-%m-%d-%H-%M-%S"))
+            self.log_dir = os.path.join(
+                self.log_dir, time.strftime("%Y-%m-%d-%H-%M-%S")
+            )
 
             if not os.path.exists(self.log_dir):
-                os.makedirs(self.log_dir, )
+                os.makedirs(self.log_dir)
                 rospy.loginfo(f"Created logging directory: {self.log_dir}")
             else:
                 # TODO(lukasfro): if non-empty log_dir exists, assume that we want to continue the optimization
@@ -175,7 +179,7 @@ class BayesianOptimization(object):
         # 3) Save current state to file
         self._log_results()
 
-        return self.x_new.squeeze(0)
+        return self.x_new
 
     def update_last_goal(self, goal: float) -> None:
         """Updates the GP model with the last function value obtained.
@@ -194,9 +198,9 @@ class BayesianOptimization(object):
 
     def _get_next_x(self):
         if self.n_data == 0:  # Haven't seen any data yet
-            x_new = self.x_init[[0]]
+            x_new = self.x_init[0]
         elif self.n_data < self.n_init:  # Stil in the initial phase
-            x_new = self.x_init[[self.n_data]]
+            x_new = self.x_init[self.n_data]
         else:  # Actually optimizing the acquisition function for new points
             x_new = self._optimize_acqf()
         return x_new
@@ -229,7 +233,7 @@ class BayesianOptimization(object):
             # trigger the server. At that point, there is no new input point,
             # hence, no need to need to update the model.
             return
-        self.data_handler.add_xy(x=self.x_new, y=torch.tensor([[goal.y_new]]))
+        self.data_handler.add_xy(x=self.x_new, y=goal.y_new)
 
         if self.n_data >= self.n_init:
             # Only create model once we are done with the initial design phase
@@ -250,19 +254,29 @@ class BayesianOptimization(object):
         )
         return gp
 
+    def _optimize_model(self) -> None:
+        mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
+        mll.train()
+        fit_gpytorch_scipy(mll)
+        mll.eval()
+
     def _initialize_acqf(self) -> AcquisitionFunction:
         """Initialize the acquisition function of choice.
-        
+
         Returns
         -------
         AcquisitionFunction
             An acquisition function based on BoTorch's base class.
         """
         if self.acq_func.upper() == "UCB":
-            acq_func = UpperConfidenceBound(model=self.gp, beta=4.0, maximize=self.maximize)
+            acq_func = UpperConfidenceBound(
+                model=self.gp, beta=4.0, maximize=self.maximize
+            )
         elif self.acq_func.upper() == "EI":
             best_f = self.y_best  # note that EI assumes noiseless
-            acq_func = ExpectedImprovement(model=self.gp, best_f=best_f, maximize=self.maximize)
+            acq_func = ExpectedImprovement(
+                model=self.gp, best_f=best_f, maximize=self.maximize
+            )
         elif self.acq_func.upper() == "NEI":
             raise NotImplementedError("Coming soon...")
         else:
@@ -270,12 +284,6 @@ class BayesianOptimization(object):
                 f"{self.acq_func} is not a valid acquisition function"
             )
         return acq_func
-
-    def _optimize_model(self) -> None:
-        mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
-        mll.train()
-        fit_gpytorch_scipy(mll)
-        mll.eval()
 
     def _optimize_acqf(self) -> Tensor:
         """Optimizes the acquisition function.
@@ -287,8 +295,14 @@ class BayesianOptimization(object):
         """
         acq_func = self._initialize_acqf()
         x_opt, _ = optimize_acqf_botorch(
-            acq_func, self.bounds, q=1, num_restarts=10, raw_samples=2000, sequential=True
+            acq_func,
+            self.bounds,
+            q=1,
+            num_restarts=10,
+            raw_samples=2000,
+            sequential=True,
         )
+        x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         return x_opt
 
     def _initial_design(self, n_init: int) -> Tensor:
@@ -316,29 +330,30 @@ class BayesianOptimization(object):
             case something goes wrong with either the optimization itself or on
             the client side. We do not want to loose any valuable experimental data.
         """
-        if self.log_dir and self.gp is not None:
-            
-            # Saving GP model to file
-            self.model_file = os.path.join(self.log_dir, "model_state.pth")
-            torch.save(self.gp.state_dict(), self.model_file)
+        if not self.log_dir or self.gp is None:
+            return
 
-            # Save config to file
-            self.config_file = os.path.join(self.log_dir, "config.yaml")
-            yaml.dump(self.config, open(self.config_file, "w"))
+        # Saving GP model to file
+        self.model_file = os.path.join(self.log_dir, "model_state.pth")
+        torch.save(self.gp.state_dict(), self.model_file)
 
-            # Compute rolling best input/ouput pair
-            x, y = self.data_handler.get_xy()
+        # Save config to file
+        self.config_file = os.path.join(self.log_dir, "config.yaml")
+        yaml.dump(self.config, open(self.config_file, "w"))
 
-            if self.maximize:
-                idx_best = torch.tensor([torch.argmax(y[: i + 1]) for i in range(y.shape[0])])
-            else:
-                idx_best = torch.tensor([torch.argmin(y[: i + 1]) for i in range(y.shape[0])])
-            x_best = x[idx_best]
-            y_best = y[idx_best]
+        # Compute rolling best input/ouput pair
+        x, y = self.data_handler.get_xy()
 
-            # Store all and optimal evaluation inputs/outputs to file
-            data = self.data_handler.get_xy(as_dict=True)
-            data.update({"x_best": x_best, "y_best": y_best})
-            data = {k: v.tolist() for k, v in data.items()}
-            self.evaluations_file = os.path.join(self.log_dir, "evaluations.yaml")
-            yaml.dump(data, open(self.evaluations_file, "w"), indent=2)
+        # TODO(lukasfro): This should go into DataHandler class
+        if self.maximize:
+            idx = [torch.argmax(y[: i + 1]).item() for i in range(self.n_data)]
+        else:
+            idx = [torch.argmin(y[: i + 1]).item() for i in range(self.n_data)]
+        x_best, y_best = x[idx], y[idx]
+
+        # Store all and optimal evaluation inputs/outputs to file
+        data = self.data_handler.get_xy(as_dict=True)
+        data.update({"x_best": x_best, "y_best": y_best})
+        data = {k: v.tolist() for k, v in data.items()}
+        self.evaluations_file = os.path.join(self.log_dir, "evaluations.yaml")
+        yaml.dump(data, open(self.evaluations_file, "w"), indent=2)

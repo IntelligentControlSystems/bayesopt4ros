@@ -13,6 +13,7 @@ from typing import Union
 
 class DataHandler(object):
     # TODO(lukasfro): documentation for DataHandler
+    # TODO(lukasfro): add `maximize` flag and just multiply y by -1 instead of keeping track of min/max
     """Helper class that handles all data for BayesOpt."""
 
     def __init__(self, x: Tensor = None, y: Tensor = None) -> None:
@@ -55,6 +56,7 @@ class DataHandler(object):
     def add_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
         if not isinstance(y, Tensor):
             y = torch.tensor([[y]])
+        x = torch.atleast_2d(x)
         self._validate_data_args(x, y)
         x = torch.cat((self.data.X, x)) if self.n_data else x
         y = torch.cat((self.data.Y, y)) if self.n_data else y
