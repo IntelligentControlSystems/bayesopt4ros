@@ -13,6 +13,7 @@ from bayesopt4ros.util import DataHandler
 from bayesopt4ros.msg import BayesOptAction
 
 from botorch.acquisition import (
+    AcquisitionFunction,
     UpperConfidenceBound,
     ExpectedImprovement,
     NoisyExpectedImprovement,
@@ -20,7 +21,7 @@ from botorch.acquisition import (
 from botorch.fit import fit_gpytorch_scipy
 from botorch.models import SingleTaskGP
 from botorch.models.gpytorch import GPyTorchModel
-from botorch.optim import optimize_acqf
+from botorch.optim import optimize_acqf as optimize_acqf_botorch
 from botorch.models.transforms.input import Normalize
 from botorch.models.transforms.outcome import Standardize
 
@@ -249,19 +250,13 @@ class BayesianOptimization(object):
         )
         return gp
 
-    def _optimize_model(self) -> None:
-        mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
-        mll.train()
-        fit_gpytorch_scipy(mll)
-        mll.eval()
-
-    def _optimize_acq(self) -> Tensor:
-        """Optimizes the acquisition function.
-
+    def _initialize_acqf(self) -> AcquisitionFunction:
+        """Initialize the acquisition function of choice.
+        
         Returns
         -------
-        torch.Tensor
-            Location of the acquisition function's optimum.
+        AcquisitionFunction
+            An acquisition function based on BoTorch's base class.
         """
         if self.acq_func.upper() == "UCB":
             acq_func = UpperConfidenceBound(model=self.gp, beta=4.0, maximize=self.maximize)
@@ -274,8 +269,24 @@ class BayesianOptimization(object):
             raise NotImplementedError(
                 f"{self.acq_func} is not a valid acquisition function"
             )
+        return acq_func
 
-        x_opt, _ = optimize_acqf(
+    def _optimize_model(self) -> None:
+        mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
+        mll.train()
+        fit_gpytorch_scipy(mll)
+        mll.eval()
+
+    def _optimize_acqf(self) -> Tensor:
+        """Optimizes the acquisition function.
+
+        Returns
+        -------
+        torch.Tensor
+            Location of the acquisition function's optimum.
+        """
+        acq_func = self._initialize_acqf()
+        x_opt, _ = optimize_acqf_botorch(
             acq_func, self.bounds, q=1, num_restarts=10, raw_samples=2000, sequential=True
         )
         return x_opt
