@@ -34,7 +34,14 @@ In case you find our package helpful and want to contribute, please either raise
 
 These are some issues that need to be addressed for the first release of the package.
 
-- [ ] [BO] Set up reasonable hyper priors for GP parameters
+- [ ] Finish contextual setting
+- [ ] Add additional SimpleActionServer that can be queried to get the current state of BO, which is especially helpful at the end of optimization. Here are all the details that are also stored in the log file.
+- [ ] Finalize documentation 
+- [ ] Create short paper that explains BO in general and this package in particular
+- [ ] Noisy EI acquisition function
+- [ ] Generally, think about long term strategy for different acquisition functions
+- [ ] Figure out why failure cases in tests are not always detected
+- [ ] Debug visualization during optimization for 1- and 2-dim. objectives
 
 ## Testing
 
@@ -43,10 +50,16 @@ To run the tests locally you can use the following commands:
 
 ### Unit tests
 ```bash
-pytest src/bayesopt4ros/test/
+pytest src/bayesopt4ros/test/unit/
 ```
 
 ### Integration tests
+To run all integration tests (this command is executed in the CI pipeline):
 ```bash
 catkin_make_isolated -j1 --catkin-make-args run_tests && catkin_test_results
+```
+
+Or if you want to just run a specific integration test:
+```bash
+rostest bayesopt4ros test_client_python ...
 ```
