@@ -5,11 +5,26 @@ import rospy
 import torch
 import yaml
 
-from botorch.exceptions.errors import BotorchTensorDimensionError
-from botorch.utils.containers import TrainingData
 from torch import Tensor
 from typing import Union
 
+from botorch.acquisition import PosteriorMean, AnalyticAcquisitionFunction
+from botorch.exceptions.errors import BotorchTensorDimensionError
+from botorch.utils.containers import TrainingData
+from botorch.utils.transforms import t_batch_mode_transform
+
+
+class NegativePosteriorMean(AnalyticAcquisitionFunction):
+    """Until the `maximize` flag does not exist for `PosteriorMean`, use this
+    helper class. """
+    # TODO(lukasfro): Make a pull request to include maximize flag in PosteriorMean
+
+    @t_batch_mode_transform(expected_q=1)
+    def forward(self, X: Tensor) -> Tensor:
+        posterior = self._get_posterior(X=X)
+        return -1 * posterior.mean.view(X.shape[:-2])
+        # mean = super().forward(X)
+        # return -1 * mean
 
 class DataHandler(object):
     # TODO(lukasfro): documentation for DataHandler

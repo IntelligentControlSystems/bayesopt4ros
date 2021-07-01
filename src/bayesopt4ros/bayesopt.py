@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from botorch.acquisition.analytic import PosteriorMean
 import rospy
 import shutil
 import time
@@ -8,9 +9,7 @@ import torch
 import yaml
 
 from torch import Tensor
-
-from bayesopt4ros.util import DataHandler
-from bayesopt4ros.msg import BayesOptAction
+from typing import Tuple
 
 from botorch.acquisition import (
     AcquisitionFunction,
@@ -27,6 +26,9 @@ from botorch.models.transforms.outcome import Standardize
 
 from gpytorch.mlls import ExactMarginalLogLikelihood
 
+from bayesopt4ros.util import DataHandler
+from bayesopt4ros.msg import BayesOptAction
+from bayesopt4ros.util import NegativePosteriorMean
 
 class BayesianOptimization(object):
     """The Bayesian optimization class.
@@ -196,19 +198,23 @@ class BayesianOptimization(object):
         self._update_model(goal)
         self._log_results()
 
-    def _get_next_x(self):
-        if self.n_data == 0:  # Haven't seen any data yet
-            x_new = self.x_init[0]
-        elif self.n_data < self.n_init:  # Stil in the initial phase
-            x_new = self.x_init[self.n_data]
-        else:  # Actually optimizing the acquisition function for new points
-            x_new = self._optimize_acqf()
-        return x_new
-
     @property
     def n_data(self) -> int:
         """Property for conveniently accessing number of data points."""
         return self.data_handler.n_data
+
+    @property
+    def best_observation(self) -> Tuple[torch.Tensor, float]:
+        """Get the best parameters and corresponding observed value."""
+        if self.maximize:
+            return self.data_handler.x_max, self.data_handler.y_max
+        else:
+            return self.data_handler.x_min, self.data_handler.y_min
+
+    @property
+    def optimal_parameters(self) -> Tuple[torch.Tensor, float]:
+        """Get the optimal parameters with corresponding expected value."""
+        return self._optimize_posterior_mean()
 
     @property
     def y_best(self) -> float:
@@ -217,8 +223,18 @@ class BayesianOptimization(object):
 
     @property
     def x_best(self) -> Tensor:
-        """Get parameters for best function value so far."""
+        """Get parameters for best observed function value so far."""
         return self.data_handler.x_max if self.maximize else self.data_handler.x_min
+
+    def _get_next_x(self):
+        # TODO(lukasfro): I believe we can merge the first two conditions
+        if self.n_data == 0:  # Haven't seen any data yet
+            x_new = self.x_init[0]
+        elif self.n_data < self.n_init:  # Stil in the initial phase
+            x_new = self.x_init[self.n_data]
+        else:  # Actually optimizing the acquisition function for new points
+            x_new = self._optimize_acqf()
+        return x_new
 
     def _update_model(self, goal) -> None:
         """Updates the GP with new data. Creates a model if none exists yet.
@@ -250,6 +266,7 @@ class BayesianOptimization(object):
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),  # zero mean, unit variance
+            # TODO(lukasfro): explicitly give bounds for input transform instead of learning it 
             input_transform=Normalize(d=self.input_dim),  # unit cube
         )
         return gp
@@ -278,6 +295,7 @@ class BayesianOptimization(object):
                 model=self.gp, best_f=best_f, maximize=self.maximize
             )
         elif self.acq_func.upper() == "NEI":
+            # TODO(lukasfro): implement usage for Noisy EI
             raise NotImplementedError("Coming soon...")
         else:
             raise NotImplementedError(
@@ -304,6 +322,42 @@ class BayesianOptimization(object):
         )
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         return x_opt
+
+    def _optimize_posterior_mean(self) -> Tuple[Tensor, float]:
+        """Optimizes the posterior mean function.
+        
+        Instead of implementing this functionality from scratch, simply use the
+        exploitative acquisition function with BoTorch's optimization.
+
+        Returns
+        -------
+        x_opt : torch.Tensor
+            Location of the posterior mean function's optimum.
+        f_opt : float
+            Value of the posterior mean function's optimum.
+        """
+        if self.maximize:
+            posterior_mean = PosteriorMean(model=self.gp) 
+        else:
+            posterior_mean = NegativePosteriorMean(model=self.gp)
+
+        x_opt, f_opt = optimize_acqf_botorch(
+            posterior_mean,
+            self.bounds,
+            q=1,
+            num_restarts=10,
+            raw_samples=2000,
+            sequential=True,
+        )
+        x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
+        f_opt = f_opt if self.maximize else -1 * f_opt
+        
+        # FIXME(lukasfro): Somehow something goes wrong with the standardization
+        #  here... I could not make a minimum working example to reproduce this
+        #  weird behaviour. Seems like outcome is de-normalized once too often.
+        f_opt = self.gp.outcome_transform(f_opt)[0].squeeze().item()
+        
+        return x_opt, f_opt
 
     def _initial_design(self, n_init: int) -> Tensor:
         """Create initial data points from a Sobol sequence.

@@ -8,6 +8,7 @@ from typing import Callable
 
 from bayesopt4ros import BayesianOptimization, util
 from bayesopt4ros.msg import BayesOptResult, BayesOptAction
+from bayesopt4ros.msg import BayesOptStateResult, BayesOptStateAction
 
 
 class BayesOptServer(object):
@@ -52,9 +53,10 @@ class BayesOptServer(object):
         )
 
         self._initialize_server(server_name)
-        self.server.start()
+        self.parameter_server.start()
+        self.state_server.start()
         self._initialize_bayesopt(config_file)
-
+        
         self.request_count = 0
         self.log_file = log_file
         self.config_file = config_file
@@ -85,12 +87,8 @@ class BayesOptServer(object):
         return wrapper
 
     @count_requests
-    def execute_callback(self, goal) -> None:
-        """Function that acts upon an action coming from a client.
-
-        When the BayesOpt iteration is finished, the server internal state is
-        set to 'succeeded' such that the respective ``done_callback()`` method
-        of the client is called.
+    def next_parameter_callback(self, goal) -> None:
+        """Method that gets called when a new parameter vector is requested.
 
         The action message (goal/result/feedback) is defined here:
         ``action/BayesOpt.action``
@@ -109,33 +107,72 @@ class BayesOptServer(object):
 
         # Obtain the new parameter values.
         # (ROS messages can only deal with list, not torch.tensor)
-        self.result.x_new = list(self.bo.next(goal))
-        self.server.set_succeeded(self.result)
-        self._print_result(self.result) if not self.silent else None
+        result = BayesOptResult()
+        result.x_new = list(self.bo.next(goal))
+        self.parameter_server.set_succeeded(result)
+        self._print_result(result) if not self.silent else None
 
+    def state_callback(self, goal) -> None:
+        """Method that gets called when the BayesOpt state is requested.
+
+        .. note:: We are calling this `state` instead of `result` to avoid
+            confusion with the `result` variable in the action message.
+
+        The action message (goal/result/feedback) is defined here:
+        ``action/BayesOptState.action``
+
+        .. literalinclude:: ../action/BayesOptState.action
+
+        Parameters
+        ----------
+        goal : BayesOptStateAction
+            The action (goal) coming from a client.
+        """
+        state = BayesOptStateResult()
+        
+        # Best observed variables
+        x_best, y_best = self.bo.best_observation
+        state.x_best = list(x_best)
+        state.y_best = y_best
+
+        # Posterior mean optimum
+        x_opt, f_opt = self.bo.optimal_parameters
+        state.x_opt = list(x_opt)
+        state.f_opt = f_opt
+
+        self.state_server.set_succeeded(state)
+        
     def _initialize_bayesopt(self, config_file):
         try:
             self.bo = BayesianOptimization.from_file(config_file)
         except Exception as e:
             rospy.logerr(f"[BayesOpt] Something went wrong with initialization: '{e}'")
             rospy.signal_shutdown("Initialization of BayesOpt failed.")
-        self.result = BayesOptResult()
 
     def _initialize_server(self, server_name):
-        self.server = actionlib.SimpleActionServer(
+        # This server obtains new function values and provides new parameters
+        self.parameter_server = actionlib.SimpleActionServer(
             server_name,
             BayesOptAction,
-            execute_cb=self.execute_callback,
+            execute_cb=self.next_parameter_callback,
             auto_start=False,
+        )
+
+        # This server provides the current state/results of BO 
+        self.state_server = actionlib.SimpleActionServer(
+            "BayesOptStateServer",
+            BayesOptStateAction,
+            execute_cb=self.state_callback,
+            auto_start=False
         )
 
     def _check_final_iter(self, goal):
         if self.bo.max_iter and self.request_count > self.bo.max_iter:
             # Updates model with last function and logs the final GP model
-            rospy.logwarn("[BayesOpt] Max iter reached. Shutting down!")
+            rospy.logwarn("[BayesOpt] Max iter reached. No longer responding!")
             self.bo.update_last_goal(goal)
-            self.server.set_aborted()
-            rospy.signal_shutdown("Maximum number of iterations reached")
+            self.parameter_server.set_aborted()
+
             return True
         else:
             return False
