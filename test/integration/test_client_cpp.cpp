@@ -58,6 +58,7 @@ class ExampleClient {
             ros::NodeHandle nh;
             ROS_WARN("[Client] Waiting for BayesOpt server to start.");
             client_node_.waitForServer();
+            ROS_WARN("[Client] BayesOpt server started.");
 
             // First value is just to trigger the server
             BayesOptGoal goal;
@@ -81,7 +82,7 @@ class ExampleClient {
 
         bool checkServer() {
             /*! Small helper that checks if server is online. If not, shutdown. */
-            bool isOnline = client_node_.waitForServer(ros::Duration(2.0));
+            bool isOnline = client_node_.isServerConnected();
             if (isOnline) return true;
             ROS_WARN("[Client] Server seems to be offline. Shutting down.");
             ros::shutdown();
@@ -125,8 +126,12 @@ TEST(ClientTestSuite, testForrester)
     // Create client node
     ExampleClient client("BayesOpt");
     ros::Rate loop_rate(10);
+    size_t iter = 0;
     while (ros::ok())
     {
+        iter++;
+        // TODO(lukasfro): break dynamically once feedback of the server is implemented
+        if (iter > 50) break;
         ros::spinOnce();
         client.run();
         loop_rate.sleep();
