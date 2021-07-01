@@ -30,6 +30,8 @@ For a short tutorial on how to get started with the BayesOpt4ROS package, please
 
 In case you find our package helpful and want to contribute, please either raise an issue or directly make a pull request.
 
+- We follow the [NumPy convention](https://numpydoc.readthedocs.io/en/latest/format.html) for docstrings
+
 ### ToDo List
 
 These are some issues that need to be addressed for the first release of the package.
@@ -42,6 +44,8 @@ These are some issues that need to be addressed for the first release of the pac
 - [ ] Generally, think about long term strategy for different acquisition functions
 - [ ] Figure out why failure cases in tests are not always detected
 - [ ] Debug visualization during optimization for 1- and 2-dim. objectives
+- [ ] Make code compatible with BoTorch 0.5.0 update
+- [ ] Instead of shutting down the full node, tell the client via feedback that the server is no longer available after the maximum number of iterations has been reached
 
 ## Testing
 
