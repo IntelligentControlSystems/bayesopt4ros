@@ -6,6 +6,7 @@ import yaml
 
 from torch import Tensor
 
+from botorch.acquisition import PosteriorMean
 from botorch.models import SingleTaskGP
 from botorch.models.gpytorch import GPyTorchModel
 from botorch.optim import optimize_acqf as optimize_acqf_botorch
@@ -16,7 +17,7 @@ from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior
 
 from bayesopt4ros import BayesianOptimization
-
+from bayesopt4ros.util import NegativePosteriorMean
 
 class ContextualBayesianOptimization(BayesianOptimization):
     """The contextual Bayesian optimization class.
@@ -32,6 +33,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         context_dim: int,
         max_iter: int,
         bounds: Tensor,
+        context_bounds: Tensor,
         acq_func: str = "UCB",
         n_init: int = 5,
         log_dir: str = None,
@@ -48,6 +50,8 @@ class ContextualBayesianOptimization(BayesianOptimization):
         ----------
         context_dim : int
             Number of context dimensions for the parameters.
+        context_bounds : torch.Tensor
+            A [2, context_dim] shaped tensor specifying the context variables domain.
         """
         super().__init__(
             input_dim=input_dim,
@@ -60,8 +64,10 @@ class ContextualBayesianOptimization(BayesianOptimization):
             config=config,
             maximize=maximize,
         )
-        self.context_dim = context_dim
         self.context = None
+        self.context_dim = context_dim
+        self.context_bounds = context_bounds
+        self.joint_bounds = torch.cat((self.bounds, self.context_bounds), dim=1)
 
     @classmethod
     def from_file(cls, config_file: str) -> ContextualBayesianOptimization:
@@ -87,12 +93,17 @@ class ContextualBayesianOptimization(BayesianOptimization):
         ub = torch.tensor(config["upper_bound"])
         bounds = torch.stack((lb, ub))
 
+        lbc = torch.tensor(config["lower_bound_context"])
+        ubc = torch.tensor(config["upper_bound_context"])
+        context_bounds = torch.stack((lbc, ubc))
+
         # Construct class instance based on the config
         return cls(
             input_dim=config["input_dim"],
             context_dim=config["context_dim"],
             max_iter=config["max_iter"],
             bounds=bounds,
+            context_bounds=context_bounds,
             acq_func=config["acq_func"],
             n_init=config["n_init"],
             log_dir=config.get("log_dir"),
@@ -117,13 +128,13 @@ class ContextualBayesianOptimization(BayesianOptimization):
             # trigger the server. At that point, there is no new input point,
             # hence, no need to need to update the model. However, the initial
             # context is already valid.
-            self.context = goal.c_new
+            self.context = torch.tensor(goal.c_new)
             return
 
         # Concatenate context and optimization variable
         x = torch.cat((self.x_new, self.context))
-        self.data_handler.add_xy(x=x, y=torch.tensor([[goal.y_new]]))
-        self.context = goal.c_new
+        self.data_handler.add_xy(x=x, y=goal.y_new)
+        self.context = torch.tensor(goal.c_new)
 
         if self.n_data >= self.n_init:
             # Only create model once we are done with the initial design phase
@@ -149,7 +160,8 @@ class ContextualBayesianOptimization(BayesianOptimization):
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),
-            input_transform=Normalize(d=self.input_dim),
+            # TODO(lukasfro): explicitly give bounds for input transform instead of learning it 
+            input_transform=Normalize(d=self.input_dim + self.context_dim),
             covar_module=covar_module,
         )
         return gp
@@ -162,17 +174,56 @@ class ContextualBayesianOptimization(BayesianOptimization):
         torch.Tensor
             Location of the acquisition function's optimum (without context).
         """
+        # TODO(lukasfro): Re-factor using botorch.FixedFeatureAcquisitionFunction
         acq_func = self._initialize_acqf()
-        context_idx = range(self.input_dim, self.input_dim + self.context_dim)
-        fixed_features = {i + self.input_dim: self.context[i] for i in context_idx}
+        fixed_features = {i + self.input_dim: self.context[i] for i in range(self.context_dim)}
         x_opt, _ = optimize_acqf_botorch(
             acq_func,
-            self.bounds,
+            self.joint_bounds,
             q=1,
             num_restarts=10,
             raw_samples=2000,
             sequential=True,
             fixed_features=fixed_features,
+        )
+        x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
+        x_opt = x_opt[:self.input_dim]  # only return the next input parameters
+        return x_opt
+
+    def _optimize_posterior_mean(self, context=None) -> Tensor:
+        """Optimizes the posterior mean function with a fixed context variable.
+        
+        Instead of implementing this functionality from scratch, simply use the
+        exploitative acquisition function with BoTorch's optimization.
+
+        Parameters
+        ----------
+        context : torch.Tensor, optional
+            The context for which to compute the mean's optimum. If none is
+            specified, use the last one that was received.
+
+        Returns
+        -------
+        torch.Tensor
+            Location of the posterior mean function's optimum (without context).
+        """
+        # TODO(lukasfro): Re-factor once the PR is through
+        if self.maximize:
+            posterior_mean = PosteriorMean(model=self.gp)
+        else:
+            posterior_mean = NegativePosteriorMean(model=self.gp)
+
+        # TODO(lukasfro): Re-factor acqf optimization. We have this piece of code 3x by now...
+        context = context or self.context
+        fixed_features = {i + self.input_dim: context[i] for i in range(self.context_dim)}
+        x_opt, _ = optimize_acqf_botorch(
+            posterior_mean,
+            self.joint_bounds,
+            q=1,
+            num_restarts=10,
+            raw_samples=2000,
+            sequential=True,
+            fixed_features=fixed_features
         )
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         x_opt = x_opt[:self.input_dim]  # only return the next input parameters

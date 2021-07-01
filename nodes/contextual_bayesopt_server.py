@@ -9,7 +9,7 @@ from typing import Callable
 from bayesopt4ros import ContextualBayesianOptimization, util
 from bayesopt4ros.msg import ContextualBayesOptResult, ContextualBayesOptAction
 
-from .bayesopt_server import BayesOptServer
+from bayesopt_server import BayesOptServer
 
 
 class ContextualBayesOptServer(BayesOptServer):
@@ -21,7 +21,7 @@ class ContextualBayesOptServer(BayesOptServer):
     def __init__(
         self,
         config_file: str,
-        server_name: str = "BayesOpt",
+        server_name: str = "ContextualBayesOpt",
         log_file: str = None,
         anonymous: bool = True,
         log_level: int = rospy.INFO,
@@ -32,6 +32,7 @@ class ContextualBayesOptServer(BayesOptServer):
 
         For paramters see :class:`bayesopt_server.BayesOptServer`.
         """
+        rospy.logdebug("Initializing Contextual BayesOpt Server")
         super().__init__(
             config_file=config_file,
             server_name=server_name,
@@ -41,12 +42,13 @@ class ContextualBayesOptServer(BayesOptServer):
             silent=silent,
             node_rate=node_rate
         )
+        rospy.logdebug("[ContextualBayesOptServer] Initialization done")
 
     def _initialize_bayesopt(self, config_file):
         try:
             self.bo = ContextualBayesianOptimization.from_file(config_file)
         except Exception as e:
-            rospy.logerr(f"[BayesOpt] Something went wrong with initialization: '{e}'")
+            rospy.logerr(f"[ContextualBayesOpt] Something went wrong with initialization: '{e}'")
             rospy.signal_shutdown("Initialization of BayesOpt failed.")
         self.result = ContextualBayesOptResult()
 
@@ -64,3 +66,18 @@ class ContextualBayesOptServer(BayesOptServer):
             rospy.loginfo(self._log_prefix + f"New value:   {goal.y_new:.3f}")
         else:
             rospy.loginfo(self._log_prefix + f"Discard value:   {goal.y_new:.3f}")
+
+
+if __name__ == "__main__":
+    # TODO(lukasfro): use rospy.getparam()
+    parser = util.server_argparser()
+    args, unknown = parser.parse_known_args()
+    try:
+        server = ContextualBayesOptServer(
+            config_file=args.config_file,
+            log_level=args.log_level,
+            silent=args.silent,
+        )
+        server.run()
+    except rospy.ROSInterruptException:
+        pass
