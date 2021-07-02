@@ -46,7 +46,7 @@ These are some issues that need to be addressed for the first release of the pac
 - [ ] Debug visualization during optimization for 1- and 2-dim. objectives
 - [ ] Make code compatible with BoTorch 0.5.0 update
 - [ ] Instead of shutting down the full node, tell the client via feedback that the server is no longer available after the maximum number of iterations has been reached
-
+- [ ] Properly distinguish between private/protected/public properties [see here](https://www.tutorialsteacher.com/python/public-private-protected-modifiers)
 ## Testing
 
 To facilitate easier contribution, we have a continuous integration pipeline set up using Github Actions.
