@@ -7,7 +7,7 @@ import yaml
 
 from functools import wraps
 from torch import Tensor
-from typing import Union, Callable
+from typing import Union, Callable, List
 
 from botorch.acquisition import PosteriorMean, AnalyticAcquisitionFunction
 from botorch.exceptions.errors import BotorchTensorDimensionError
@@ -61,23 +61,33 @@ class DataHandler(object):
         self.set_xy(x=x, y=y)
 
     @classmethod
-    def from_file(cls, file: str) -> DataHandler:
+    def from_file(cls, file: Union[str, List[str]]) -> DataHandler:
         """Creates a DataHandler instance with input/target values from the
         specified file.
 
         Returns an empty DataHandler object if file could not be found.
         """
-        try:
-            with open(file, "r") as f:
-                # TODO(lukasfro): check validity of data (also given the config)
-                eval_dict = yaml.load(f, Loader=yaml.FullLoader)
-                x = torch.tensor(eval_dict["train_inputs"])
-                y = torch.tensor(eval_dict["train_targets"])
+        files = [file] if isinstance(file, str) else file
+        x, y = [], []
+
+        for file in files:
+            try:
+                with open(file, "r") as f:
+                    data = yaml.load(f, Loader=yaml.FullLoader)
+                x.append(torch.tensor(data["train_inputs"]))
+                y.append(torch.tensor(data["train_targets"]))
+            except FileNotFoundError:
+                rospy.logwarn(f"The evaluations file '{file}' could not be found.")
+
+        if x and y:
+            if not len(set([xi.shape[1] for xi in x])) == 1:  # check for correct dimension
+                message = "Evaluation points seem to have different dimensions."
+                raise BotorchTensorDimensionError(message)
+            x = torch.cat(x)
+            y = torch.cat(y)
             return cls(x=x, y=y)
-        except FileNotFoundError:
-            rospy.logwarn(f"The evaluations file '{file}' could not be found.")
-            rospy.logwarn("Creating an empty DataHandler object instead.")
-            return cls(x=None, y=None)
+        else:
+            return cls()
 
     def get_xy(self, as_dict: dict = False):
         if as_dict:

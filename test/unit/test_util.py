@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import os
 import pytest
 import torch
 
@@ -85,7 +86,37 @@ def test_adding_data(test_data):
 
 
 def test_wrong_inputs(test_data):
-
     # Unequal number of inputs/outputs
     with pytest.raises(BotorchTensorDimensionError):
         dh = DataHandler(x=test_data.X[:5], y=test_data.Y[:6])
+
+
+def test_from_single_file():
+    dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
+    for dim in [1, 2]:
+        data_file = os.path.join(dir, f"test_data_{dim}d_0.yaml")
+        dh = DataHandler.from_file(data_file)
+        x, y = dh.get_xy()
+        np.testing.assert_array_equal(x, dim * torch.ones(3, dim))
+        np.testing.assert_array_equal(y, dim * torch.ones(3, 1))
+
+
+def test_from_multiple_files():
+    dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
+    for dim in [1, 2]:
+        data_files = [os.path.join(dir, f"test_data_{dim}d_{i}.yaml") for i in [0, 1, 2]]
+        dh = DataHandler.from_file(data_files)
+        x, y = dh.get_xy()
+        np.testing.assert_array_equal(x, dim * torch.ones(max(3 * dim, 6), dim))
+        np.testing.assert_array_equal(y, dim * torch.ones(max(3 * dim, 6), 1))
+
+
+def test_from_incompatible_files():
+    dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
+    data_files = [
+        os.path.join(dir, "test_data_1d_0.yaml"),
+        os.path.join(dir, "test_data_2d_0.yaml"),
+    ]
+
+    with pytest.raises(BotorchTensorDimensionError):
+        dh = DataHandler.from_file(data_files)
