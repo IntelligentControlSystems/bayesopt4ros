@@ -26,6 +26,7 @@ from botorch.models.transforms.outcome import Standardize
 
 from gpytorch.mlls import ExactMarginalLogLikelihood
 
+from bayesopt4ros import util
 from bayesopt4ros.util import DataHandler
 from bayesopt4ros.msg import BayesOptAction
 from bayesopt4ros.util import NegativePosteriorMean
@@ -89,13 +90,12 @@ class BayesianOptimization(object):
         self.config = config
         self.maximize = maximize
         self.load_dir = load_dir
+
+        self.data_handler = DataHandler()
+        self.gp = None  # GP is initialized when first data arrives
+
         if self.load_dir is not None:
-            # TODO(lukasfro): check if the configuration file is the same
-            self.data_handler = DataHandler.from_file(os.path.join(load_dir, "evaluations.yaml"))
-            self.gp = self._initialize_model(*self.data_handler.get_xy())
-        else:
-            self.data_handler = DataHandler()
-            self.gp = None  # GP is initialized when first data arrives
+            self.data_handler, self.gp = self._load_prev_bayesopt()
 
         if log_dir is not None:
             self.log_dir = util.create_log_dir(log_dir)
@@ -212,6 +212,39 @@ class BayesianOptimization(object):
         else:  # Actually optimizing the acquisition function for new points
             x_new = self._optimize_acqf()
         return x_new
+
+    def _load_prev_bayesopt(self):
+        # Check if the different configurations fit
+        with open(os.path.join(self.load_dir, "config.yaml")) as f:
+            load_config = yaml.load(f, Loader=yaml.FullLoader)
+
+            # These are absolutely mandatory --> error
+            try:
+                assert load_config["input_dim"] == self.input_dim
+                assert load_config["maximize"] == self.maximize
+            except AssertionError:
+                rospy.logerr(f"Your configuration does not match {self.load_dir}")
+
+            # These are not strictly mandatory but should be the same --> warning
+            try:
+                assert load_config["lower_bound"] == self.bounds[0].tolist()
+                assert load_config["upper_bound"] == self.bounds[1].tolist()
+                assert load_config["acq_func"] == self.acq_func
+            except AssertionError:
+                rospy.logwarn(f"Your configuration does not match {self.load_dir}")
+
+            # These can (and will) probably be changed --> info
+            try:
+                assert load_config["max_iter"] == self.max_iter
+                assert load_config["n_init"] == self.n_init
+            except AssertionError:
+                rospy.loginfo(f"Your configuration does not match {self.load_dir}")
+
+        # Create model with the previous run's data
+        self.data_handler = DataHandler.from_file(os.path.join(self.load_dir, "evaluations.yaml"))
+        self.gp = self._initialize_model(*self.data_handler.get_xy())
+
+        return self.data_handler, self.gp
 
     def _update_model(self, goal) -> None:
         """Updates the GP with new data. Creates a model if none exists yet.
