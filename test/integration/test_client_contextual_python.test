@@ -3,6 +3,8 @@
   <param name="objective" value="$(arg objective)" />
 
   <arg name="bayesopt_config" default="$(find bayesopt4ros)/test/integration/configs/contextual_forrester_ucb.yaml"/>
-  <node name="ContextualBayesOptServer" pkg="bayesopt4ros" type="contextual_bayesopt_node.py" args="-f $(arg bayesopt_config)" output="screen"/>
+  <param name="bayesopt_config" value="$(arg bayesopt_config)"/>
+
+  <node name="ContextualBayesOpt" pkg="bayesopt4ros" type="contextual_bayesopt_node.py" output="screen" required="true"/>
   <test test-name="TestClientPython" pkg="bayesopt4ros" type="test_client_python.py"/>
 </launch>

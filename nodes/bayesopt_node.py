@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 
 import rospy
-from bayesopt4ros import BayesOptServer, util
-
+from bayesopt4ros import BayesOptServer
 
 if __name__ == "__main__":
-    # TODO(lukasfro): use rospy.getparam()
-    parser = util.server_argparser()
-    args, unknown = parser.parse_known_args()
     try:
-        node = BayesOptServer(
-            config_file=args.config_file,
-            log_level=args.log_level,
-            silent=args.silent,
-        )
+        config_file = rospy.get_param("/bayesopt_config")
+        node = BayesOptServer(config_file=config_file)
         node.run()
+    except KeyError:
+        rospy.logerr("Could not find the config file.")
     except rospy.ROSInterruptException:
         pass
