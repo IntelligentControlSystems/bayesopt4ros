@@ -104,6 +104,6 @@ add_rostest(test/integration/test_client_python.test ARGS
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/neg_forrester_ucb.yaml)
 
 # Contextual setting
-# add_rostest(test/integration/test_client_contextual_python.test ARGS
-#   objective:=ContextualForrester
-#   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/contextual_forrester_ucb.yaml)
+add_rostest(test/integration/test_client_contextual_python.test ARGS
+  objective:=ContextualForrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/contextual_forrester_ucb.yaml)

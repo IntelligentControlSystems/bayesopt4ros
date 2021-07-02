@@ -56,10 +56,8 @@ class ExampleClient {
             @param server_name    Name of the server (needs to be consistent with server node).
             */
             ros::NodeHandle nh;
-            ROS_WARN("[Client] Waiting for BayesOpt server to start.");
             client_node_.waitForServer();
-            ROS_WARN("[Client] BayesOpt server started.");
-
+            
             // First value is just to trigger the server
             BayesOptGoal goal;
             goal.y_new = 0.0;

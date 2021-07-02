@@ -115,7 +115,6 @@ class ContextualBayesianOptimization(BayesianOptimization):
 
     def get_best_observation(self) -> Tuple[torch.Tensor, torch.Tensor, float]:
         """Get the best parameters, context and corresponding observed value."""
-        rospy.logerr(self.x_best)
         x_best, c_best = torch.split(self.x_best, [self.input_dim, self.context_dim])
         return x_best, c_best, self.y_best
 
