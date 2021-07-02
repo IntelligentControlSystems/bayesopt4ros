@@ -30,6 +30,7 @@ from bayesopt4ros.util import DataHandler
 from bayesopt4ros.msg import BayesOptAction
 from bayesopt4ros.util import NegativePosteriorMean
 
+
 class BayesianOptimization(object):
     """The Bayesian optimization class.
 
@@ -90,9 +91,7 @@ class BayesianOptimization(object):
         self.load_dir = load_dir
         if self.load_dir is not None:
             # TODO(lukasfro): check if the configuration file is the same
-            self.data_handler = DataHandler.from_file(
-                os.path.join(load_dir, "evaluations.yaml")
-            )
+            self.data_handler = DataHandler.from_file(os.path.join(load_dir, "evaluations.yaml"))
             self.gp = self._initialize_model(*self.data_handler.get_xy())
         else:
             self.data_handler = DataHandler()
@@ -101,9 +100,7 @@ class BayesianOptimization(object):
         self.log_dir = log_dir
         # TODO(lukasfro): make a separate function for this
         if self.log_dir is not None:
-            self.log_dir = os.path.join(
-                self.log_dir, time.strftime("%Y-%m-%d-%H-%M-%S")
-            )
+            self.log_dir = os.path.join(self.log_dir, time.strftime("%Y-%m-%d-%H-%M-%S"))
 
             if not os.path.exists(self.log_dir):
                 os.makedirs(self.log_dir)
@@ -261,7 +258,7 @@ class BayesianOptimization(object):
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),  # zero mean, unit variance
-            # TODO(lukasfro): explicitly give bounds for input transform instead of learning it 
+            # TODO(lukasfro): explicitly give bounds for input transform instead of learning it
             input_transform=Normalize(d=self.input_dim),  # unit cube
         )
         return gp
@@ -281,21 +278,15 @@ class BayesianOptimization(object):
             An acquisition function based on BoTorch's base class.
         """
         if self.acq_func.upper() == "UCB":
-            acq_func = UpperConfidenceBound(
-                model=self.gp, beta=4.0, maximize=self.maximize
-            )
+            acq_func = UpperConfidenceBound(model=self.gp, beta=4.0, maximize=self.maximize)
         elif self.acq_func.upper() == "EI":
             best_f = self.y_best  # note that EI assumes noiseless
-            acq_func = ExpectedImprovement(
-                model=self.gp, best_f=best_f, maximize=self.maximize
-            )
+            acq_func = ExpectedImprovement(model=self.gp, best_f=best_f, maximize=self.maximize)
         elif self.acq_func.upper() == "NEI":
             # TODO(lukasfro): implement usage for Noisy EI
             raise NotImplementedError("Coming soon...")
         else:
-            raise NotImplementedError(
-                f"{self.acq_func} is not a valid acquisition function"
-            )
+            raise NotImplementedError(f"{self.acq_func} is not a valid acquisition function")
         return acq_func
 
     def _optimize_acqf(self) -> Tensor:
@@ -320,7 +311,7 @@ class BayesianOptimization(object):
 
     def _optimize_posterior_mean(self) -> Tuple[Tensor, float]:
         """Optimizes the posterior mean function.
-        
+
         Instead of implementing this functionality from scratch, simply use the
         exploitative acquisition function with BoTorch's optimization.
 
@@ -332,7 +323,7 @@ class BayesianOptimization(object):
             Value of the posterior mean function's optimum.
         """
         if self.maximize:
-            posterior_mean = PosteriorMean(model=self.gp) 
+            posterior_mean = PosteriorMean(model=self.gp)
         else:
             posterior_mean = NegativePosteriorMean(model=self.gp)
 
@@ -346,12 +337,12 @@ class BayesianOptimization(object):
         )
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         f_opt = f_opt if self.maximize else -1 * f_opt
-        
+
         # FIXME(lukasfro): Somehow something goes wrong with the standardization
         #  here... I could not make a minimum working example to reproduce this
         #  weird behaviour. Seems like outcome is de-normalized once too often.
         f_opt = self.gp.outcome_transform(f_opt)[0].squeeze().item()
-        
+
         return x_opt, f_opt
 
     def _initial_design(self, n_init: int) -> Tensor:

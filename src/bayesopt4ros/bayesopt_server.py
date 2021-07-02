@@ -49,13 +49,13 @@ class BayesOptServer(object):
             anonymous=anonymous,
             log_level=log_level,
         )
-        
+
         self._initialize_bayesopt(BayesianOptimization, config_file)
         self._initialize_parameter_server(server_name)
         self._initialize_state_server(server_name + "State")
         self.parameter_server.start()
         self.state_server.start()
-        
+
         self.request_count = 0
         self.log_file = log_file
         self.config_file = config_file
@@ -174,4 +174,3 @@ class BayesOptServer(object):
     def run() -> None:
         """Simply starts the server."""
         rospy.spin()
-

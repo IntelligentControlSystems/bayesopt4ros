@@ -31,6 +31,7 @@ For a short tutorial on how to get started with the BayesOpt4ROS package, please
 In case you find our package helpful and want to contribute, please either raise an issue or directly make a pull request.
 
 - We follow the [NumPy convention](https://numpydoc.readthedocs.io/en/latest/format.html) for docstrings
+- We use the [Black formatter](https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html) with the `--line-length` option set to `99`
 
 ### ToDo List
 

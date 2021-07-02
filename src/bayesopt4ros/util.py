@@ -37,9 +37,11 @@ def count_requests(func: Callable) -> Callable:
 
     return wrapper
 
+
 class NegativePosteriorMean(AnalyticAcquisitionFunction):
     """Until the `maximize` flag does not exist for `PosteriorMean`, use this
-    helper class. """
+    helper class."""
+
     # TODO(lukasfro): Make a pull request to include maximize flag in PosteriorMean
 
     @t_batch_mode_transform(expected_q=1)
@@ -49,6 +51,7 @@ class NegativePosteriorMean(AnalyticAcquisitionFunction):
         # mean = super().forward(X)
         # return -1 * mean
 
+
 class DataHandler(object):
     # TODO(lukasfro): documentation for DataHandler
     # TODO(lukasfro): add `maximize` flag and just multiply y by -1 instead of keeping track of min/max
@@ -56,7 +59,7 @@ class DataHandler(object):
 
     def __init__(self, x: Tensor = None, y: Tensor = None) -> None:
         self.set_xy(x=x, y=y)
-        
+
     @classmethod
     def from_file(cls, file: str) -> DataHandler:
         """Creates a DataHandler instance with input/target values from the
@@ -90,7 +93,7 @@ class DataHandler(object):
                 y = torch.tensor([[y]])
             self._validate_data_args(x, y)
             self.data = TrainingData(X=x, Y=y)
-        
+
     def add_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
         if not isinstance(y, Tensor):
             y = torch.tensor([[y]])

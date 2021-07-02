@@ -42,7 +42,7 @@ class ContextualBayesOptServer(BayesOptServer):
             silent=silent,
             node_rate=node_rate,
         )
-        
+
         self._initialize_bayesopt(ContextualBayesianOptimization, config_file)
         rospy.logdebug("[ContextualBayesOptServer] Initialization done")
 
@@ -98,4 +98,3 @@ class ContextualBayesOptServer(BayesOptServer):
             rospy.loginfo(self._log_prefix + f"New value:   {goal.y_new:.3f}")
         else:
             rospy.loginfo(self._log_prefix + f"Discard value:   {goal.y_new:.3f}")
-

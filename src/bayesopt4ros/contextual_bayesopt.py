@@ -20,6 +20,7 @@ from gpytorch.priors import GammaPrior
 from bayesopt4ros import BayesianOptimization
 from bayesopt4ros.util import NegativePosteriorMean
 
+
 class ContextualBayesianOptimization(BayesianOptimization):
     """The contextual Bayesian optimization class.
 
@@ -170,7 +171,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),
-            # TODO(lukasfro): explicitly give bounds for input transform instead of learning it 
+            # TODO(lukasfro): explicitly give bounds for input transform instead of learning it
             input_transform=Normalize(d=self.input_dim + self.context_dim),
             covar_module=covar_module,
         )
@@ -197,12 +198,12 @@ class ContextualBayesianOptimization(BayesianOptimization):
             fixed_features=fixed_features,
         )
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
-        x_opt = x_opt[:self.input_dim]  # only return the next input parameters
+        x_opt = x_opt[: self.input_dim]  # only return the next input parameters
         return x_opt
 
     def _optimize_posterior_mean(self, context=None) -> Tensor:
         """Optimizes the posterior mean function with a fixed context variable.
-        
+
         Instead of implementing this functionality from scratch, simply use the
         exploitative acquisition function with BoTorch's optimization.
 
@@ -233,15 +234,15 @@ class ContextualBayesianOptimization(BayesianOptimization):
             num_restarts=10,
             raw_samples=2000,
             sequential=True,
-            fixed_features=fixed_features
+            fixed_features=fixed_features,
         )
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
-        x_opt = x_opt[:self.input_dim]  # only return the next input parameters
+        x_opt = x_opt[: self.input_dim]  # only return the next input parameters
         f_opt = f_opt if self.maximize else -1 * f_opt
 
         # FIXME(lukasfro): Somehow something goes wrong with the standardization
         #  here... I could not make a minimum working example to reproduce this
         #  weird behaviour. Seems like outcome is de-normalized once too often.
         f_opt = self.gp.outcome_transform(f_opt)[0].squeeze().item()
-        
+
         return x_opt, f_opt
