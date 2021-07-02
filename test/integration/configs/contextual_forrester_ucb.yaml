@@ -10,7 +10,7 @@ lower_bound_context: [0.0]
 upper_bound_context: [20.0]
 
 acq_func: "UCB"
-max_iter: 15
+max_iter: 100
 n_init: 3
 log_dir: "/root/ws/logs/contextual_forrester_ucb/"
 maximize: false

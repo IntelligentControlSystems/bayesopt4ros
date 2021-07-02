@@ -14,6 +14,11 @@ from typing import Callable
 from bayesopt4ros.msg import BayesOptAction, BayesOptGoal
 from bayesopt4ros.msg import BayesOptStateAction, BayesOptStateGoal, BayesOptStateResult
 from bayesopt4ros.msg import ContextualBayesOptAction, ContextualBayesOptGoal
+from bayesopt4ros.msg import (
+    ContextualBayesOptStateAction,
+    ContextualBayesOptStateGoal,
+    ContextualBayesOptStateResult,
+)
 
 
 class Forrester(SyntheticTestFunction):
@@ -76,19 +81,31 @@ class ContextualForrester(Forrester):
     _optimizers = None
 
     # Define optimizer for specific context values
-    _test_contexts = [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0]
+    _test_contexts = [
+        [0.0],
+        [2.0],
+        [4.0],
+        [6.0],
+        [8.0],
+        [10.0],
+        [12.0],
+        [14.0],
+        [16.0],
+        [18.0],
+        [20.0],
+    ]
     _contextual_optimizer = [
-        0.757,
-        0.755,
-        0.753,
-        0.751,
-        0.749,
-        0.115,
-        0.110,
-        0.106,
-        0.101,
-        0.097,
-        0.092,
+        [0.757],
+        [0.755],
+        [0.753],
+        [0.751],
+        [0.749],
+        [0.115],
+        [0.110],
+        [0.106],
+        [0.101],
+        [0.097],
+        [0.092],
     ]
     _contextual_optimal_values = [
         -6.021,
@@ -212,8 +229,9 @@ class ExampleContextualClient(object):
         self.client = actionlib.SimpleActionClient(
             server_name, ContextualBayesOptAction
         )
+
         self.client.wait_for_server()
-        
+
         if objective == "ContextualForrester":
             self.func = ContextualForrester()
         else:
@@ -224,7 +242,7 @@ class ExampleContextualClient(object):
         self.x_best = None
 
     def request_parameter(self, y_new: float, c_new: np.ndarray) -> np.ndarray:
-        """Method that requests new parameters from the ContextualBayesOpt 
+        """Method that requests new parameters from the ContextualBayesOpt
         server for a given context.
 
         Parameters
@@ -244,6 +262,23 @@ class ExampleContextualClient(object):
         self.client.wait_for_result()
         result = self.client.get_result()
         return torch.tensor(result.x_new)
+
+    def request_bayesopt_state(self, context) -> ContextualBayesOptStateResult:
+        """Method that requests the (final) state of BayesOpt server.
+
+        .. note:: As we only call this function once, we can just create the
+            corresponding client locally.
+        """
+        state_client = actionlib.SimpleActionClient(
+            "ContextualBayesOptState", ContextualBayesOptStateAction
+        )
+        state_client.wait_for_server()
+
+        goal = ContextualBayesOptStateGoal()
+        goal.context = list(context)
+        state_client.send_goal(goal)
+        state_client.wait_for_result()
+        return state_client.get_result()
 
     def run(self) -> None:
         """Method that emulates client behavior."""
@@ -278,8 +313,6 @@ class ExampleContextualClient(object):
                 rospy.loginfo("[Client] Terminating - invalid response from server.")
                 break
 
-        
-
     def sample_context(self) -> np.ndarray:
         """Samples a random context variable to emulate the client."""
         context_bounds = [b for b in self.func._bounds[self.func.input_dim :]]
@@ -313,9 +346,6 @@ class ClientTestCase(unittest.TestCase):
         x_opt = np.array(node.func.optimizers[0])
         f_opt = np.array(node.func.optimal_value)
 
-        print(f"{result.x_best = }, {result.y_best = }")
-        print(f"{result.x_opt = }, {result.f_opt = }")
-
         # Be kind w.r.t. precision of solution
         np.testing.assert_almost_equal(result.x_opt, x_opt, decimal=2)
         np.testing.assert_almost_equal(result.f_opt, f_opt, decimal=2)
@@ -329,20 +359,29 @@ class ContextualClientTestCase(unittest.TestCase):
 
     def test_objective(self) -> None:
         """Testing the client on the defined objective function and couple of contexts."""
+
+        # Set up the client
         node = ExampleContextualClient(
             server_name="ContextualBayesOpt",
             objective=self._objective_name,
             maximize=self._maximize,
         )
+
+        # Emulate experiment
         node.run()
 
-        for c, x, y in zip(
+        # Check the estimated optimum for different contexts
+        for context, x_opt, f_opt in zip(
             node.func._test_contexts,
             node.func._contextual_optimizer,
             node.func._contextual_optimal_values,
         ):
-            print(c, x, y)
+            # Get the (estimated) optimum of the objective for a given context
+            result = node.request_bayesopt_state(context)
 
+            # Be kind w.r.t. precision of solution
+            np.testing.assert_almost_equal(result.x_opt, x_opt, decimal=2)
+            np.testing.assert_almost_equal(result.f_opt, f_opt, decimal=2)
 
 
 class ClientTestCaseForrester(ClientTestCase):

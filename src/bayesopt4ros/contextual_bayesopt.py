@@ -5,6 +5,7 @@ import torch
 import yaml
 
 from torch import Tensor
+from typing import Tuple
 
 from botorch.acquisition import PosteriorMean
 from botorch.models import SingleTaskGP
@@ -112,6 +113,16 @@ class ContextualBayesianOptimization(BayesianOptimization):
             config=config,
         )
 
+    def get_best_observation(self) -> Tuple[torch.Tensor, torch.Tensor, float]:
+        """Get the best parameters, context and corresponding observed value."""
+        rospy.logerr(self.x_best)
+        x_best, c_best = torch.split(self.x_best, [self.input_dim, self.context_dim])
+        return x_best, c_best, self.y_best
+
+    def get_optimal_parameters(self, context) -> Tuple[torch.Tensor, float]:
+        """Geth the optimal parameters for given context with corresponding value."""
+        return self._optimize_posterior_mean(context)
+
     def _update_model(self, goal):
         """Updates the GP with new data as well as the current context. Creates
         a model if none exists yet.
@@ -216,7 +227,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # TODO(lukasfro): Re-factor acqf optimization. We have this piece of code 3x by now...
         context = context or self.context
         fixed_features = {i + self.input_dim: context[i] for i in range(self.context_dim)}
-        x_opt, _ = optimize_acqf_botorch(
+        x_opt, f_opt = optimize_acqf_botorch(
             posterior_mean,
             self.joint_bounds,
             q=1,
@@ -227,4 +238,11 @@ class ContextualBayesianOptimization(BayesianOptimization):
         )
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         x_opt = x_opt[:self.input_dim]  # only return the next input parameters
-        return x_opt
+        f_opt = f_opt if self.maximize else -1 * f_opt
+
+        # FIXME(lukasfro): Somehow something goes wrong with the standardization
+        #  here... I could not make a minimum working example to reproduce this
+        #  weird behaviour. Seems like outcome is de-normalized once too often.
+        f_opt = self.gp.outcome_transform(f_opt)[0].squeeze().item()
+        
+        return x_opt, f_opt

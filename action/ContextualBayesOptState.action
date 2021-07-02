@@ -1,0 +1,14 @@
+# Goal: the context for which to compute x_opt/f_opt
+float64[] context
+---
+# Result: this contains the ContextualBayesOpt state
+# 'best' corresponds to observed parameter/outcome/context
+float64[] x_best
+float64[] c_best
+float64 y_best
+# 'opt' corresponds to the optimum of the posterior mean for the given context
+float64[] x_opt
+float64 f_opt
+---
+# Feedback: as of now we do not use this
+bool feedback
