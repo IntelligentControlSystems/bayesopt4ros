@@ -135,7 +135,7 @@ class ExampleClient(object):
         else:
             raise ValueError("No such objective.")
         self.maximize = maximize
-        
+
     def request_parameter(self, y_new: float) -> np.ndarray:
         """Method that requests new parameters from the BayesOpt server.
 
@@ -157,11 +157,13 @@ class ExampleClient(object):
 
     def request_bayesopt_state(self) -> BayesOptStateResult:
         """Method that requests the (final) state of BayesOpt server.
-        
+
         .. note:: As we only call this function once, we can just create the
             corresponding client locally.
         """
-        state_client = actionlib.SimpleActionClient("BayesOptStateServer", BayesOptStateAction)
+        state_client = actionlib.SimpleActionClient(
+            "BayesOptState", BayesOptStateAction
+        )
         state_client.wait_for_server()
 
         goal = BayesOptStateGoal()
@@ -293,6 +295,7 @@ class ClientTestCase(unittest.TestCase):
 
     def test_objective(self) -> None:
         """Testing the client on the defined objective function. """
+
         # Set up the client
         node = ExampleClient(
             server_name="BayesOpt",

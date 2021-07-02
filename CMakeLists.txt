@@ -34,6 +34,7 @@ add_action_files(
   BayesOpt.action
   BayesOptState.action
   ContextualBayesOpt.action
+  ContextualBayesOptState.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -64,8 +65,8 @@ include_directories(
 #############
 
 catkin_install_python(PROGRAMS
-  nodes/bayesopt_server.py
-  nodes/contextual_bayesopt_server.py
+  nodes/bayesopt_node.py
+  nodes/contextual_bayesopt_node.py
   test/integration/test_client_python.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

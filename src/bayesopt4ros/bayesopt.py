@@ -198,23 +198,18 @@ class BayesianOptimization(object):
         self._update_model(goal)
         self._log_results()
 
+    def get_optimal_parameters(self) -> Tuple[torch.Tensor, float]:
+        """Get the optimal parameters with corresponding expected value."""
+        return self._optimize_posterior_mean()
+
+    def get_best_observation(self) -> Tuple[torch.Tensor, float]:
+        """Get the best parameters and corresponding observed value."""
+        return self.x_best, self.y_best
+
     @property
     def n_data(self) -> int:
         """Property for conveniently accessing number of data points."""
         return self.data_handler.n_data
-
-    @property
-    def best_observation(self) -> Tuple[torch.Tensor, float]:
-        """Get the best parameters and corresponding observed value."""
-        if self.maximize:
-            return self.data_handler.x_max, self.data_handler.y_max
-        else:
-            return self.data_handler.x_min, self.data_handler.y_min
-
-    @property
-    def optimal_parameters(self) -> Tuple[torch.Tensor, float]:
-        """Get the optimal parameters with corresponding expected value."""
-        return self._optimize_posterior_mean()
 
     @property
     def y_best(self) -> float:

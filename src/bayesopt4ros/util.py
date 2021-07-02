@@ -5,14 +5,37 @@ import rospy
 import torch
 import yaml
 
+from functools import wraps
 from torch import Tensor
-from typing import Union
+from typing import Union, Callable
 
 from botorch.acquisition import PosteriorMean, AnalyticAcquisitionFunction
 from botorch.exceptions.errors import BotorchTensorDimensionError
 from botorch.utils.containers import TrainingData
 from botorch.utils.transforms import t_batch_mode_transform
 
+
+def count_requests(func: Callable) -> Callable:
+    """Decorator that keeps track of number of requests.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to be decorated.
+
+    Returns
+    -------
+    Callable
+        The decorated function.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self.request_count += 1
+        ret_val = func(self, *args, **kwargs)
+        return ret_val
+
+    return wrapper
 
 class NegativePosteriorMean(AnalyticAcquisitionFunction):
     """Until the `maximize` flag does not exist for `PosteriorMean`, use this
