@@ -5,7 +5,7 @@ import torch
 import yaml
 
 from torch import Tensor
-from typing import Tuple
+from typing import Tuple, List
 
 from botorch.acquisition import PosteriorMean
 from botorch.models import SingleTaskGP
@@ -123,6 +123,19 @@ class ContextualBayesianOptimization(BayesianOptimization):
     def get_optimal_parameters(self, context) -> Tuple[torch.Tensor, float]:
         """Geth the optimal parameters for given context with corresponding value."""
         return self._optimize_posterior_mean(context)
+
+    @property
+    def constant_config_parameters(self) -> List[str]:
+        """These parameters need to be the same when loading previous runs. For
+        all other settings, the user might have a reasonable explanation to
+        change it inbetween experiments/runs. E.g., maximum number of iterations
+        or bounds.
+
+        See Also
+        --------
+        _check_config
+        """
+        return ["input_dim", "context_dim", "maximize"]
 
     def _update_model(self, goal):
         """Updates the GP with new data as well as the current context. Creates

@@ -9,7 +9,7 @@ import torch
 import yaml
 
 from torch import Tensor
-from typing import Tuple
+from typing import List, Tuple
 
 from botorch.acquisition import (
     AcquisitionFunction,
@@ -73,8 +73,8 @@ class BayesianOptimization(object):
             Number of point for initial design, i.e. Sobol.
         log_dir : str
             Directory to which the log files are stored.
-        load_dir : str
-            Directory from which initial data points are loaded.
+        load_dir : str or list of str
+            Directory/directories from which initial data points are loaded.
         config : dict
             The configuration dictionary for the experiment.
         maximize : bool
@@ -89,13 +89,11 @@ class BayesianOptimization(object):
         self.x_new = None
         self.config = config
         self.maximize = maximize
-        self.load_dir = load_dir
-
         self.data_handler = DataHandler()
         self.gp = None  # GP is initialized when first data arrives
 
-        if self.load_dir is not None:
-            self.data_handler, self.gp = self._load_prev_bayesopt()
+        if load_dir is not None:
+            self.data_handler, self.gp = self._load_prev_bayesopt(load_dir)
 
         if log_dir is not None:
             self.log_dir = util.create_log_dir(log_dir)
@@ -192,6 +190,19 @@ class BayesianOptimization(object):
         return self.x_best, self.y_best
 
     @property
+    def constant_config_parameters(self) -> List[str]:
+        """These parameters need to be the same when loading previous runs. For
+        all other settings, the user might have a reasonable explanation to
+        change it inbetween experiments/runs. E.g., maximum number of iterations
+        or bounds.
+
+        See Also
+        --------
+        _check_config
+        """
+        return ["input_dim", "maximize"]
+
+    @property
     def n_data(self) -> int:
         """Property for conveniently accessing number of data points."""
         return self.data_handler.n_data
@@ -213,35 +224,28 @@ class BayesianOptimization(object):
             x_new = self._optimize_acqf()
         return x_new
 
-    def _load_prev_bayesopt(self):
-        # Check if the different configurations fit
-        with open(os.path.join(self.load_dir, "config.yaml")) as f:
-            load_config = yaml.load(f, Loader=yaml.FullLoader)
+    def _check_config(self, load_dirs):
+        """Make sure that all relevant parameters in the configs match."""
+        for load_dir in load_dirs:
+            with open(os.path.join(load_dir, "config.yaml")) as f:
+                load_config = yaml.load(f, Loader=yaml.FullLoader)
 
-            # These are absolutely mandatory --> error
-            try:
-                assert load_config["input_dim"] == self.input_dim
-                assert load_config["maximize"] == self.maximize
-            except AssertionError:
-                rospy.logerr(f"Your configuration does not match {self.load_dir}")
+            for p in self.constant_config_parameters:
+                try:
+                    assert load_config[p] == self.__getattribute__(p)
+                except AssertionError:
+                    rospy.logerr(f"Your configuration does not match with {load_dir}")
 
-            # These are not strictly mandatory but should be the same --> warning
-            try:
-                assert load_config["lower_bound"] == self.bounds[0].tolist()
-                assert load_config["upper_bound"] == self.bounds[1].tolist()
-                assert load_config["acq_func"] == self.acq_func
-            except AssertionError:
-                rospy.logwarn(f"Your configuration does not match {self.load_dir}")
+    def _load_prev_bayesopt(self, load_dirs):
+        # We can load multiple previous runs
+        load_dirs = [load_dirs] if isinstance(load_dirs, str) else load_dirs
 
-            # These can (and will) probably be changed --> info
-            try:
-                assert load_config["max_iter"] == self.max_iter
-                assert load_config["n_init"] == self.n_init
-            except AssertionError:
-                rospy.loginfo(f"Your configuration does not match {self.load_dir}")
+        # Configurations need to be compatible with the current one
+        self._check_config(load_dirs)
 
-        # Create model with the previous run's data
-        self.data_handler = DataHandler.from_file(os.path.join(self.load_dir, "evaluations.yaml"))
+        # Create model with the previous runs' data
+        data_files = [os.path.join(load_dir, "evaluations.yaml") for load_dir in load_dirs]
+        self.data_handler = DataHandler.from_file(data_files)
         self.gp = self._initialize_model(*self.data_handler.get_xy())
 
         return self.data_handler, self.gp
