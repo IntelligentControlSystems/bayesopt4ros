@@ -93,8 +93,9 @@ class ContextualBayesOptServer(BayesOptServer):
         )
 
     def _print_goal(self, goal):
-        # TODO(lukasfro): also print the context -> make utility function for list to string
         if not self.request_count == 1:
-            rospy.loginfo(self._log_prefix + f"New value:   {goal.y_new:.3f}")
+            s = self._log_prefix + f"y_n: {goal.y_new:.3f}"
+            s += f"c_(n+1) = {util.iterToString(goal.c_nest, '.3f')}"
+            rospy.loginfo(s)
         else:
-            rospy.loginfo(self._log_prefix + f"Discard value:   {goal.y_new:.3f}")
+            rospy.loginfo(self._log_prefix + f"Discard value: {goal.y_new:.3f}")

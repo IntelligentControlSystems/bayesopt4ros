@@ -169,3 +169,23 @@ def server_argparser():
     )
 
     return parser
+
+
+def iterToString(it, format_spec, separator=", "):
+    """Represents an iterable (list, tuple, etc.) as a formatted string.
+
+    Parameters
+    ----------
+    it : Iterable
+        An iterable with numeric elements.
+    format_spec : str
+        Format specifier according to https://docs.python.org/3/library/string.html#format-specification-mini-language
+    separator : str
+        String between items of the iterator.
+
+    Returns
+    -------
+    str
+        The iterable as formatted string.
+    """
+    return separator.join([f"{format(elem, format_spec)}" for elem in it])

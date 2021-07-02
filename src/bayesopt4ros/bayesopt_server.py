@@ -160,7 +160,7 @@ class BayesOptServer(object):
             rospy.loginfo(self._log_prefix + f"Discard value: {goal.y_new:.3f}")
 
     def _print_result(self, result):
-        s = ", ".join([f"{xi:.3f}" for xi in result.x_new])
+        s = util.iterToString(result.x_new, ".3f")
         rospy.loginfo(self._log_prefix + f"x_new: [{s}]")
         if self.request_count < self.bo.max_iter:
             rospy.loginfo(self._log_prefix + "Waiting for new request...")

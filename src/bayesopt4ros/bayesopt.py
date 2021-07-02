@@ -219,10 +219,7 @@ class BayesianOptimization(object):
         return self.data_handler.x_max if self.maximize else self.data_handler.x_min
 
     def _get_next_x(self):
-        # TODO(lukasfro): I believe we can merge the first two conditions
-        if self.n_data == 0:  # Haven't seen any data yet
-            x_new = self.x_init[0]
-        elif self.n_data < self.n_init:  # Stil in the initial phase
+        if self.n_data < self.n_init:  # We are in the initialization phase
             x_new = self.x_init[self.n_data]
         else:  # Actually optimizing the acquisition function for new points
             x_new = self._optimize_acqf()
