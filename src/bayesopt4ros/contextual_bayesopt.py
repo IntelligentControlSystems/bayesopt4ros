@@ -69,6 +69,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         self.context = None
         self.context_dim = context_dim
         self.context_bounds = context_bounds
+        self.joint_dim = self.input_dim + self.context_dim
         self.joint_bounds = torch.cat((self.bounds, self.context_bounds), dim=1)
 
     @classmethod
@@ -167,12 +168,13 @@ class ContextualBayesianOptimization(BayesianOptimization):
 
         # Joint kernel is constructed via multiplication
         covar_module = ScaleKernel(k0 * k1, outputscale_prior=GammaPrior(2.0, 0.15))
+
+        unit_cube = torch.stack((torch.zeros(self.joint_dim), torch.ones(self.joint_dim)))
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),
-            # TODO(lukasfro): explicitly give bounds for input transform instead of learning it
-            input_transform=Normalize(d=self.input_dim + self.context_dim),
+            input_transform=Normalize(d=self.joint_dim, bounds=unit_cube),
             covar_module=covar_module,
         )
         return gp
