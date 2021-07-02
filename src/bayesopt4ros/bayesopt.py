@@ -97,22 +97,10 @@ class BayesianOptimization(object):
             self.data_handler = DataHandler()
             self.gp = None  # GP is initialized when first data arrives
 
-        self.log_dir = log_dir
-        # TODO(lukasfro): make a separate function for this
-        if self.log_dir is not None:
-            self.log_dir = os.path.join(self.log_dir, time.strftime("%Y-%m-%d-%H-%M-%S"))
+        if log_dir is not None:
+            self.log_dir = util.create_log_dir(log_dir)
 
-            if not os.path.exists(self.log_dir):
-                os.makedirs(self.log_dir)
-                rospy.loginfo(f"Created logging directory: {self.log_dir}")
-            else:
-                # TODO(lukasfro): if non-empty log_dir exists, assume that we want to continue the optimization
-                rospy.logwarn(f"Logging directory already exists: {self.log_dir}")
-                shutil.rmtree(self.log_dir)
-                os.mkdir(self.log_dir)
-
-        if not (bounds.shape[1] == self.input_dim):
-            raise ValueError("Bounds do not match input dimensionality.")
+        assert bounds.shape[1] == self.input_dim
 
     @classmethod
     def from_file(cls, config_file: str) -> BayesianOptimization:

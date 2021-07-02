@@ -160,3 +160,39 @@ def iterToString(it, format_spec, separator=", "):
         The iterable as formatted string.
     """
     return separator.join([f"{format(elem, format_spec)}" for elem in it])
+
+
+def create_log_dir(log_dir):
+    """Creates a new logging sub-directory with current date and time.
+
+    If the sub-directory already exists, we try to generate a unique directory
+    name using a numeric suffix.
+
+    Parameters
+    ----------
+    log_dir : str
+        Path to the root logging directory.
+
+    Returns
+    -------
+    str
+        The final sub-directory path.
+    """
+    import os
+    import time
+
+    log_dir = os.path.join(log_dir, time.strftime("%Y-%m-%d-%H-%M-%S"))
+    count = 1
+    while os.path.exists(log_dir) and count <= 100:
+        log_dir = log_dir.split("_")[0]
+        suffix = f"{count:03d}"
+        log_dir = "_".join(log_dir, suffix)
+
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+        rospy.loginfo(f"Created logging directory: {log_dir}")
+    else:
+        log_dir = None
+        rospy.logwarn("Could not create logging directory. The results are NOT stored.")
+
+    return log_dir
