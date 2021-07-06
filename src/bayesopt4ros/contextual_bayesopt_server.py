@@ -43,7 +43,6 @@ class ContextualBayesOptServer(BayesOptServer):
             node_rate=node_rate,
         )
 
-        self._initialize_bayesopt(ContextualBayesianOptimization, config_file)
         rospy.logdebug("[ContextualBayesOptServer] Initialization done")
 
     @util.count_requests
@@ -74,6 +73,13 @@ class ContextualBayesOptServer(BayesOptServer):
 
         self.state_server.set_succeeded(state)
 
+    def _initialize_bayesopt(self, config_file):
+        try:
+            self.bo = ContextualBayesianOptimization.from_file(config_file)
+        except Exception as e:
+            rospy.logerr(f"[ContextualBayesOpt] Something went wrong with initialization: '{e}'")
+            rospy.signal_shutdown("Initialization of ContextualBayesOpt failed.")
+
     def _initialize_parameter_server(self, server_name):
         """This server obtains new function values and provides new parameters."""
         self.parameter_server = actionlib.SimpleActionServer(
@@ -95,7 +101,7 @@ class ContextualBayesOptServer(BayesOptServer):
     def _print_goal(self, goal):
         if not self.request_count == 1:
             s = self._log_prefix + f"y_n: {goal.y_new:.3f}"
-            s += f", c_(n+1) = {util.iterToString(goal.c_new, '.3f')}"
+            s += f", c_(n+1) = {util.iter_to_string(goal.c_new, '.3f')}"
             rospy.loginfo(s)
         else:
             rospy.loginfo(self._log_prefix + f"Discard value: {goal.y_new:.3f}")

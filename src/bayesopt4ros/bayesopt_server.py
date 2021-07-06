@@ -50,7 +50,7 @@ class BayesOptServer(object):
             log_level=log_level,
         )
 
-        self._initialize_bayesopt(BayesianOptimization, config_file)
+        self._initialize_bayesopt(config_file)
         self._initialize_parameter_server(server_name)
         self._initialize_state_server(server_name + "State")
         self.parameter_server.start()
@@ -118,11 +118,11 @@ class BayesOptServer(object):
 
         self.state_server.set_succeeded(state)
 
-    def _initialize_bayesopt(self, bo_class, config_file):
+    def _initialize_bayesopt(self, config_file):
         try:
-            self.bo = bo_class.from_file(config_file)
+            self.bo = BayesianOptimization.from_file(config_file)
         except Exception as e:
-            rospy.logerr(f"{bo_class.__name__} Something went wrong with initialization: '{e}'")
+            rospy.logerr(f"[BayesOpt] Something went wrong with initialization: '{e}'")
             rospy.signal_shutdown("Initialization of BayesOpt failed.")
 
     def _initialize_parameter_server(self, server_name):
@@ -160,7 +160,7 @@ class BayesOptServer(object):
             rospy.loginfo(self._log_prefix + f"Discard value: {goal.y_new:.3f}")
 
     def _print_result(self, result):
-        s = util.iterToString(result.x_new, ".3f")
+        s = util.iter_to_string(result.x_new, ".3f")
         rospy.loginfo(self._log_prefix + f"x_new: [{s}]")
         if self.request_count < self.bo.max_iter:
             rospy.loginfo(self._log_prefix + "Waiting for new request...")

@@ -152,7 +152,7 @@ class DataHandler(object):
             raise BotorchTensorDimensionError(message)
 
 
-def iterToString(it, format_spec, separator=", "):
+def iter_to_string(it, format_spec, separator=", "):
     """Represents an iterable (list, tuple, etc.) as a formatted string.
 
     Parameters
@@ -175,9 +175,6 @@ def iterToString(it, format_spec, separator=", "):
 def create_log_dir(log_dir):
     """Creates a new logging sub-directory with current date and time.
 
-    If the sub-directory already exists, we try to generate a unique directory
-    name using a numeric suffix.
-
     Parameters
     ----------
     log_dir : str
@@ -192,17 +189,7 @@ def create_log_dir(log_dir):
     import time
 
     log_dir = os.path.join(log_dir, time.strftime("%Y-%m-%d-%H-%M-%S"))
-    count = 1
-    while os.path.exists(log_dir) and count <= 100:
-        log_dir = log_dir.split("_")[0]
-        suffix = f"{count:03d}"
-        log_dir = "_".join(log_dir, suffix)
-
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-        rospy.loginfo(f"Created logging directory: {log_dir}")
-    else:
-        log_dir = None
-        rospy.logwarn("Could not create logging directory. The results are NOT stored.")
+    os.makedirs(log_dir, exist_ok=True)
+    rospy.loginfo(f"Logging directory: {log_dir}")
 
     return log_dir
