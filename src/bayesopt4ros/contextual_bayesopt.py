@@ -66,7 +66,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
             config=config,
             maximize=maximize,
         )
-        self.context = None
+        self.context, self.prev_context = None, None
         self.context_dim = context_dim
         self.context_bounds = context_bounds
         self.joint_dim = self.input_dim + self.context_dim
@@ -120,7 +120,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         x_best, c_best = torch.split(self.x_best, [self.input_dim, self.context_dim])
         return x_best, c_best, self.y_best
 
-    def get_optimal_parameters(self, context) -> Tuple[torch.Tensor, float]:
+    def get_optimal_parameters(self, context=None) -> Tuple[torch.Tensor, float]:
         """Geth the optimal parameters for given context with corresponding value."""
         return self._optimize_posterior_mean(context)
 
@@ -159,6 +159,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # Concatenate context and optimization variable
         x = torch.cat((self.x_new, self.context))
         self.data_handler.add_xy(x=x, y=goal.y_new)
+        self.prev_context = self.context
         self.context = torch.tensor(goal.c_new)
 
         if self.n_data >= self.n_init:
@@ -240,7 +241,10 @@ class ContextualBayesianOptimization(BayesianOptimization):
             posterior_mean = NegativePosteriorMean(model=self.gp)
 
         # TODO(lukasfro): Re-factor acqf optimization. We have this piece of code 3x by now...
-        context = context or self.context
+        # Note: we are using 'prev_context' instead of 'context' because the 'context'
+        # is for iteration n+1, whereas we only have seen the data until iteration n.
+        context = context or self.prev_context
+        assert context is not None
         fixed_features = {i + self.input_dim: context[i] for i in range(self.context_dim)}
         x_opt, f_opt = optimize_acqf_botorch(
             posterior_mean,

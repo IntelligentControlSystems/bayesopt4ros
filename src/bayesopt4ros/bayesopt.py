@@ -91,6 +91,8 @@ class BayesianOptimization(object):
         self.maximize = maximize
         self.data_handler = DataHandler()
         self.gp = None  # GP is initialized when first data arrives
+        self.x_opt = torch.empty(0, input_dim)
+        self.y_opt = torch.empty(0, 1)
 
         if load_dir is not None:
             self.data_handler, self.gp = self._load_prev_bayesopt(load_dir)
@@ -413,9 +415,15 @@ class BayesianOptimization(object):
             idx = [torch.argmin(y[: i + 1]).item() for i in range(self.n_data)]
         x_best, y_best = x[idx], y[idx]
 
+        # Update optimal parameters
+        xn_opt, yn_opt = self.get_optimal_parameters()
+        self.x_opt = torch.cat((self.x_opt, torch.atleast_2d(xn_opt)))
+        self.y_opt = torch.cat((self.y_opt, torch.tensor([[yn_opt]])))
+
         # Store all and optimal evaluation inputs/outputs to file
         data = self.data_handler.get_xy(as_dict=True)
         data.update({"x_best": x_best, "y_best": y_best})
+        data.update({"x_opt": self.x_opt, "y_opt": self.y_opt})
         data = {k: v.tolist() for k, v in data.items()}
         self.evaluations_file = os.path.join(self.log_dir, "evaluations.yaml")
         yaml.dump(data, open(self.evaluations_file, "w"), indent=2)
