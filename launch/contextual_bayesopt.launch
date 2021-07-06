@@ -1,0 +1,4 @@
+<launch>
+  <arg name="contextual_bayesopt_config"/>
+  <node name="ContextualBayesOptNode" pkg="bayesopt4ros" type="contextual_bayesopt_node.py" args="-f $(arg contextual_bayesopt_config)" output="screen"/>
+</launch>
