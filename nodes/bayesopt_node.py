@@ -5,7 +5,8 @@ from bayesopt4ros import BayesOptServer
 
 if __name__ == "__main__":
     try:
-        config_file = rospy.get_param("/bayesopt_config")
+        config_name = [p for p in rospy.get_param_names() if "bayesopt_config" in p]
+        config_file = rospy.get_param(config_name)
         node = BayesOptServer(config_file=config_file)
         node.run()
     except KeyError:
