@@ -267,14 +267,14 @@ class BayesianOptimization(object):
             return
         self.data_handler.add_xy(x=self.x_new, y=goal.y_new)
 
-        if self.n_data >= self.n_init:
-            # Only create model once we are done with the initial design phase
-            if self.gp:
-                x, y = self.data_handler.get_xy()
-                self.gp.set_train_data(x, y.squeeze(-1), strict=False)
-            else:
-                self.gp = self._initialize_model(*self.data_handler.get_xy())
-            self._optimize_model()
+        # Either create or update the GP model with the new data
+        if not self.gp:
+            self.gp = self._initialize_model(*self.data_handler.get_xy())
+        else:
+            x, y = self.data_handler.get_xy()
+            self.gp.set_train_data(x, y.squeeze(-1), strict=False)
+
+        self._optimize_model()
 
     def _initialize_model(self, x, y) -> GPyTorchModel:
         # Note: the default values from BoTorch are quite good
