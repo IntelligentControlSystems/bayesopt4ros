@@ -1,5 +1,5 @@
 <launch>
   <arg name="bayesopt_config"/>
-  <arg param="bayesopt_config" value="$(arg bayesopt_config)"/>
+  <param name="bayesopt_config" value="$(arg bayesopt_config)"/>
   <node name="BayesOptNode" pkg="bayesopt4ros" type="bayesopt_node.py" output="screen"/>
 </launch>
