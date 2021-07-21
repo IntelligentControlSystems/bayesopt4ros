@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import os
-from botorch.acquisition.analytic import PosteriorMean
 import rospy
-import shutil
-import time
 import torch
 import yaml
 
@@ -15,9 +12,9 @@ from botorch.acquisition import (
     AcquisitionFunction,
     UpperConfidenceBound,
     ExpectedImprovement,
-    NoisyExpectedImprovement,
     PosteriorMean,
 )
+
 from botorch.fit import fit_gpytorch_scipy
 from botorch.models import SingleTaskGP
 from botorch.models.gpytorch import GPyTorchModel
@@ -304,8 +301,7 @@ class BayesianOptimization(object):
             best_f = self.y_best  # note that EI assumes noiseless
             acq_func = ExpectedImprovement(model=self.gp, best_f=best_f, maximize=self.maximize)
         elif self.acq_func.upper() == "NEI":
-            # TODO(lukasfro): implement usage for Noisy EI
-            raise NotImplementedError("Coming soon...")
+            raise NotImplementedError("Not implemented yet. Always leads to numerical issues")
         else:
             raise NotImplementedError(f"{self.acq_func} is not a valid acquisition function")
         return acq_func

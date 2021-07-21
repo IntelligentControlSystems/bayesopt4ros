@@ -137,8 +137,8 @@ TEST(ClientTestSuite, testForrester)
     ros::shutdown();
 
     // Be kind w.r.t. precision of solution
-    ASSERT_NEAR(client.y_best_, -6.021, 1e-3);
-    ASSERT_NEAR(client.x_best_[0], 0.757, 1e-3);
+    ASSERT_NEAR(client.y_best_, -6.021, 1e-2);
+    ASSERT_NEAR(client.x_best_[0], 0.757, 1e-2);
 }
 
 int main(int argc, char **argv){

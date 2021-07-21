@@ -6,5 +6,5 @@
   <param name="bayesopt_config" value="$(arg bayesopt_config)"/>
 
   <node name="ContextualBayesOpt" pkg="bayesopt4ros" type="contextual_bayesopt_node.py" output="screen" required="true"/>
-  <test test-name="TestClientPython" pkg="bayesopt4ros" type="test_client_contextual_python.py"/>
+  <test test-name="TestClientPython" pkg="bayesopt4ros" type="test_client_contextual_python.py" time-limit="120.0"/>
 </launch>
