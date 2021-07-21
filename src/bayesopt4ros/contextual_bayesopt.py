@@ -183,12 +183,11 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # Joint kernel is constructed via multiplication
         covar_module = ScaleKernel(k0 * k1, outputscale_prior=GammaPrior(2.0, 0.15))
 
-        unit_cube = torch.stack((torch.zeros(self.joint_dim), torch.ones(self.joint_dim)))
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),
-            input_transform=Normalize(d=self.joint_dim, bounds=unit_cube),
+            input_transform=Normalize(d=self.joint_dim, bounds=self.joint_bounds),
             covar_module=covar_module,
         )
         return gp

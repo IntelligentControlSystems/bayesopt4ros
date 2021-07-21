@@ -276,13 +276,11 @@ class BayesianOptimization(object):
         self._optimize_model()
 
     def _initialize_model(self, x, y) -> GPyTorchModel:
-        # Note: the default values from BoTorch are quite good
-        unit_cube = torch.stack((torch.zeros(self.input_dim), torch.ones(self.input_dim)))
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),  # zero mean, unit variance
-            input_transform=Normalize(d=self.input_dim, bounds=unit_cube),
+            input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
         )
         return gp
 
