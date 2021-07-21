@@ -91,47 +91,47 @@ class DataHandler(object):
 
     def get_xy(self, as_dict: dict = False):
         if as_dict:
-            return {"train_inputs": self.data.X, "train_targets": self.data.Y}
+            return {"train_inputs": self.data.Xs, "train_targets": self.data.Ys}
         else:
-            return (self.data.X, self.data.Y)
+            return (self.data.Xs, self.data.Ys)
 
     def set_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
         if x is None or y is None:
-            self.data = TrainingData(X=torch.tensor([]), Y=torch.tensor([]))
+            self.data = TrainingData(Xs=torch.tensor([]), Ys=torch.tensor([]))
         else:
             if not isinstance(y, Tensor):
                 y = torch.tensor([[y]])
             self._validate_data_args(x, y)
-            self.data = TrainingData(X=x, Y=y)
+            self.data = TrainingData(Xs=x, Ys=y)
 
     def add_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
         if not isinstance(y, Tensor):
             y = torch.tensor([[y]])
         x = torch.atleast_2d(x)
         self._validate_data_args(x, y)
-        x = torch.cat((self.data.X, x)) if self.n_data else x
-        y = torch.cat((self.data.Y, y)) if self.n_data else y
+        x = torch.cat((self.data.Xs, x)) if self.n_data else x
+        y = torch.cat((self.data.Ys, y)) if self.n_data else y
         self.set_xy(x=x, y=y)
 
     @property
     def n_data(self):
-        return self.data.X.shape[0]
+        return self.data.Xs.shape[0]
 
     @property
     def x_min(self):
-        return self.data.X[torch.argmin(self.data.Y)]
+        return self.data.Xs[torch.argmin(self.data.Ys)]
 
     @property
     def y_min(self):
-        return torch.min(self.data.Y)
+        return torch.min(self.data.Ys)
 
     @property
     def x_max(self):
-        return self.data.X[torch.argmax(self.data.Y)]
+        return self.data.Xs[torch.argmax(self.data.Ys)]
 
     @property
     def y_max(self):
-        return torch.max(self.data.Y)
+        return torch.max(self.data.Ys)
 
     def __len__(self):
         return self.n_data

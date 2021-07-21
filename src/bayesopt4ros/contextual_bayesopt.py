@@ -203,7 +203,9 @@ class ContextualBayesianOptimization(BayesianOptimization):
         """
         # TODO(lukasfro): Re-factor using botorch.FixedFeatureAcquisitionFunction
         acq_func = self._initialize_acqf()
-        fixed_features = {i + self.input_dim: self.context[i] for i in range(self.context_dim)}
+        fixed_features = {
+            i + self.input_dim: self.context[i].item() for i in range(self.context_dim)
+        }
         x_opt, _ = optimize_acqf_botorch(
             acq_func,
             self.joint_bounds,
@@ -240,12 +242,14 @@ class ContextualBayesianOptimization(BayesianOptimization):
         else:
             posterior_mean = NegativePosteriorMean(model=self.gp)
 
+        context = context or self.prev_context
+        if not isinstance(context, torch.Tensor):
+            context = torch.tensor(context)
+
         # TODO(lukasfro): Re-factor acqf optimization. We have this piece of code 3x by now...
         # Note: we are using 'prev_context' instead of 'context' because the 'context'
         # is for iteration n+1, whereas we only have seen the data until iteration n.
-        context = context or self.prev_context
-        assert context is not None
-        fixed_features = {i + self.input_dim: context[i] for i in range(self.context_dim)}
+        fixed_features = {i + self.input_dim: context[i].item() for i in range(self.context_dim)}
         x_opt, f_opt = optimize_acqf_botorch(
             posterior_mean,
             self.joint_bounds,

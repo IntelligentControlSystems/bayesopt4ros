@@ -344,7 +344,7 @@ class BayesianOptimization(object):
         elif self.input_dim == 1:
             # The plotting ranges
             lb, ub = self.bounds[0], self.bounds[1]
-            xs = torch.linspace(lb.item(), ub.item(), 500)
+            xs = torch.linspace(lb.item(), ub.item(), 500).unsqueeze(-1)
 
             # Evaluate GP and acquisition function
             posterior = self.gp.posterior(xs, observation_noise=False)
@@ -356,7 +356,7 @@ class BayesianOptimization(object):
             # Create plot
             _, axes = plt.subplots(nrows=2, ncols=1)
             axes[0].plot(xs, mean, label="GP mean")
-            axes[0].fill_between(xs, mean + 2 * std, mean - 2 * std, alpha=0.3)
+            axes[0].fill_between(xs.squeeze(), mean + 2 * std, mean - 2 * std, alpha=0.3)
             axes[0].plot(x_eval, y_eval, "ko")
             axes[0].grid()
 
