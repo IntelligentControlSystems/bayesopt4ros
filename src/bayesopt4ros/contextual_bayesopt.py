@@ -162,14 +162,12 @@ class ContextualBayesianOptimization(BayesianOptimization):
         self.prev_context = self.context
         self.context = torch.tensor(goal.c_new)
 
-        if self.n_data >= self.n_init:
-            # Only create model once we are done with the initial design phase
-            if self.gp:
-                x, y = self.data_handler.get_xy()
-                self.gp.set_train_data(x, y.squeeze(-1), strict=False)
-            else:
-                self.gp = self._initialize_model(*self.data_handler.get_xy())
-            self._optimize_model()
+        # Note: We always create a GP model from scratch when receiving new data.
+        # The reason is the following: if the 'set_train_data' method of the GP
+        # is used instead, the normalization/standardization of the input/output
+        # data is not updated in the GPyTorchModel.
+        self.gp = self._initialize_model(*self.data_handler.get_xy())
+        self._optimize_model()
 
     def _initialize_model(self, x, y) -> GPyTorchModel:
         # Kernel for optimization variables
@@ -214,6 +212,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
             sequential=True,
             fixed_features=fixed_features,
         )
+
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         x_opt = x_opt[: self.input_dim]  # only return the next input parameters
         return x_opt
@@ -261,10 +260,5 @@ class ContextualBayesianOptimization(BayesianOptimization):
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         x_opt = x_opt[: self.input_dim]  # only return the next input parameters
         f_opt = f_opt if self.maximize else -1 * f_opt
-
-        # FIXME(lukasfro): Somehow something goes wrong with the standardization
-        #  here... I could not make a minimum working example to reproduce this
-        #  weird behaviour. Seems like outcome is de-normalized once too often.
-        f_opt = self.gp.outcome_transform(f_opt)[0].squeeze().item()
 
         return x_opt, f_opt
