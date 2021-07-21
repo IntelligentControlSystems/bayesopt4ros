@@ -16,6 +16,7 @@ from botorch.acquisition import (
     UpperConfidenceBound,
     ExpectedImprovement,
     NoisyExpectedImprovement,
+    PosteriorMean,
 )
 from botorch.fit import fit_gpytorch_scipy
 from botorch.models import SingleTaskGP
@@ -265,15 +266,13 @@ class BayesianOptimization(object):
             # trigger the server. At that point, there is no new input point,
             # hence, no need to need to update the model.
             return
+
+        # Note: We always create a GP model from scratch when receiving new data.
+        # The reason is the following: if the 'set_train_data' method of the GP
+        # is used instead, the normalization/standardization of the input/output
+        # data is not updated in the GPyTorchModel.
         self.data_handler.add_xy(x=self.x_new, y=goal.y_new)
-
-        # Either create or update the GP model with the new data
-        if not self.gp:
-            self.gp = self._initialize_model(*self.data_handler.get_xy())
-        else:
-            x, y = self.data_handler.get_xy()
-            self.gp.set_train_data(x, y.squeeze(-1), strict=False)
-
+        self.gp = self._initialize_model(*self.data_handler.get_xy())
         self._optimize_model()
 
     def _initialize_model(self, x, y) -> GPyTorchModel:
@@ -401,11 +400,6 @@ class BayesianOptimization(object):
         )
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
         f_opt = f_opt if self.maximize else -1 * f_opt
-
-        # FIXME(lukasfro): Somehow something goes wrong with the standardization
-        #  here... I could not make a minimum working example to reproduce this
-        #  weird behaviour. Seems like outcome is de-normalized once too often.
-        f_opt = self.gp.outcome_transform(f_opt)[0].squeeze().item()
 
         return x_opt, f_opt
 
