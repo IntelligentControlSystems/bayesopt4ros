@@ -339,38 +339,57 @@ class BayesianOptimization(object):
         """Visualize the acquisition function for debugging purposes."""
         import matplotlib.pyplot as plt
 
-        if not self.input_dim == 2:
+        if self.input_dim not in [1, 2]:
             return
+        elif self.input_dim == 1:
+            # The plotting ranges
+            lb, ub = self.bounds[0], self.bounds[1]
+            xs = torch.linspace(lb.item(), ub.item(), 500)
 
-        # The plotting ranges
-        lb, ub = self.bounds[0], self.bounds[1]
-        x1 = torch.linspace(lb[0], ub[0], 100)
-        x2 = torch.linspace(lb[1], ub[1], 100)
-        x1, x2 = torch.meshgrid(x1, x2)
-        xs = torch.stack((x1.flatten(), x2.flatten())).T
+            # Evaluate GP and acquisition function
+            posterior = self.gp.posterior(xs, observation_noise=False)
+            mean = posterior.mean.squeeze().detach()
+            std = posterior.variance.sqrt().squeeze().detach()
+            acqf = acq_func(xs.unsqueeze(1).unsqueeze(1)).squeeze().detach()
+            x_eval, y_eval = self.data_handler.get_xy()
 
-        # Evaluate GP and acquisition function
-        gpm = self.gp.posterior(xs).mean.squeeze().detach().view(100, 100)
-        acqf = acq_func(xs.unsqueeze(1)).squeeze().detach().view(100, 100)
+            # Create plot
+            _, axes = plt.subplots(nrows=2, ncols=1)
+            axes[0].plot(xs, mean, label="GP mean")
+            axes[0].fill_between(xs, mean + 2 * std, mean - 2 * std, alpha=0.3)
+            axes[0].plot(x_eval, y_eval, "ko")
+            axes[0].grid()
 
-        x_eval = self.data_handler.get_xy()[0]
+            axes[1].plot(xs, acqf)
+            axes[1].plot(x_opt, f_opt, "C3x")
+            axes[1].grid()
+        elif self.input_dim == 2:
+            # The plotting ranges
+            lb, ub = self.bounds[0], self.bounds[1]
+            x1 = torch.linspace(lb[0], ub[0], 100)
+            x2 = torch.linspace(lb[1], ub[1], 100)
+            x1, x2 = torch.meshgrid(x1, x2)
+            xs = torch.stack((x1.flatten(), x2.flatten())).T
 
-        fig, axes = plt.subplots(nrows=1, ncols=2)
-        c0 = axes[0].contourf(x1, x2, gpm, levels=50)
-        axes[0].plot(x_eval[:, 0], x_eval[:, 1], "ko")
-        axes[0].axis("equal")
-        c1 = axes[1].contourf(x1, x2, acqf, levels=50)
-        axes[1].plot(x_opt[0, 0], x_opt[0, 1], "C3o")
-        axes[1].axis("equal")
+            # Evaluate GP and acquisition function
+            gpm = self.gp.posterior(xs).mean.squeeze().detach().view(100, 100)
+            acqf = acq_func(xs.unsqueeze(1)).squeeze().detach().view(100, 100)
+            x_eval = self.data_handler.get_xy()[0]
 
-        # fig.colorbar(c0, axes[0])
-        # fig.colorbar(c1, axes[1])
+            # Create plot
+            _, axes = plt.subplots(nrows=1, ncols=2)
+            axes[0].contourf(x1, x2, gpm, levels=50)
+            axes[0].plot(x_eval[:, 0], x_eval[:, 1], "ko")
+            axes[0].axis("equal")
+            axes[1].contourf(x1, x2, acqf, levels=50)
+            axes[1].plot(x_opt[0, 0], x_opt[0, 1], "C3o")
+            axes[1].axis("equal")
 
         plt.tight_layout()
-
         file_name = os.path.join(self.log_dir, f"acqf_visualize_{x_eval.shape[0]}.pdf")
-        rospy.logwarn(f"Saving debug visualization to: {file_name}")
+        rospy.logdebug(f"Saving debug visualization to: {file_name}")
         plt.savefig(file_name, format="pdf")
+        plt.close()
 
     def _optimize_posterior_mean(self) -> Tuple[Tensor, float]:
         """Optimizes the posterior mean function.

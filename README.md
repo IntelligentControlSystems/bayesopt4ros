@@ -44,7 +44,7 @@ These are some issues that need to be addressed for the first release of the pac
 - [ ] Noisy EI acquisition function
 - [ ] Generally, think about long term strategy for different acquisition functions
 - [x] Figure out why failure cases in tests are not always detected
-- [ ] Debug visualization during optimization for 1- and 2-dim. objectives
+- [x] Debug visualization during optimization for 1- and 2-dim. objectives
 - [ ] Make code compatible with BoTorch 0.5.0 update
 - [ ] Instead of shutting down the full node, tell the client via feedback that the server is no longer available after the maximum number of iterations has been reached
 - [ ] Properly distinguish between private/protected/public properties [see here](https://www.tutorialsteacher.com/python/public-private-protected-modifiers)
