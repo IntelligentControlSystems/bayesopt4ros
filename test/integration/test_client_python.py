@@ -127,8 +127,8 @@ class ClientTestCase(unittest.TestCase):
         f_opt = np.array(node.func.optimal_value)
 
         # Be kind w.r.t. precision of solution
-        np.testing.assert_almost_equal(result.x_opt, x_opt, decimal=2)
-        np.testing.assert_almost_equal(result.f_opt, f_opt, decimal=2)
+        np.testing.assert_almost_equal(result.x_opt, x_opt, decimal=1)
+        np.testing.assert_almost_equal(result.f_opt, f_opt, decimal=1)
 
 
 class ClientTestCaseForrester(ClientTestCase):

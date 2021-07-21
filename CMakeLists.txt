@@ -104,6 +104,11 @@ add_rostest(test/integration/test_client_python.test ARGS
   objective:=NegativeForrester
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/neg_forrester_ucb.yaml)
 
+# Noisy objective with UCB
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=NoisyForrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/noisy_forrester_ucb.yaml)
+
 # Contextual setting
 add_rostest(test/integration/test_client_contextual_python.test ARGS
   objective:=ContextualForrester
