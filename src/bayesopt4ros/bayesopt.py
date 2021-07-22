@@ -14,17 +14,16 @@ from botorch.acquisition import (
     ExpectedImprovement,
 )
 
-from botorch.fit import fit_gpytorch_scipy, fit_gpytorch_torch
 from botorch.models import SingleTaskGP
 from botorch.models.gpytorch import GPyTorchModel
-from botorch.optim import optimize_acqf as optimize_acqf_botorch
-from botorch.models.transforms.input import Normalize
 from botorch.models.transforms.outcome import Standardize
+from botorch.optim import optimize_acqf as optimize_acqf_botorch
+from botorch.optim.fit import fit_gpytorch_scipy, fit_gpytorch_torch
 
 from gpytorch.mlls import ExactMarginalLogLikelihood
 
 from bayesopt4ros import util
-from bayesopt4ros.util import DataHandler
+from bayesopt4ros.data_handler import DataHandler
 from bayesopt4ros.msg import BayesOptAction
 from bayesopt4ros.util import PosteriorMean
 
@@ -90,7 +89,7 @@ class BayesianOptimization(object):
         self.config = config
         self.maximize = maximize
         self.debug_visualization = debug_visualization
-        self.data_handler = DataHandler()
+        self.data_handler = DataHandler(maximize=self.maximize)
         self.gp = None  # GP is initialized when first data arrives
         self.x_opt = torch.empty(0, input_dim)
         self.y_opt = torch.empty(0, 1)
@@ -190,7 +189,7 @@ class BayesianOptimization(object):
 
     def get_best_observation(self) -> Tuple[torch.Tensor, float]:
         """Get the best parameters and corresponding observed value."""
-        return self.x_best, self.y_best
+        return self.data_handler.x_best, self.data_handler.y_best
 
     @property
     def constant_config_parameters(self) -> List[str]:
@@ -209,16 +208,6 @@ class BayesianOptimization(object):
     def n_data(self) -> int:
         """Property for conveniently accessing number of data points."""
         return self.data_handler.n_data
-
-    @property
-    def y_best(self) -> float:
-        """Get the best function value observed so far."""
-        return self.data_handler.y_max if self.maximize else self.data_handler.y_min
-
-    @property
-    def x_best(self) -> Tensor:
-        """Get parameters for best observed function value so far."""
-        return self.data_handler.x_max if self.maximize else self.data_handler.x_min
 
     def _get_next_x(self):
         if self.n_data < self.n_init:  # We are in the initialization phase
@@ -258,6 +247,7 @@ class BayesianOptimization(object):
         # Create model with the previous runs' data
         data_files = [os.path.join(load_dir, "evaluations.yaml") for load_dir in load_dirs]
         self.data_handler = DataHandler.from_file(data_files)
+        self.data_handler.maximize = self.maximize
         self.gp = self._initialize_model(*self.data_handler.get_xy())
 
         return self.data_handler, self.gp
@@ -318,7 +308,7 @@ class BayesianOptimization(object):
         if self.acq_func.upper() == "UCB":
             acq_func = UpperConfidenceBound(model=self.gp, beta=4.0, maximize=self.maximize)
         elif self.acq_func.upper() == "EI":
-            best_f = self.y_best  # note that EI assumes noiseless
+            best_f = self.data_handler.y_best  # note that EI assumes noiseless
             acq_func = ExpectedImprovement(model=self.gp, best_f=best_f, maximize=self.maximize)
         elif self.acq_func.upper() == "NEI":
             raise NotImplementedError("Not implemented yet. Always leads to numerical issues")
@@ -433,14 +423,8 @@ class BayesianOptimization(object):
         yaml.dump(self.config, open(self.config_file, "w"))
 
         # Compute rolling best input/ouput pair
-        x, y = self.data_handler.get_xy()
-
-        # TODO(lukasfro): This should go into DataHandler class
-        if self.maximize:
-            idx = [torch.argmax(y[: i + 1]).item() for i in range(self.n_data)]
-        else:
-            idx = [torch.argmin(y[: i + 1]).item() for i in range(self.n_data)]
-        x_best, y_best = x[idx], y[idx]
+        x_best = self.data_handler.x_best_accumulate
+        y_best = self.data_handler.y_best_accumulate
 
         # Update optimal parameters
         xn_opt, yn_opt = self.get_optimal_parameters()

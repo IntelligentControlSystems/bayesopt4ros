@@ -73,7 +73,6 @@ class ContextualBayesianOptimization(BayesianOptimization):
 
     @classmethod
     def from_file(cls, config_file: str) -> ContextualBayesianOptimization:
-        # TODO(lukasfro): Does not feel right to copy that much code from base class
         """Initialize a ContextualBayesianOptimization instance from a config file.
 
         Parameters
@@ -116,8 +115,8 @@ class ContextualBayesianOptimization(BayesianOptimization):
 
     def get_best_observation(self) -> Tuple[torch.Tensor, torch.Tensor, float]:
         """Get the best parameters, context and corresponding observed value."""
-        x_best, c_best = torch.split(self.x_best, [self.input_dim, self.context_dim])
-        return x_best, c_best, self.y_best
+        x_best, c_best = torch.split(self.data_handler.x_best, [self.input_dim, self.context_dim])
+        return x_best, c_best, self.data_handler.y_best
 
     def get_optimal_parameters(self, context=None) -> Tuple[torch.Tensor, float]:
         """Geth the optimal parameters for given context with corresponding value."""

@@ -156,8 +156,6 @@ if __name__ == "__main__":
     # This can probably be done more efficiently but honestly, the ROS documentation for
     # integration testing is kind of outdated and not very thorough...
 
-    # TODO(lukasfro): write some integration tests where we start from one/multiple files
-
     objective = rospy.get_param("/objective")
     rospy.logwarn(f"Objective: {objective}")
     if objective == "Forrester":
