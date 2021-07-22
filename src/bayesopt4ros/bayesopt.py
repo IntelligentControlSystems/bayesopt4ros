@@ -285,16 +285,12 @@ class BayesianOptimization(object):
         return gp
 
     def _optimize_model(self) -> None:
+        # Scipy optimizers is faster and more accurate but tends to be numerically
+        # less table for single precision. To avoid error checking, we use the
+        # stochastic optimizer.
         mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
         mll.train()
-
-        # Scipy optimizers is faster and more accurate but tends to be numerically
-        # less table for single precision.
-        try:
-            fit_gpytorch_scipy(mll)
-        except RuntimeError as e:
-            rospy.logdebug("PSD error during model inference. Use stochastic optimizer.")
-            fit_gpytorch_torch(mll, track_iterations=False)
+        fit_gpytorch_torch(mll, options={"disp": False})
         mll.eval()
 
     def _initialize_acqf(self) -> AcquisitionFunction:
