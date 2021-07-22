@@ -265,3 +265,13 @@ class ContextualBayesianOptimization(BayesianOptimization):
         x_opt, f_opt = super()._optimize_acqf(pm_ff, visualize=False)
         f_opt = f_opt if self.maximize else -1 * f_opt
         return x_opt, f_opt
+
+    def _check_data_vicinity(self, x1, x2):
+        """Returns true if `x1` is close to any point in `x2`.
+
+        Following Binois and Picheny (2019) - https://www.jstatsoft.org/article/view/v089i08
+        Check if the proposed point is too close to any existing data points
+        to avoid numerical issues. In that case, choose a random point instead.
+        """
+        xc1 = torch.cat((x1, self.context))
+        return super()._check_data_vicinity(xc1, x2)

@@ -156,8 +156,8 @@ class ContextualClientTestCase(unittest.TestCase):
             result = node.request_bayesopt_state(context)
 
             # Be kind w.r.t. precision of solution
-            np.testing.assert_almost_equal(result.x_opt, x_opt, decimal=2)
-            np.testing.assert_almost_equal(result.f_opt, f_opt, decimal=2)
+            np.testing.assert_almost_equal(result.x_opt, x_opt, decimal=1)
+            np.testing.assert_almost_equal(result.f_opt, f_opt, decimal=1)
 
 
 class ContextualClientTestCaseForrester(ContextualClientTestCase):
@@ -169,9 +169,6 @@ if __name__ == "__main__":
     # Note: unfortunately, rostest.rosrun does not allow to parse arguments
     # This can probably be done more efficiently but honestly, the ROS documentation for
     # integration testing is kind of outdated and not very thorough...
-
-    # TODO(lukasfro): write some integration tests where we start from one/multiple files
-
     objective = rospy.get_param("/objective")
     rospy.logwarn(f"Objective: {objective}")
     if objective == "ContextualForrester":

@@ -128,11 +128,11 @@ TEST(ClientTestSuite, testForrester)
     while (ros::ok())
     {
         iter++;
-        // TODO(lukasfro): break dynamically once feedback of the server is implemented
-        if (iter > 50) break;
+        if (iter > 100) break;
         ros::spinOnce();
         client.run();
         loop_rate.sleep();
+        ROS_INFO_STREAM(iter);
     }
     ros::shutdown();
 

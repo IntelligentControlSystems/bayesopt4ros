@@ -14,7 +14,7 @@ from botorch.acquisition import (
     ExpectedImprovement,
 )
 
-from botorch.fit import fit_gpytorch_scipy
+from botorch.fit import fit_gpytorch_scipy, fit_gpytorch_torch
 from botorch.models import SingleTaskGP
 from botorch.models.gpytorch import GPyTorchModel
 from botorch.optim import optimize_acqf as optimize_acqf_botorch
@@ -227,6 +227,13 @@ class BayesianOptimization(object):
             x_new = self._optimize_acqf(
                 self._initialize_acqf(), visualize=self.debug_visualization
             )[0]
+
+            if self._check_data_vicinity(x_new, self.data_handler.get_xy()[0]):
+                rospy.logwarn("[BayesOpt] x_new is too close to existing data.")
+                lb, ub = self.bounds[0], self.bounds[1]
+                x_rand = lb + (ub - lb) * torch.rand((self.input_dim,))
+                x_new = x_rand
+
         return x_new
 
     def _check_config(self, load_dirs):
@@ -290,7 +297,14 @@ class BayesianOptimization(object):
     def _optimize_model(self) -> None:
         mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
         mll.train()
-        fit_gpytorch_scipy(mll)
+
+        # Scipy optimizers is faster and more accurate but tends to be numerically
+        # less table for single precision.
+        try:
+            fit_gpytorch_scipy(mll)
+        except RuntimeError as e:
+            rospy.logdebug("PSD error during model inference. Use stochastic optimizer.")
+            fit_gpytorch_torch(mll, track_iterations=False)
         mll.eval()
 
     def _initialize_acqf(self) -> AcquisitionFunction:
@@ -381,6 +395,24 @@ class BayesianOptimization(object):
         sobol_eng.fast_forward(n=1)  # first point is origin, boring...
         x0_init = sobol_eng.draw(n_init)  # points are in [0, 1]^d
         return self.bounds[0] + (self.bounds[1] - self.bounds[0]) * x0_init
+
+    def _check_data_vicinity(self, x1, x2):
+        """Returns true if `x1` is close to any point in `x2`.
+
+        Following Binois and Picheny (2019) - https://www.jstatsoft.org/article/view/v089i08
+        Check if the proposed point is too close to any existing data points
+        to avoid numerical issues. In that case, choose a random point instead.
+        """
+        x1 = torch.atleast_2d(x1)
+        assert x1.shape[0] == 1
+        X = torch.cat((x2, x1))
+        c = self.gp.posterior(X).mvn.covariance_matrix
+        cis = c[-1, :-1]
+        cii = c.diag()[:-1]
+        css = c.diag()[-1]
+        kss = self.gp.covar_module.outputscale
+        d = torch.min((cii + css - 2 * cis) / kss)
+        return d < 1e-5
 
     def _log_results(self) -> None:
         """Log evaluations and GP model to file.
