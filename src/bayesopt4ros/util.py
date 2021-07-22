@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-import argparse
 import rospy
 import torch
 import yaml
 
 from functools import wraps
 from torch import Tensor
-from typing import Union, Callable, List
+from typing import Union, Callable, List, Optional
 
-from botorch.acquisition import PosteriorMean, AnalyticAcquisitionFunction
+from botorch.acquisition import AnalyticAcquisitionFunction
+from botorch.acquisition.objective import ScalarizedObjective
 from botorch.exceptions.errors import BotorchTensorDimensionError
+from botorch.models.model import Model
 from botorch.utils.containers import TrainingData
 from botorch.utils.transforms import t_batch_mode_transform
 
@@ -38,18 +39,34 @@ def count_requests(func: Callable) -> Callable:
     return wrapper
 
 
-class NegativePosteriorMean(AnalyticAcquisitionFunction):
-    """Until the `maximize` flag does not exist for `PosteriorMean`, use this
-    helper class."""
-
-    # TODO(lukasfro): Make a pull request to include maximize flag in PosteriorMean
+class PosteriorMean(AnalyticAcquisitionFunction):
+    def __init__(
+        self,
+        model: Model,
+        objective: Optional[ScalarizedObjective] = None,
+        maximize: bool = True,
+    ) -> None:
+        super().__init__(model, objective=objective)
+        self.maximize = maximize
 
     @t_batch_mode_transform(expected_q=1)
     def forward(self, X: Tensor) -> Tensor:
+        r"""Evaluate the posterior mean on the candidate set X.
+
+        Args:
+            X: A `(b) x 1 x d`-dim Tensor of `(b)` t-batches of `d`-dim design
+                points each.
+
+        Returns:
+            A `(b)`-dim Tensor of Posterior Mean values at the given design
+            points `X`.
+        """
         posterior = self._get_posterior(X=X)
-        return -1 * posterior.mean.view(X.shape[:-2])
-        # mean = super().forward(X)
-        # return -1 * mean
+        mean = posterior.mean.view(X.shape[:-2])
+        if self.maximize:
+            return mean
+        else:
+            return -mean
 
 
 class DataHandler(object):

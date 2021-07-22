@@ -6,8 +6,8 @@ import yaml
 from torch import Tensor
 from typing import Tuple, List
 
-from botorch.acquisition import PosteriorMean
 from botorch.models import SingleTaskGP
+from botorch.acquisition import AcquisitionFunction, FixedFeatureAcquisitionFunction
 from botorch.models.gpytorch import GPyTorchModel
 from botorch.optim import optimize_acqf as optimize_acqf_botorch
 from botorch.models.transforms.input import Normalize
@@ -17,7 +17,7 @@ from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior
 
 from bayesopt4ros import BayesianOptimization
-from bayesopt4ros.util import NegativePosteriorMean
+from bayesopt4ros.util import PosteriorMean
 
 
 class ContextualBayesianOptimization(BayesianOptimization):
@@ -180,43 +180,60 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # Joint kernel is constructed via multiplication
         covar_module = ScaleKernel(k0 * k1, outputscale_prior=GammaPrior(2.0, 0.15))
 
+        # Note: not using input normalization due to weird behaviour
+        # See also https://github.com/pytorch/botorch/issues/874
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),
-            input_transform=Normalize(d=self.joint_dim, bounds=self.joint_bounds),
             covar_module=covar_module,
         )
         return gp
 
-    def _optimize_acqf(self) -> Tensor:
-        """Optimizes the acquisition function with the context variable fixed.
+    def _initialize_acqf(self) -> FixedFeatureAcquisitionFunction:
+        """Initialize the acquisition function of choice and wrap it with the
+        FixedFeatureAcquisitionFunction given the current context.
 
         Returns
         -------
-        torch.Tensor
-            Location of the acquisition function's optimum (without context).
+        FixedFeatureAcquisitionFunction
+            An acquisition function of choice with fixed features.
         """
-        # TODO(lukasfro): Re-factor using botorch.FixedFeatureAcquisitionFunction
-        acq_func = self._initialize_acqf()
-        fixed_features = {
-            i + self.input_dim: self.context[i].item() for i in range(self.context_dim)
-        }
-        x_opt, _ = optimize_acqf_botorch(
-            acq_func,
-            self.joint_bounds,
-            q=1,
-            num_restarts=10,
-            raw_samples=2000,
-            sequential=True,
-            fixed_features=fixed_features,
+        acq_func = super()._initialize_acqf()
+        columns = [i + self.input_dim for i in range(self.context_dim)]
+        values = self.context.tolist()
+        acq_func_ff = FixedFeatureAcquisitionFunction(
+            acq_func, d=self.joint_dim, columns=columns, values=values
         )
+        return acq_func_ff
 
-        x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
-        x_opt = x_opt[: self.input_dim]  # only return the next input parameters
-        return x_opt
+    def _optimize_acqf(
+        self, acq_func: AcquisitionFunction, visualize: bool = False
+    ) -> Tuple[Tensor, float]:
+        """Optimizes the acquisition function with the context variable fixed.
 
-    def _optimize_posterior_mean(self, context=None) -> Tensor:
+        Note: The debug visualization is turned off for contextual setting.
+
+        Parameters
+        ----------
+        acq_func : AcquisitionFunction
+            The acquisition function to optimize.
+        visualize : bool
+            Flag if debug visualization should be turned on.
+
+        Returns
+        -------
+        x_opt : torch.Tensor
+            Location of the acquisition function's optimum.
+        f_opt : float
+            Value of the acquisition function's optimum.
+        """
+        x_opt, f_opt = super()._optimize_acqf(acq_func, visualize=False)
+        if visualize:
+            pass
+        return x_opt, f_opt
+
+    def _optimize_posterior_mean(self, context=None) -> Tuple[Tensor, float]:
         """Optimizes the posterior mean function with a fixed context variable.
 
         Instead of implementing this functionality from scratch, simply use the
@@ -230,34 +247,21 @@ class ContextualBayesianOptimization(BayesianOptimization):
 
         Returns
         -------
-        torch.Tensor
-            Location of the posterior mean function's optimum (without context).
+        x_opt : torch.Tensor
+            Location of the posterior mean function's optimum.
+        f_opt : float
+            Value of the posterior mean function's optimum.
         """
-        # TODO(lukasfro): Re-factor once the PR is through
-        if self.maximize:
-            posterior_mean = PosteriorMean(model=self.gp)
-        else:
-            posterior_mean = NegativePosteriorMean(model=self.gp)
-
         context = context or self.prev_context
         if not isinstance(context, torch.Tensor):
             context = torch.tensor(context)
 
-        # TODO(lukasfro): Re-factor acqf optimization. We have this piece of code 3x by now...
-        # Note: we are using 'prev_context' instead of 'context' because the 'context'
-        # is for iteration n+1, whereas we only have seen the data until iteration n.
-        fixed_features = {i + self.input_dim: context[i].item() for i in range(self.context_dim)}
-        x_opt, f_opt = optimize_acqf_botorch(
-            posterior_mean,
-            self.joint_bounds,
-            q=1,
-            num_restarts=10,
-            raw_samples=2000,
-            sequential=True,
-            fixed_features=fixed_features,
-        )
-        x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
-        x_opt = x_opt[: self.input_dim]  # only return the next input parameters
-        f_opt = f_opt if self.maximize else -1 * f_opt
+        columns = [i + self.input_dim for i in range(self.context_dim)]
+        values = context.tolist()
 
+        pm = PosteriorMean(model=self.gp, maximize=self.maximize)
+        pm_ff = FixedFeatureAcquisitionFunction(pm, self.joint_dim, columns, values)
+
+        x_opt, f_opt = super()._optimize_acqf(pm_ff, visualize=False)
+        f_opt = f_opt if self.maximize else -1 * f_opt
         return x_opt, f_opt

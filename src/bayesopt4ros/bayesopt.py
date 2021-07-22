@@ -12,7 +12,6 @@ from botorch.acquisition import (
     AcquisitionFunction,
     UpperConfidenceBound,
     ExpectedImprovement,
-    PosteriorMean,
 )
 
 from botorch.fit import fit_gpytorch_scipy
@@ -27,7 +26,7 @@ from gpytorch.mlls import ExactMarginalLogLikelihood
 from bayesopt4ros import util
 from bayesopt4ros.util import DataHandler
 from bayesopt4ros.msg import BayesOptAction
-from bayesopt4ros.util import NegativePosteriorMean
+from bayesopt4ros.util import PosteriorMean
 
 
 class BayesianOptimization(object):
@@ -49,6 +48,7 @@ class BayesianOptimization(object):
         load_dir: str = None,
         config: dict = None,
         maximize: bool = True,
+        debug_visualization: bool = True,
     ) -> None:
         """The BayesianOptimization class initializer.
 
@@ -77,6 +77,8 @@ class BayesianOptimization(object):
             The configuration dictionary for the experiment.
         maximize : bool
             If True, consider the problem a maximization problem.
+        debug_visualization : bool
+            If True, the optimization of the acquisition function is visualized.
         """
         self.input_dim = input_dim
         self.max_iter = max_iter
@@ -87,6 +89,7 @@ class BayesianOptimization(object):
         self.x_new = None
         self.config = config
         self.maximize = maximize
+        self.debug_visualization = debug_visualization
         self.data_handler = DataHandler()
         self.gp = None  # GP is initialized when first data arrives
         self.x_opt = torch.empty(0, input_dim)
@@ -221,7 +224,9 @@ class BayesianOptimization(object):
         if self.n_data < self.n_init:  # We are in the initialization phase
             x_new = self.x_init[self.n_data]
         else:  # Actually optimizing the acquisition function for new points
-            x_new = self._optimize_acqf()
+            x_new = self._optimize_acqf(
+                self._initialize_acqf(), visualize=self.debug_visualization
+            )[0]
         return x_new
 
     def _check_config(self, load_dirs):
@@ -273,11 +278,12 @@ class BayesianOptimization(object):
         self._optimize_model()
 
     def _initialize_model(self, x, y) -> GPyTorchModel:
+        # Note: not using input normalization due to weird behaviour
+        # See also https://github.com/pytorch/botorch/issues/874
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),  # zero mean, unit variance
-            input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
         )
         return gp
 
@@ -306,15 +312,25 @@ class BayesianOptimization(object):
             raise NotImplementedError(f"{self.acq_func} is not a valid acquisition function")
         return acq_func
 
-    def _optimize_acqf(self) -> Tensor:
+    def _optimize_acqf(
+        self, acq_func: AcquisitionFunction, visualize: bool = False
+    ) -> Tuple[Tensor, float]:
         """Optimizes the acquisition function.
+
+        Parameters
+        ----------
+        acq_func : AcquisitionFunction
+            The acquisition function to optimize.
+        visualize : bool
+            Flag if debug visualization should be turned on.
 
         Returns
         -------
-        torch.Tensor
+        x_opt : torch.Tensor
             Location of the acquisition function's optimum.
+        f_opt : float
+            Value of the acquisition function's optimum.
         """
-        acq_func = self._initialize_acqf()
         x_opt, f_opt = optimize_acqf_botorch(
             acq_func,
             self.bounds,
@@ -324,66 +340,11 @@ class BayesianOptimization(object):
             sequential=True,
         )
 
-        self._debug_acqf_visualize(acq_func, x_opt, f_opt)
+        if visualize:
+            self._debug_acqf_visualize(acq_func, x_opt, f_opt)
 
         x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
-        return x_opt
-
-    def _debug_acqf_visualize(self, acq_func, x_opt, f_opt):
-        """Visualize the acquisition function for debugging purposes."""
-        import matplotlib.pyplot as plt
-
-        if self.input_dim not in [1, 2]:
-            return
-        elif self.input_dim == 1:
-            # The plotting ranges
-            lb, ub = self.bounds[0], self.bounds[1]
-            xs = torch.linspace(lb.item(), ub.item(), 500).unsqueeze(-1)
-
-            # Evaluate GP and acquisition function
-            posterior = self.gp.posterior(xs, observation_noise=False)
-            mean = posterior.mean.squeeze().detach()
-            std = posterior.variance.sqrt().squeeze().detach()
-            acqf = acq_func(xs.unsqueeze(1).unsqueeze(1)).squeeze().detach()
-            x_eval, y_eval = self.data_handler.get_xy()
-
-            # Create plot
-            _, axes = plt.subplots(nrows=2, ncols=1)
-            axes[0].plot(xs, mean, label="GP mean")
-            axes[0].fill_between(xs.squeeze(), mean + 2 * std, mean - 2 * std, alpha=0.3)
-            axes[0].plot(x_eval, y_eval, "ko")
-            axes[0].grid()
-
-            axes[1].plot(xs, acqf)
-            axes[1].plot(x_opt, f_opt, "C3x")
-            axes[1].grid()
-        elif self.input_dim == 2:
-            # The plotting ranges
-            lb, ub = self.bounds[0], self.bounds[1]
-            x1 = torch.linspace(lb[0], ub[0], 100)
-            x2 = torch.linspace(lb[1], ub[1], 100)
-            x1, x2 = torch.meshgrid(x1, x2)
-            xs = torch.stack((x1.flatten(), x2.flatten())).T
-
-            # Evaluate GP and acquisition function
-            gpm = self.gp.posterior(xs).mean.squeeze().detach().view(100, 100)
-            acqf = acq_func(xs.unsqueeze(1)).squeeze().detach().view(100, 100)
-            x_eval = self.data_handler.get_xy()[0]
-
-            # Create plot
-            _, axes = plt.subplots(nrows=1, ncols=2)
-            axes[0].contourf(x1, x2, gpm, levels=50)
-            axes[0].plot(x_eval[:, 0], x_eval[:, 1], "ko")
-            axes[0].axis("equal")
-            axes[1].contourf(x1, x2, acqf, levels=50)
-            axes[1].plot(x_opt[0, 0], x_opt[0, 1], "C3o")
-            axes[1].axis("equal")
-
-        plt.tight_layout()
-        file_name = os.path.join(self.log_dir, f"acqf_visualize_{x_eval.shape[0]}.pdf")
-        rospy.logdebug(f"Saving debug visualization to: {file_name}")
-        plt.savefig(file_name, format="pdf")
-        plt.close()
+        return x_opt, f_opt
 
     def _optimize_posterior_mean(self) -> Tuple[Tensor, float]:
         """Optimizes the posterior mean function.
@@ -398,22 +359,9 @@ class BayesianOptimization(object):
         f_opt : float
             Value of the posterior mean function's optimum.
         """
-        if self.maximize:
-            posterior_mean = PosteriorMean(model=self.gp)
-        else:
-            posterior_mean = NegativePosteriorMean(model=self.gp)
-
-        x_opt, f_opt = optimize_acqf_botorch(
-            posterior_mean,
-            self.bounds,
-            q=1,
-            num_restarts=10,
-            raw_samples=2000,
-            sequential=True,
-        )
-        x_opt = x_opt.squeeze(0)  # gets rid of superfluous dimension due to q=1
+        posterior_mean = PosteriorMean(model=self.gp, maximize=self.maximize)
+        x_opt, f_opt = self._optimize_acqf(posterior_mean)
         f_opt = f_opt if self.maximize else -1 * f_opt
-
         return x_opt, f_opt
 
     def _initial_design(self, n_init: int) -> Tensor:
@@ -474,3 +422,61 @@ class BayesianOptimization(object):
         data = {k: v.tolist() for k, v in data.items()}
         self.evaluations_file = os.path.join(self.log_dir, "evaluations.yaml")
         yaml.dump(data, open(self.evaluations_file, "w"), indent=2)
+
+    def _debug_acqf_visualize(self, acq_func, x_opt, f_opt):
+        """Visualize the acquisition function for debugging purposes."""
+        import matplotlib.pyplot as plt
+
+        if self.input_dim not in [1, 2]:
+            return
+        elif self.input_dim == 1:
+            # The plotting ranges
+            lb, ub = self.bounds[0], self.bounds[1]
+            xs = torch.linspace(lb.item(), ub.item(), 500).unsqueeze(-1)
+
+            # Evaluate GP and acquisition function
+            posterior = self.gp.posterior(xs, observation_noise=False)
+            mean = posterior.mean.squeeze().detach()
+            std = posterior.variance.sqrt().squeeze().detach()
+            acqf = acq_func(xs.unsqueeze(1).unsqueeze(1)).squeeze().detach()
+            x_eval, y_eval = self.data_handler.get_xy()
+
+            # Create plot
+            _, axes = plt.subplots(nrows=2, ncols=1)
+            axes[0].plot(xs, mean, label="GP mean")
+            axes[0].fill_between(xs.squeeze(), mean + 2 * std, mean - 2 * std, alpha=0.3)
+            axes[0].plot(x_eval, y_eval, "ko")
+            axes[0].grid()
+
+            axes[1].plot(xs, acqf)
+            axes[1].plot(x_opt, f_opt, "C3x")
+            axes[1].grid()
+        elif self.input_dim == 2:
+            # The plotting ranges
+            lb, ub = self.bounds[0], self.bounds[1]
+            x1 = torch.linspace(lb[0], ub[0], 100)
+            x2 = torch.linspace(lb[1], ub[1], 100)
+            x1, x2 = torch.meshgrid(x1, x2)
+            xs = torch.stack((x1.flatten(), x2.flatten())).T
+
+            # Evaluate GP and acquisition function
+            gpm = self.gp.posterior(xs).mean.squeeze().detach().view(100, 100)
+            acqf = acq_func(xs.unsqueeze(1)).squeeze().detach().view(100, 100)
+            x_eval = self.data_handler.get_xy()[0]
+
+            # Create plot
+            _, axes = plt.subplots(nrows=1, ncols=2)
+            axes[0].contourf(x1, x2, gpm, levels=50)
+            axes[0].plot(x_eval[:, 0], x_eval[:, 1], "ko")
+            axes[0].axis("equal")
+            c = axes[1].contourf(x1, x2, acqf, levels=50)
+            axes[1].plot(x_opt[0, 0], x_opt[0, 1], "C3o")
+            axes[1].axis("equal")
+
+            plt.colorbar(c)
+
+        plt.tight_layout()
+        file_name = os.path.join(self.log_dir, f"acqf_visualize_{x_eval.shape[0]}.pdf")
+        rospy.logdebug(f"Saving debug visualization to: {file_name}")
+        plt.savefig(file_name, format="pdf")
+        plt.close()
