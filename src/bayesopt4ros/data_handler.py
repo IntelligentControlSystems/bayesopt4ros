@@ -5,17 +5,30 @@ import torch
 import yaml
 
 from torch import Tensor
-from typing import Union, List
+from typing import Dict, Tuple, Union, List
 
 from botorch.utils.containers import TrainingData
 from botorch.exceptions.errors import BotorchTensorDimensionError
 
 
 class DataHandler(object):
-    # TODO(lukasfro): documentation for DataHandler
-    """Helper class that handles all data for BayesOpt."""
+    """Helper class that handles all data for BayesOpt.
+
+    .. note:: This is mostly a convenience class to clean up the BO classes.
+    """
 
     def __init__(self, x: Tensor = None, y: Tensor = None, maximize: bool = True) -> None:
+        """The DataHandler class initializer.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            The training inputs.
+        y : torch.Tensor
+            The training targets.
+        maximize : bool
+            Specifies if 'best' refers to min or max.
+        """
         self.set_xy(x=x, y=y)
         self.maximize = maximize
 
@@ -24,7 +37,16 @@ class DataHandler(object):
         """Creates a DataHandler instance with input/target values from the
         specified file.
 
-        Returns an empty DataHandler object if file could not be found.
+        Parameters
+        ----------
+        file : str or List[str]
+            One or many evaluation files to load data from.
+
+        Returns
+        -------
+        :class:`DataHandler`
+            An instance of the DataHandler class. Returns an empty object if
+            not file could be found.
         """
         files = [file] if isinstance(file, str) else file
         x, y = [], []
@@ -48,13 +70,15 @@ class DataHandler(object):
         else:
             return cls()
 
-    def get_xy(self, as_dict: dict = False):
+    def get_xy(self, as_dict: dict = False) -> Union[Dict, Tuple[torch.Tensor, torch.Tensor]]:
+        """Returns the data as a tuple (default) or as a dictionary."""
         if as_dict:
             return {"train_inputs": self.data.Xs, "train_targets": self.data.Ys}
         else:
             return (self.data.Xs, self.data.Ys)
 
     def set_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
+        """Overwrites the existing data."""
         if x is None or y is None:
             self.data = TrainingData(Xs=torch.tensor([]), Ys=torch.tensor([]))
         else:
@@ -64,6 +88,7 @@ class DataHandler(object):
             self.data = TrainingData(Xs=x, Ys=y)
 
     def add_xy(self, x: Tensor = None, y: Union[float, Tensor] = None):
+        """Adds new data to the existing data."""
         if not isinstance(y, Tensor):
             y = torch.tensor([[y]])
         x = torch.atleast_2d(x)
@@ -74,10 +99,12 @@ class DataHandler(object):
 
     @property
     def n_data(self):
+        """Number of data points."""
         return self.data.Xs.shape[0]
 
     @property
     def x_best(self):
+        """Location of the best observed datum."""
         if self.maximize:
             return self.data.Xs[torch.argmax(self.data.Ys)]
         else:
@@ -85,10 +112,12 @@ class DataHandler(object):
 
     @property
     def x_best_accumulate(self):
+        """Locations of the best observed datum accumulated along first axis."""
         return self.data.Xs[self.idx_best_accumulate]
 
     @property
     def y_best(self):
+        """Function value of the best observed datum."""
         if self.maximize:
             return torch.max(self.data.Ys)
         else:
@@ -96,18 +125,22 @@ class DataHandler(object):
 
     @property
     def y_best_accumulate(self):
+        """Function value of the best ovbserved datum accumulated along first axis."""
         return self.data.Ys[self.idx_best_accumulate]
 
     @property
     def idx_best_accumulate(self):
+        """Indices of the best observed data accumulated along first axis."""
         argminmax = torch.argmax if self.maximize else torch.argmin
         return [argminmax(self.data.Ys[: i + 1]).item() for i in range(self.n_data)]
 
     def __len__(self):
+        """Such that we can use len(data_handler)."""
         return self.n_data
 
     @staticmethod
     def _validate_data_args(x: Tensor, y: Tensor):
+        """Checks if the dimensions of the training data is correct."""
         if x.dim() != 2:
             message = f"Input dimension is assumed 2-dim. not {x.ndim}-dim."
             raise BotorchTensorDimensionError(message)

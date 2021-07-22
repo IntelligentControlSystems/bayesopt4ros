@@ -11,6 +11,13 @@ from botorch.utils.transforms import t_batch_mode_transform
 
 
 class PosteriorMean(AnalyticAcquisitionFunction):
+    """Greedy acquisition function.
+
+    .. note:: Had to overwrite the implementation of BoTorch (version 0.5.0)
+        because it does provide the `maximize` flag. Delete this class when
+        the PR for the following issue is merged: https://github.com/pytorch/botorch/issues/875
+    """
+
     def __init__(
         self,
         model: Model,

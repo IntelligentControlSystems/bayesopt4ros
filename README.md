@@ -37,10 +37,7 @@ In case you find our package helpful and want to contribute, please either raise
 
 These are some issues that need to be addressed for the first release of the package.
 
-- [ ] Finalize documentation 
 - [ ] Create short paper that explains BO in general and this package in particular
-- [ ] Instead of shutting down the full node, tell the client via feedback that the server is no longer available after the maximum number of iterations has been reached
-- [ ] Properly distinguish between private/protected/public properties [see here](https://www.tutorialsteacher.com/python/public-private-protected-modifiers)
 
 ## Testing
 
@@ -60,5 +57,5 @@ catkin_make_isolated -j1 --catkin-make-args run_tests && catkin_test_results
 
 Or if you want to just run a specific integration test:
 ```bash
-rostest bayesopt4ros test_client_python ...
+rostest bayesopt4ros test_client_python 
 ```

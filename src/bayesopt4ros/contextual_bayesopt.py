@@ -9,8 +9,6 @@ from typing import Tuple, List
 from botorch.models import SingleTaskGP
 from botorch.acquisition import AcquisitionFunction, FixedFeatureAcquisitionFunction
 from botorch.models.gpytorch import GPyTorchModel
-from botorch.optim import optimize_acqf as optimize_acqf_botorch
-from botorch.models.transforms.input import Normalize
 from botorch.models.transforms.outcome import Standardize
 
 from gpytorch.kernels import MaternKernel, ScaleKernel
@@ -26,6 +24,9 @@ class ContextualBayesianOptimization(BayesianOptimization):
     Implements the actual heavy lifting that is done under the hood of
     :class:`contextual_bayesopt_server.ContextualBayesOptServer`.
 
+    See Also
+    --------
+    :class:`bayesopt.BayesianOptimization`
     """
 
     def __init__(
@@ -113,14 +114,50 @@ class ContextualBayesianOptimization(BayesianOptimization):
             config=config,
         )
 
+    def get_optimal_parameters(self, context=None) -> Tuple[torch.Tensor, float]:
+        """Get the optimal parameters for given context with corresponding value.
+
+        .. note:: 'Optimal' referes to the optimum of the GP model.
+
+        Parameters
+        ----------
+        context : torch.Tensor, optional
+            The context for which to get the optimal parameters. If none is
+            none is provided, use the last observed context.
+
+        Returns
+        -------
+        torch.Tensor
+            Location of the GP posterior mean's optimum for the given context.
+        float
+            Function value of the GP posterior mean's optium for the given context.
+
+        See Also
+        --------
+        get_best_observation
+        """
+        return self._optimize_posterior_mean(context)
+
     def get_best_observation(self) -> Tuple[torch.Tensor, torch.Tensor, float]:
-        """Get the best parameters, context and corresponding observed value."""
+        """Get the best parameters, context and corresponding observed value.
+
+        .. note:: 'Best' refers to the highest/lowest observed datum.
+
+        Returns
+        -------
+        torch.Tensor
+            Location of the highest/lowest observed datum.
+        torch.Tensor
+            Context of the highest/lowest observed datum.
+        float
+            Function value of the highest/lowest observed datum.
+
+        See Also
+        --------
+        get_optimal_parameters
+        """
         x_best, c_best = torch.split(self.data_handler.x_best, [self.input_dim, self.context_dim])
         return x_best, c_best, self.data_handler.y_best
-
-    def get_optimal_parameters(self, context=None) -> Tuple[torch.Tensor, float]:
-        """Geth the optimal parameters for given context with corresponding value."""
-        return self._optimize_posterior_mean(context)
 
     @property
     def constant_config_parameters(self) -> List[str]:
@@ -168,6 +205,22 @@ class ContextualBayesianOptimization(BayesianOptimization):
         self._optimize_model()
 
     def _initialize_model(self, x, y) -> GPyTorchModel:
+        """Creates a GP object from data.
+
+        .. note:: Currently the kernel types are hard-coded. However, Matern is
+            a good default choice. The joint kernel is just the multiplication
+            of the parameter and context kernels.
+
+        Parameters
+        ----------
+        :class:`DataHandler`
+            A data handler object containing the observations to create the model.
+
+        Returns
+        -------
+        :class:`GPyTorchModel`
+            A GP object.
+        """
         # Kernel for optimization variables
         ad0 = tuple(range(self.input_dim))
         k0 = MaternKernel(active_dims=ad0, lengthscale_prior=GammaPrior(3.0, 6.0))
@@ -268,9 +321,26 @@ class ContextualBayesianOptimization(BayesianOptimization):
     def _check_data_vicinity(self, x1, x2):
         """Returns true if `x1` is close to any point in `x2`.
 
-        Following Binois and Picheny (2019) - https://www.jstatsoft.org/article/view/v089i08
-        Check if the proposed point is too close to any existing data points
-        to avoid numerical issues. In that case, choose a random point instead.
+        .. note:: We are following Binois and Picheny (2019) and check if the
+            proposed point is too close to any existing data points to avoid
+            numerical issues. In that case, choose a random point instead.
+            https://www.jstatsoft.org/article/view/v089i08
+
+        .. note:: `x1` is considered without context whereas `x2` contains the
+            context. The reasons for that is to have a consistent interface
+            with the standard BO implementation.
+
+        Parameters
+        ----------
+        x1 : torch.Tensor
+            A single data point.
+        x2 : torch.Tensor
+            Multiple data points.
+
+        Returns
+        -------
+        bool
+            Returns `True` if `x1` is close to any point in `x2` else returns `False`
         """
         xc1 = torch.cat((x1, self.context))
         return super()._check_data_vicinity(xc1, x2)

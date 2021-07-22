@@ -6,7 +6,7 @@ import torch
 import yaml
 
 from torch import Tensor
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from botorch.acquisition import (
     AcquisitionFunction,
@@ -18,7 +18,7 @@ from botorch.models import SingleTaskGP
 from botorch.models.gpytorch import GPyTorchModel
 from botorch.models.transforms.outcome import Standardize
 from botorch.optim import optimize_acqf as optimize_acqf_botorch
-from botorch.optim.fit import fit_gpytorch_scipy, fit_gpytorch_torch
+from botorch.optim.fit import fit_gpytorch_torch
 
 from gpytorch.mlls import ExactMarginalLogLikelihood
 
@@ -168,7 +168,7 @@ class BayesianOptimization(object):
 
         return self.x_new
 
-    def update_last_goal(self, goal: float) -> None:
+    def update_last_goal(self, goal: BayesOptAction) -> None:
         """Updates the GP model with the last function value obtained.
 
         .. note:: This function is only called once from the server, right before
@@ -184,11 +184,39 @@ class BayesianOptimization(object):
         self._log_results()
 
     def get_optimal_parameters(self) -> Tuple[torch.Tensor, float]:
-        """Get the optimal parameters with corresponding expected value."""
+        """Get the optimal parameters with corresponding expected value.
+
+        .. note:: 'Optimal' referes to the optimum of the GP model.
+
+        Returns
+        -------
+        torch.Tensor
+            Location of the GP posterior mean's optimum.
+        float
+            Function value of the GP posterior mean's optium.
+
+        See Also
+        --------
+        get_best_observation
+        """
         return self._optimize_posterior_mean()
 
     def get_best_observation(self) -> Tuple[torch.Tensor, float]:
-        """Get the best parameters and corresponding observed value."""
+        """Get the best parameters and corresponding observed value.
+
+        .. note:: 'Best' refers to the highest/lowest observed datum.
+
+        Returns
+        -------
+        torch.Tensor
+            Location of the highest/lowest observed datum.
+        float
+            Function value of the highest/lowest observed datum.
+
+        See Also
+        --------
+        get_optimal_parameters
+        """
         return self.data_handler.x_best, self.data_handler.y_best
 
     @property
@@ -209,7 +237,14 @@ class BayesianOptimization(object):
         """Property for conveniently accessing number of data points."""
         return self.data_handler.n_data
 
-    def _get_next_x(self):
+    def _get_next_x(self) -> Tensor:
+        """Computes the next point to evaluate.
+
+        Returns
+        -------
+        torch.Tensor
+            The next point to evaluate.
+        """
         if self.n_data < self.n_init:  # We are in the initialization phase
             x_new = self.x_init[self.n_data]
         else:  # Actually optimizing the acquisition function for new points
@@ -217,6 +252,7 @@ class BayesianOptimization(object):
                 self._initialize_acqf(), visualize=self.debug_visualization
             )[0]
 
+            # To avoid numerical issues and encourage exploration
             if self._check_data_vicinity(x_new, self.data_handler.get_xy()[0]):
                 rospy.logwarn("[BayesOpt] x_new is too close to existing data.")
                 lb, ub = self.bounds[0], self.bounds[1]
@@ -225,8 +261,15 @@ class BayesianOptimization(object):
 
         return x_new
 
-    def _check_config(self, load_dirs):
-        """Make sure that all relevant parameters in the configs match."""
+    def _check_config(self, load_dirs: List[str]):
+        """Make sure that all relevant parameters in the configs match.
+
+        Parameters
+        ----------
+        load_dirs : str or List[str]
+            The directories to the previous experiments, which are loaded.
+        """
+        load_dirs = [load_dirs] if isinstance(load_dirs, str) else load_dirs
         for load_dir in load_dirs:
             with open(os.path.join(load_dir, "config.yaml")) as f:
                 load_config = yaml.load(f, Loader=yaml.FullLoader)
@@ -237,7 +280,23 @@ class BayesianOptimization(object):
                 except AssertionError:
                     rospy.logerr(f"Your configuration does not match with {load_dir}")
 
-    def _load_prev_bayesopt(self, load_dirs):
+    def _load_prev_bayesopt(
+        self, load_dirs: Union[str, List[str]]
+    ) -> Tuple[DataHandler, GPyTorchModel]:
+        """Load data from previous BO experiments.
+
+        Parameters
+        ----------
+        load_dirs : str or List[str]
+            The directories to the previous experiments, which are loaded.
+
+        Returns
+        -------
+        :class:`DataHandler`
+            An data handler object with filled with observations from previous experiments.
+        :class:`GPyTorchModel`
+            A GP object that has been trained on the data from previous experiments.
+        """
         # We can load multiple previous runs
         load_dirs = [load_dirs] if isinstance(load_dirs, str) else load_dirs
 
@@ -248,7 +307,8 @@ class BayesianOptimization(object):
         data_files = [os.path.join(load_dir, "evaluations.yaml") for load_dir in load_dirs]
         self.data_handler = DataHandler.from_file(data_files)
         self.data_handler.maximize = self.maximize
-        self.gp = self._initialize_model(*self.data_handler.get_xy())
+        self.gp = self._initialize_model(self.data_handler)
+        self._fit_model()
 
         return self.data_handler, self.gp
 
@@ -271,12 +331,28 @@ class BayesianOptimization(object):
         # is used instead, the normalization/standardization of the input/output
         # data is not updated in the GPyTorchModel.
         self.data_handler.add_xy(x=self.x_new, y=goal.y_new)
-        self.gp = self._initialize_model(*self.data_handler.get_xy())
-        self._optimize_model()
+        self.gp = self._initialize_model(self.data_handler)
+        self._fit_model()
 
-    def _initialize_model(self, x, y) -> GPyTorchModel:
+    def _initialize_model(self, data_handler: DataHandler) -> GPyTorchModel:
+        """Creates a GP object from data.
+
+        .. note:: Currently the kernel types are hard-coded. However, Matern is
+            a good default choice.
+
+        Parameters
+        ----------
+        :class:`DataHandler`
+            A data handler object containing the observations to create the model.
+
+        Returns
+        -------
+        :class:`GPyTorchModel`
+            A GP object.
+        """
         # Note: not using input normalization due to weird behaviour
         # See also https://github.com/pytorch/botorch/issues/874
+        x, y = data_handler.get_xy()
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
@@ -284,7 +360,8 @@ class BayesianOptimization(object):
         )
         return gp
 
-    def _optimize_model(self) -> None:
+    def _fit_model(self) -> None:
+        """Performs inference and fits the GP to the data."""
         # Scipy optimizers is faster and more accurate but tends to be numerically
         # less table for single precision. To avoid error checking, we use the
         # stochastic optimizer.
@@ -298,7 +375,7 @@ class BayesianOptimization(object):
 
         Returns
         -------
-        AcquisitionFunction
+        :class:`AcquisitionFunction`
             An acquisition function based on BoTorch's base class.
         """
         if self.acq_func.upper() == "UCB":
@@ -319,7 +396,7 @@ class BayesianOptimization(object):
 
         Parameters
         ----------
-        acq_func : AcquisitionFunction
+        acq_func : :class:`AcquisitionFunction`
             The acquisition function to optimize.
         visualize : bool
             Flag if debug visualization should be turned on.
@@ -385,9 +462,22 @@ class BayesianOptimization(object):
     def _check_data_vicinity(self, x1, x2):
         """Returns true if `x1` is close to any point in `x2`.
 
-        Following Binois and Picheny (2019) - https://www.jstatsoft.org/article/view/v089i08
-        Check if the proposed point is too close to any existing data points
-        to avoid numerical issues. In that case, choose a random point instead.
+        .. note:: We are following Binois and Picheny (2019) and check if the
+            proposed point is too close to any existing data points to avoid
+            numerical issues. In that case, choose a random point instead.
+            https://www.jstatsoft.org/article/view/v089i08
+
+        Parameters
+        ----------
+        x1 : torch.Tensor
+            A single data point.
+        x2 : torch.Tensor
+            Multiple data points.
+
+        Returns
+        -------
+        bool
+            Returns `True` if `x1` is close to any point in `x2` else returns `False`
         """
         x1 = torch.atleast_2d(x1)
         assert x1.shape[0] == 1
