@@ -6,8 +6,6 @@ lower_bound: [0.0]
 upper_bound: [1.0]
 
 context_dim: 1
-lower_bound_context: [0.0]
-upper_bound_context: [20.0]
 
 acq_func: "UCB"
 max_iter: 100

@@ -128,7 +128,7 @@ TEST(ClientTestSuite, testForrester)
     while (ros::ok())
     {
         iter++;
-        if (iter > 20) break;
+        if (iter > 25) break;
         ros::spinOnce();
         client.run();
         loop_rate.sleep();

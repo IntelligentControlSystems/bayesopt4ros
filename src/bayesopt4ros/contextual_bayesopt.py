@@ -36,7 +36,6 @@ class ContextualBayesianOptimization(BayesianOptimization):
         context_dim: int,
         max_iter: int,
         bounds: Tensor,
-        context_bounds: Tensor,
         acq_func: str = "UCB",
         n_init: int = 5,
         log_dir: str = None,
@@ -53,8 +52,6 @@ class ContextualBayesianOptimization(BayesianOptimization):
         ----------
         context_dim : int
             Number of context dimensions for the parameters.
-        context_bounds : torch.Tensor
-            A [2, context_dim] shaped tensor specifying the context variables domain.
         """
         super().__init__(
             input_dim=input_dim,
@@ -69,9 +66,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         )
         self.context, self.prev_context = None, None
         self.context_dim = context_dim
-        self.context_bounds = context_bounds
         self.joint_dim = self.input_dim + self.context_dim
-        self.joint_bounds = torch.cat((self.bounds, self.context_bounds), dim=1)
 
     @classmethod
     def from_file(cls, config_file: str) -> ContextualBayesianOptimization:
@@ -96,17 +91,12 @@ class ContextualBayesianOptimization(BayesianOptimization):
         ub = torch.tensor(config["upper_bound"])
         bounds = torch.stack((lb, ub))
 
-        lbc = torch.tensor(config["lower_bound_context"])
-        ubc = torch.tensor(config["upper_bound_context"])
-        context_bounds = torch.stack((lbc, ubc))
-
         # Construct class instance based on the config
         return cls(
             input_dim=config["input_dim"],
             context_dim=config["context_dim"],
             max_iter=config["max_iter"],
             bounds=bounds,
-            context_bounds=context_bounds,
             acq_func=config["acq_func"],
             n_init=config["n_init"],
             log_dir=config.get("log_dir"),
@@ -235,11 +225,16 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # Joint kernel is constructed via multiplication
         covar_module = ScaleKernel(k0 * k1, outputscale_prior=GammaPrior(2.0, 0.15))
 
+        # For contextual BO, we do not want to specify the bounds for the context
+        # variables (who knows what they might be...). We therefore use the neat
+        # feature of BoTorch to infer the normalization bounds from data. However,
+        # this does not work is only a single data point is given.
+        input_transform = Normalize(d=self.joint_dim) if len(self.data_handler) > 1 else None
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),
-            input_transform=Normalize(d=self.joint_dim),
+            input_transform=input_transform,
             covar_module=covar_module,
         )
         return gp
