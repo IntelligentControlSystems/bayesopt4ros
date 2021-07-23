@@ -42,7 +42,7 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        flake8 src --count --max-complexity=10 --max-line-length=99 --statistics
+        flake8 src/bayesopt4ros/ --count --statistics
 
     - name: Unittest with pytest
       run: |

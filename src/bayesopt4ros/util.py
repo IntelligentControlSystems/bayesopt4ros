@@ -69,7 +69,8 @@ def iter_to_string(it, format_spec, separator=", "):
     it : Iterable
         An iterable with numeric elements.
     format_spec : str
-        Format specifier according to https://docs.python.org/3/library/string.html#format-specification-mini-language
+        Format specifier according to
+        https://docs.python.org/3/library/string.html#format-specification-mini-language
     separator : str
         String between items of the iterator.
 

@@ -88,7 +88,7 @@ def test_adding_data(test_data):
 def test_wrong_inputs(test_data):
     # Unequal number of inputs/outputs
     with pytest.raises(BotorchTensorDimensionError):
-        dh = DataHandler(x=test_data.Xs[:5], y=test_data.Ys[:6])
+        DataHandler(x=test_data.Xs[:5], y=test_data.Ys[:6])
 
 
 def test_from_single_file():
@@ -119,4 +119,4 @@ def test_from_incompatible_files():
     ]
 
     with pytest.raises(BotorchTensorDimensionError):
-        dh = DataHandler.from_file(data_files)
+        DataHandler.from_file(data_files)
