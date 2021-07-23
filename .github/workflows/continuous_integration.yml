@@ -41,9 +41,8 @@ jobs:
         touch _build/html/.nojekyll
 
     - name: Lint with flake8
-      # exit-zero treats all errors as warnings.
       run: |
-        flake8 src --count --exit-zero --max-complexity=10 --max-line-length=99 --statistics
+        flake8 src --count --max-complexity=10 --max-line-length=99 --statistics
 
     - name: Unittest with pytest
       run: |
