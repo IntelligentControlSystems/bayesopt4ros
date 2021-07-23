@@ -123,12 +123,12 @@ TEST(ClientTestSuite, testForrester)
 {
     // Create client node
     ExampleClient client("BayesOpt");
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(1);
     size_t iter = 0;
     while (ros::ok())
     {
         iter++;
-        if (iter > 100) break;
+        if (iter > 20) break;
         ros::spinOnce();
         client.run();
         loop_rate.sleep();

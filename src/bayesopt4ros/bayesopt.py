@@ -26,7 +26,7 @@ from gpytorch.mlls import ExactMarginalLogLikelihood
 
 from bayesopt4ros import util
 from bayesopt4ros.data_handler import DataHandler
-from bayesopt4ros.msg import BayesOptAction
+from bayesopt4ros.msg import BayesOptAction  # type: ignore
 from bayesopt4ros.util import PosteriorMean
 
 

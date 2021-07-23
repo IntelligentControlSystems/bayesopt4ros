@@ -1,5 +1,5 @@
 <launch>
-  <arg name="bayesopt_config"/>
+  <arg name="bayesopt_config" default="$(find bayesopt4ros)/test/integration/configs/contextual_forrester_ucb.yaml"/>
   <param name="bayesopt_config" value="$(arg bayesopt_config)"/>
   <node name="ContextualBayesOptNode" pkg="bayesopt4ros" type="contextual_bayesopt_node.py" output="screen"/>
 </launch>

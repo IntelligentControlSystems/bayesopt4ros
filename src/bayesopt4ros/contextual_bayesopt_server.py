@@ -1,12 +1,12 @@
-import actionlib
+import actionlib  # type: ignore
 import rospy
 
 from bayesopt4ros import ContextualBayesianOptimization, BayesOptServer, util
-from bayesopt4ros.msg import (
+from bayesopt4ros.msg import (  # type: ignore
     ContextualBayesOptResult,
     ContextualBayesOptAction,
 )
-from bayesopt4ros.msg import (
+from bayesopt4ros.msg import (  # type: ignore
     ContextualBayesOptStateResult,
     ContextualBayesOptStateAction,
 )
