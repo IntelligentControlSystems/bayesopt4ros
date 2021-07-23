@@ -1,5 +1,7 @@
 <launch>
   <arg name="bayesopt_config" default="$(find bayesopt4ros)/test/integration/configs/forrester_ucb.yaml"/>
-  <node name="BayesOptServer" pkg="bayesopt4ros" type="bayesopt_server.py" args="-f $(arg bayesopt_config)" output="screen"/>
+  <param name="bayesopt_config" value="$(arg bayesopt_config)"/>
+
+  <node name="BayesOpt" pkg="bayesopt4ros" type="bayesopt_node.py" output="screen" required="true"/>
   <test test-name="TestClientCpp" pkg="bayesopt4ros" type="test_client_cpp"/>
 </launch>

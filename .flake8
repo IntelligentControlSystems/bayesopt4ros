@@ -1,0 +1,11 @@
+[flake8]
+# E203: whitespace before ':'
+# F401: imported but unused
+ignore = E203
+
+per-file-ignores =
+    __init__.py: F401
+
+max-complexity = 10
+max-line-length = 99
+exclude = _setup_util.py,docs/conf.py,scratch*.py

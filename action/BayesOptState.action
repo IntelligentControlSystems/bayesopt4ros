@@ -1,0 +1,13 @@
+# Goal: as of now we do not use this
+bool goal
+---
+# Result: this contains the BayesOpt state
+# 'best' corresponds to observed parameters/outcomes
+float64[] x_best
+float64 y_best
+# 'opt' corresponds to optimum of the posterior mean
+float64[] x_opt
+float64 f_opt
+---
+# Feedback: as of now we do not use this
+bool feedback

@@ -1,0 +1,14 @@
+# This configuration file is specific for the contextual Forrester test function.
+experiment_name: "example_1d_contextual_forrester"
+
+input_dim: 1
+lower_bound: [0.0]
+upper_bound: [1.0]
+
+context_dim: 1
+
+acq_func: "UCB"
+max_iter: 100
+n_init: 3
+log_dir: "/root/ws/logs/contextual_forrester_ucb/"
+maximize: false

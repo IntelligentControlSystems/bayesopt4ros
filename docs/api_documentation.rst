@@ -1,48 +1,49 @@
 API Documentation
 =================
 
-The Bayesian Optimization Server Class
----------------------------------------
+The Server Classes
+------------------
 
 .. automodule:: bayesopt_server
 .. autoclass:: BayesOptServer
-   :members: __init__, execute_callback, run
+   :members: __init__, next_parameter_callback, state_callback, run
 
-The Bayesian Optimizer
-----------------------
+.. automodule:: contextual_bayesopt_server
+.. autoclass:: ContextualBayesOptServer
+   :members: __init__, next_parameter_callback, state_callback, run
+
+
+The Optimizer Classes
+---------------------
 
 .. automodule:: bayesopt4ros.bayesopt
 .. autoclass:: BayesianOptimization
-   :members: __init__, from_file, next, update_last_y, n_data, y_best, x_best
+   :members: __init__, from_file, next, update_last_goal, get_optimal_parameters, get_best_observation, constant_config_parameters
 
-Acquisition Functions
----------------------
+.. automodule:: bayesopt4ros.contextual_bayesopt
+.. autoclass:: ContextualBayesianOptimization
+   :members: __init__, from_file, next, update_last_goal, get_optimal_parameters, get_best_observation, constant_config_parameters
 
-.. automodule:: bayesopt4ros.acq_func
-.. autoclass:: AcquisitionFunction
-   :members: __init__, __call__   
-.. autoclass:: ExpectedImprovement
-   :members: __init__, __call__
-.. autoclass:: UpperConfidenceBound
-   :members: __init__, __call__
-
-Optimization
-------------
-
-.. automodule:: bayesopt4ros.optim
-    :members: maximize_restarts, get_anchor_points
 
 Utilities
 ---------
 
-.. automodule:: bayesopt4ros.util
+.. automodule:: bayesopt4ros.data_handler
 .. autoclass:: DataHandler
-   :members: __init__, get_xy, set_xy, add_xy, normalize_input, denormalize_input, normalize_output, denormalize_output, n_data, x_best, y_best, to_dict
+   :members: __init__, from_file, get_xy, set_xy, add_xy, n_data, x_best, y_best, x_best_accumulate, y_best_accumulate
 
-Integration Tests
+.. automodule:: bayesopt4ros.util
+   :members: count_requests, iter_to_string, create_log_dir
+.. autoclass:: PosteriorMean
+   :members: __init__, forward
+
+Examplary Clients
 -----------------
 
 .. automodule:: test_client_python
-   :members: forrester_function, three_hump_camel_function
 .. autoclass:: ExampleClient
-   :members: __init__, request, run
+   :members: __init__, request_parameter, request_bayesopt_state, run
+
+.. automodule:: test_client_contextual_python
+.. autoclass:: ExampleContextualClient
+   :members: __init__, request_parameter, request_bayesopt_state, run, sample_context

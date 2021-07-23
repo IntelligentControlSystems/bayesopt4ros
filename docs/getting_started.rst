@@ -2,9 +2,11 @@ Getting started
 ===============
 
 Here you find two ways of getting started with the BayesOpt4ROS package.
-If you already have a catkin workspace and would like to directly integrate BayesOpt4ROS into your workflow, please see :ref:`this tutorial<Your own workspace>`.
-In case you just want to try out the package, follow :ref:`this example<Example workspace (Docker)>` to set up a workspace inside a Docker container.
+If you already have a catkin workspace and would like to directly integrate BayesOpt4ROS into your workflow, please see section :ref:`sec-getting-started-own-workspace`.
+In case you just want to try out the package, follow :ref:`sec-getting-started-docker` to set up a workspace inside a Docker container.
 
+
+.. _sec-getting-started-own-workspace:
 
 Your own workspace
 ------------------
@@ -14,7 +16,7 @@ For the following steps, we'll assume that :code:`${WORKSPACE}` is the root of y
 Requirements
 ^^^^^^^^^^^^
 
-BayesOpt4ROS requires Python 3, which is the default version when you use ROS Noetic (or newer).
+BayesOpt4ROS requires Python 3, which is the default version when you use ROS Noetic.
 If you are using ROS Melodic (or older) you first need to set up Python 3 for your workspace.
 
 Installation
@@ -38,31 +40,34 @@ Now we should be ready to build the workspace:
 
 .. code-block:: bash
 
-    # Either this
     catkin_make
-    source devel/setup.bash 
-    # Or this
+    # Or
     catkin_make_isolated
-    source devel_isolated/setup.bash
+    # Or
+    catkin build
+    
+    # Don't forget to source the setup files
+    source devel(_isolated)/setup.bash
+
 
 You should be good to go now.
 One way of quickly testing if the installation worked is by launching the server.
 
 .. code-block:: bash
 
-    roslaunch bayesopt4ros bayesopt_server.launch
+    roslaunch bayesopt4ros bayesopt.launch
 
 You should see the output of the server similar to this:
 
 .. code-block:: bash
 
-    [INFO] [1616593243.400756]: [BayesOpt] Iteration 0: Ready to receive requests.
+    [INFO] [1616593243.400756]: [BayesOptServer] Iteration 0: Ready to receive requests.
 
 .. note:: If roslaunch fails, make sure that the node script is executable.
 
     .. code-block:: bash
 
-        chmod +x src/bayesopt4ros/nodes/bayesopt_server.py
+        chmod +x src/bayesopt4ros/nodes/bayesopt_node.py
 
 The server node is now ready to receive requests from a client (your node).
 Continue with the tutorial to see what callback methods you need to implement.
@@ -75,19 +80,72 @@ On the `official ROS homepage <http://wiki.ros.org/actionlib_tutorials/Tutorials
 Since BayesOpt4ROS already provides the server side, you just need to implement the client code.
 In the following, we show you what methods/callbacks you have to implement to communicate with the server (depending on the language of your choice).
 
-C++
-"""
+First, we need to instantiate the respective client node and tell it to listen to the `BayesOpt` server.
 
-Until we have a more detailed description, you can also have a look at the `C++ test client <https://github.com/lukasfro/bayesopt4ros/blob/main/test/integration/test_client_cpp.cpp>`_.
+C++:
 
-.. todo:: Explicitly show what methods have to be implemented.
+.. code-block:: c++
 
-Python
-""""""
+    #include "actionlib/client/simple_action_client.h"
+    #include "bayesopt4ros/BayesOptAction.h"
 
-Until we have a more detailed description, you can also have a look at the `python test client <https://github.com/lukasfro/bayesopt4ros/blob/main/test/integration/test_client_python.py>`_
+    Client client_node_("BayesOpt");
+    client_node_.waitForServer();
 
-.. todo:: Explicitly show what methods have to be implemented.
+Python:
+
+.. code-block:: python3
+
+    import actionlib
+    from bayesopt4ros.msg import BayesOptAction, BayesOptGoal
+
+    self.client = actionlib.SimpleActionClient("BayesOpt", BayesOptAction)
+    self.client.wait_for_server()
+
+Querying the server to get new parameters is done by sending a 'goal'.
+Here is where you provide the server with your experiment's outcome via `y_new`, i.e., the function value of the objective that you want to optimize.
+
+C++: 
+
+.. code-block:: c++
+
+    BayesOptGoal goal;
+    goal.y_new = 42.0;
+    client_node_.sendGoal(goal, boost::bind(&ExampleClient::bayesOptCallback, this, _1, _2));
+
+Python:
+
+.. code-block:: python3
+
+    goal = BayesOptGoal(y_new=y_new)
+    self.client.send_goal(goal)
+
+Whenever the server is done computing a new set of parameters, the respective callback method is called.
+For the sake of this example, we just store the result in a class variable `x_new`.
+
+C++:
+
+.. code-block:: c++
+
+    void bayesOptCallback(const actionlib::SimpleClientGoalState& state, const BayesOptResultConstPtr& result) {
+        x_new_ = result->x_new;
+    }
+
+Python:
+
+.. code-block:: python3
+
+    self.client.wait_for_result()
+    result = self.client.get_result()
+    x_new = result.x_new
+
+.. note:: The above Python example waits the server do be done until it continues running. This behaviour is not always desired. You can also implement an asynchronous pattern via callback functions in Python. The official ROS documentation does not provide such an example, but `this answer <https://answers.ros.org/question/292061/how-do-i-create-a-callback-based-actionlib-client-in-python/>`_ has everything that you should need.
+
+That's already it! By repeatively querying the server via the pattern above, you will receive new parameters that will optimize your objective.
+Full examples of exemplary clients can be found `here for C++ <https://github.com/lukasfro/bayesopt4ros/blob/main/test/integration/test_client_cpp.cpp>`_ and `here for Python <https://github.com/lukasfro/bayesopt4ros/blob/main/test/integration/test_client_python.py>`_.
+
+
+.. _sec-getting-started-docker:
 
 Example workspace (Docker)
 --------------------------
@@ -132,7 +190,7 @@ Running test client
 ^^^^^^^^^^^^^^^^^^^
 
 The following commands will only work within the Docker container.
-Let's build the workspace:
+Let's build the workspace (choose any build system of your choice):
 
 .. code-block:: bash
 

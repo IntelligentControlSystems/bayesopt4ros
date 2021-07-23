@@ -30,7 +30,11 @@ catkin_python_setup()
 ## Generate actions in the 'action' folder
 add_action_files(
   DIRECTORY action
-  FILES BayesOpt.action
+  FILES 
+  BayesOpt.action
+  BayesOptState.action
+  ContextualBayesOpt.action
+  ContextualBayesOptState.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -61,8 +65,10 @@ include_directories(
 #############
 
 catkin_install_python(PROGRAMS
-  nodes/bayesopt_server.py
+  nodes/bayesopt_node.py
+  nodes/contextual_bayesopt_node.py
   test/integration/test_client_python.py
+  test/integration/test_client_contextual_python.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -92,3 +98,18 @@ add_rostest(test/integration/test_client_python.test ARGS
 add_rostest(test/integration/test_client_python.test ARGS
   objective:=ThreeHumpCamel
   bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/three_hump_camel_ei.yaml)
+
+# Negating the objective
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=NegativeForrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/neg_forrester_ucb.yaml)
+
+# Noisy objective with UCB
+add_rostest(test/integration/test_client_python.test ARGS
+  objective:=NoisyForrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/noisy_forrester_ucb.yaml)
+
+# Contextual setting
+add_rostest(test/integration/test_client_contextual_python.test ARGS
+  objective:=ContextualForrester
+  bayesopt_config:=${PROJECT_SOURCE_DIR}/test/integration/configs/contextual_forrester_ucb.yaml)

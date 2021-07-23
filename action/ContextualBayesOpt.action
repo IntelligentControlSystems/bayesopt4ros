@@ -1,5 +1,6 @@
-# Goal: corresponds to the "output value" for BayesOpt
+# Goal: corresponds to the "output value" and "context"
 float64 y_new
+float64[] c_new
 ---
 # Result: corresponds to the new parameters
 float64[] x_new

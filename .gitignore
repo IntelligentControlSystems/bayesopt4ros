@@ -139,3 +139,6 @@ devel_isolated/
 
 # Default logging location
 logs/
+
+# Others
+*scratch*
