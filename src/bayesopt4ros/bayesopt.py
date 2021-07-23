@@ -49,7 +49,7 @@ class BayesianOptimization(object):
         load_dir: str = None,
         config: dict = None,
         maximize: bool = True,
-        debug_visualization: bool = True,
+        debug_visualization: bool = False,
     ) -> None:
         """The BayesianOptimization class initializer.
 
