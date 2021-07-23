@@ -12,12 +12,6 @@
 
 A Bayesian Optimisation package for ROS developed by the [Intelligent Control Systems (ICS)](https://idsc.ethz.ch/research-zeilinger.html) group at ETH Zurich. 
 
-## Important note about development status
-
-This project is under active development.
-Therefore you might experience breaking changes without any warnings (sorry in advance).
-As soon as we have a stable version, we will tag the corresponding commit.
-
 ## Documentation
 
 We provide a official and up-to-date documentation [here](https://lukasfro.github.io/bayesopt4ros/).
@@ -32,12 +26,6 @@ In case you find our package helpful and want to contribute, please either raise
 
 - We follow the [NumPy convention](https://numpydoc.readthedocs.io/en/latest/format.html) for docstrings
 - We use the [Black formatter](https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html) with the `--line-length` option set to `99`
-
-### ToDo List
-
-These are some issues that need to be addressed for the first release of the package.
-
-- [ ] Create short paper that explains BO in general and this package in particular
 
 ## Testing
 
