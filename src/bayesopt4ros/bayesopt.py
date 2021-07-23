@@ -331,10 +331,12 @@ class BayesianOptimization(object):
         # Note: We always create a GP model from scratch when receiving new data.
         # The reason is the following: if the 'set_train_data' method of the GP
         # is used instead, the normalization/standardization of the input/output
-        # data is not updated in the GPyTorchModel.
-        self.data_handler.add_xy(x=self.x_new, y=goal.y_new)
-        self.gp = self._initialize_model(self.data_handler)
-        self._fit_model()
+        # data is not updated in the GPyTorchModel. We also want at least 2 data
+        # points such that the input normalization works properly.
+        if self.data_handler.n_data >= 2:
+            self.data_handler.add_xy(x=self.x_new, y=goal.y_new)
+            self.gp = self._initialize_model(self.data_handler)
+            self._fit_model()
 
     def _initialize_model(self, data_handler: DataHandler) -> GPyTorchModel:
         """Creates a GP object from data.
@@ -356,8 +358,8 @@ class BayesianOptimization(object):
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
-            outcome_transform=Standardize(m=1),  # zero mean, unit variance
-            input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
+            outcome_transform=Standardize(m=1),
+            input_transform=Normalize(d=self.input_dim),
         )
         return gp
 

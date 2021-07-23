@@ -9,6 +9,7 @@ from typing import Tuple, List
 from botorch.models import SingleTaskGP
 from botorch.acquisition import AcquisitionFunction, FixedFeatureAcquisitionFunction
 from botorch.models.gpytorch import GPyTorchModel
+from botorch.models.transforms.input import Normalize
 from botorch.models.transforms.outcome import Standardize
 
 from gpytorch.kernels import MaternKernel, ScaleKernel
@@ -200,9 +201,11 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # Note: We always create a GP model from scratch when receiving new data.
         # The reason is the following: if the 'set_train_data' method of the GP
         # is used instead, the normalization/standardization of the input/output
-        # data is not updated in the GPyTorchModel.
-        self.gp = self._initialize_model(*self.data_handler.get_xy())
-        self._optimize_model()
+        # data is not updated in the GPyTorchModel. We also want at least 2 data
+        # points such that the input normalization works properly.
+        if self.data_handler.n_data >= 2:
+            self.gp = self._initialize_model(*self.data_handler.get_xy())
+            self._fit_model()
 
     def _initialize_model(self, x, y) -> GPyTorchModel:
         """Creates a GP object from data.
@@ -232,12 +235,11 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # Joint kernel is constructed via multiplication
         covar_module = ScaleKernel(k0 * k1, outputscale_prior=GammaPrior(2.0, 0.15))
 
-        # Note: not using input normalization due to weird behaviour
-        # See also https://github.com/pytorch/botorch/issues/874
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),
+            input_transform=Normalize(d=self.joint_dim),
             covar_module=covar_module,
         )
         return gp
