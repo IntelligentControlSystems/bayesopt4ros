@@ -14,8 +14,8 @@ class PosteriorMean(AnalyticAcquisitionFunction):
     """Greedy acquisition function.
 
     .. note:: Had to overwrite the implementation of BoTorch (version 0.5.0)
-        because it does provide the `maximize` flag. Delete this class when
-        the PR for the following issue is merged: https://github.com/pytorch/botorch/issues/875
+        because it does provide the `maximize` flag. See the discussion
+        on Github: https://github.com/pytorch/botorch/issues/875
     """
 
     def __init__(
@@ -29,16 +29,7 @@ class PosteriorMean(AnalyticAcquisitionFunction):
 
     @t_batch_mode_transform(expected_q=1)
     def forward(self, X: Tensor) -> Tensor:
-        r"""Evaluate the posterior mean on the candidate set X.
-
-        Args:
-            X: A `(b) x 1 x d`-dim Tensor of `(b)` t-batches of `d`-dim design
-                points each.
-
-        Returns:
-            A `(b)`-dim Tensor of Posterior Mean values at the given design
-            points `X`.
-        """
+        """Evaluate the posterior mean on the candidate set X."""
         posterior = self._get_posterior(X=X)
         mean = posterior.mean.view(X.shape[:-2])
         if self.maximize:

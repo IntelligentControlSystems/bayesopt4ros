@@ -14,8 +14,10 @@ from botorch.acquisition import (
     ExpectedImprovement,
 )
 
+from botorch.fit import fit_gpytorch_model
 from botorch.models import SingleTaskGP
 from botorch.models.gpytorch import GPyTorchModel
+from botorch.models.transforms.input import Normalize
 from botorch.models.transforms.outcome import Standardize
 from botorch.optim import optimize_acqf as optimize_acqf_botorch
 from botorch.optim.fit import fit_gpytorch_torch
@@ -350,13 +352,12 @@ class BayesianOptimization(object):
         :class:`GPyTorchModel`
             A GP object.
         """
-        # Note: not using input normalization due to weird behaviour
-        # See also https://github.com/pytorch/botorch/issues/874
         x, y = data_handler.get_xy()
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
             outcome_transform=Standardize(m=1),  # zero mean, unit variance
+            input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
         )
         return gp
 
@@ -366,9 +367,7 @@ class BayesianOptimization(object):
         # less table for single precision. To avoid error checking, we use the
         # stochastic optimizer.
         mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
-        mll.train()
-        fit_gpytorch_torch(mll, options={"disp": False})
-        mll.eval()
+        fit_gpytorch_model(mll, optimizer=fit_gpytorch_torch, options={"disp": False})
 
     def _initialize_acqf(self) -> AcquisitionFunction:
         """Initialize the acquisition function of choice.
@@ -570,9 +569,10 @@ class BayesianOptimization(object):
             _, axes = plt.subplots(nrows=1, ncols=2)
             axes[0].contourf(x1, x2, gpm, levels=50)
             axes[0].plot(x_eval[:, 0], x_eval[:, 1], "ko")
+            axes[0].plot(x_opt[0, 0], x_opt[0, 1], "C3x")
             axes[0].axis("equal")
             c = axes[1].contourf(x1, x2, acqf, levels=50)
-            axes[1].plot(x_opt[0, 0], x_opt[0, 1], "C3o")
+            axes[1].plot(x_opt[0, 0], x_opt[0, 1], "C3x")
             axes[1].axis("equal")
 
             plt.colorbar(c)
