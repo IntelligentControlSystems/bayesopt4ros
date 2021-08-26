@@ -16,8 +16,10 @@ from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior
 
 from bayesopt4ros import BayesianOptimization
+from bayesopt4ros.data_handler import DataHandler
 from bayesopt4ros.util import PosteriorMean
 
+import rospy
 
 class ContextualBayesianOptimization(BayesianOptimization):
     """The contextual Bayesian optimization class.
@@ -53,6 +55,11 @@ class ContextualBayesianOptimization(BayesianOptimization):
         context_dim : int
             Number of context dimensions for the parameters.
         """
+        # Needs to be initialized before super() is called to check config in load_dir
+        self.context_dim = context_dim
+        self.context, self.prev_context = None, None
+        self.joint_dim = input_dim + self.context_dim
+
         super().__init__(
             input_dim=input_dim,
             max_iter=max_iter,
@@ -64,9 +71,6 @@ class ContextualBayesianOptimization(BayesianOptimization):
             config=config,
             maximize=maximize,
         )
-        self.context, self.prev_context = None, None
-        self.context_dim = context_dim
-        self.joint_dim = self.input_dim + self.context_dim
 
     @classmethod
     def from_file(cls, config_file: str) -> ContextualBayesianOptimization:
@@ -180,6 +184,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
             # hence, no need to need to update the model. However, the initial
             # context is already valid.
             self.context = torch.tensor(goal.c_new)
+            self.prev_context = self.context
             return
 
         # Concatenate context and optimization variable
@@ -194,10 +199,10 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # data is not updated in the GPyTorchModel. We also want at least 2 data
         # points such that the input normalization works properly.
         if self.data_handler.n_data >= 2:
-            self.gp = self._initialize_model(*self.data_handler.get_xy())
+            self.gp = self._initialize_model(self.data_handler)
             self._fit_model()
 
-    def _initialize_model(self, x, y) -> GPyTorchModel:
+    def _initialize_model(self, data_handler: DataHandler) -> GPyTorchModel:
         """Creates a GP object from data.
 
         .. note:: Currently the kernel types are hard-coded. However, Matern is
@@ -230,6 +235,7 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # feature of BoTorch to infer the normalization bounds from data. However,
         # this does not work is only a single data point is given.
         input_transform = Normalize(d=self.joint_dim) if len(self.data_handler) > 1 else None
+        x, y = data_handler.get_xy()
         gp = SingleTaskGP(
             train_X=x,
             train_Y=y,
