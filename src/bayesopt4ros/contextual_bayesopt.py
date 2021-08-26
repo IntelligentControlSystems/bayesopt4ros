@@ -19,7 +19,6 @@ from bayesopt4ros import BayesianOptimization
 from bayesopt4ros.data_handler import DataHandler
 from bayesopt4ros.util import PosteriorMean
 
-import rospy
 
 class ContextualBayesianOptimization(BayesianOptimization):
     """The contextual Bayesian optimization class.
