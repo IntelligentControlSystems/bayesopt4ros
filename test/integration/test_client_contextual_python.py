@@ -20,7 +20,8 @@ from bayesopt4ros.msg import (
 
 
 class ExampleContextualClient(object):
-    """A demonstration on how to use the contexutal BayesOpt server from a Python node."""
+    """A demonstration on how to use the contexutal BayesOpt server from a Python
+    node."""
 
     def __init__(self, server_name: str, objective: Callable, maximize=True) -> None:
         """Initializer of the client that queries the contextual BayesOpt server.
@@ -64,7 +65,8 @@ class ExampleContextualClient(object):
         Returns
         -------
         numpy.ndarray
-            An array containing the new parameters suggested by contextual BayesOpt server.
+            An array containing the new parameters suggested by contextual BayesOpt
+            server.
         """
         goal = ContextualBayesOptGoal(y_new=y_new, c_new=c_new)
         self.client.send_goal(goal)
@@ -136,7 +138,8 @@ class ContextualClientTestCase(unittest.TestCase):
     _maximize = True
 
     def test_objective(self) -> None:
-        """Testing the client on the defined objective function and couple of contexts."""
+        """Testing the client on the defined objective function and couple of
+        contexts."""
 
         # Set up the client
         node = ExampleContextualClient(

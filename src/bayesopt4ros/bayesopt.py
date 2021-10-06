@@ -295,7 +295,8 @@ class BayesianOptimization(object):
         Returns
         -------
         :class:`DataHandler`
-            An data handler object with filled with observations from previous experiments.
+            An data handler object with filled with observations from previous
+            experiments.
         :class:`GPyTorchModel`
             A GP object that has been trained on the data from previous experiments.
         """
