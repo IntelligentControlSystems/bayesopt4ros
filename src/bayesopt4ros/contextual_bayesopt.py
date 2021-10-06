@@ -150,7 +150,9 @@ class ContextualBayesianOptimization(BayesianOptimization):
         --------
         get_optimal_parameters
         """
-        x_best, c_best = torch.split(self.data_handler.x_best, [self.input_dim, self.context_dim])
+        x_best, c_best = torch.split(
+            self.data_handler.x_best, [self.input_dim, self.context_dim]
+        )
         return x_best, c_best, self.data_handler.y_best
 
     @property
@@ -233,7 +235,9 @@ class ContextualBayesianOptimization(BayesianOptimization):
         # variables (who knows what they might be...). We therefore use the neat
         # feature of BoTorch to infer the normalization bounds from data. However,
         # this does not work is only a single data point is given.
-        input_transform = Normalize(d=self.joint_dim) if len(self.data_handler) > 1 else None
+        input_transform = (
+            Normalize(d=self.joint_dim) if len(self.data_handler) > 1 else None
+        )
         x, y = data_handler.get_xy()
         gp = SingleTaskGP(
             train_X=x,

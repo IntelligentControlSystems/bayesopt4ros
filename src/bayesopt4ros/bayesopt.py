@@ -306,7 +306,9 @@ class BayesianOptimization(object):
         self._check_config(load_dirs)
 
         # Create model with the previous runs' data
-        data_files = [os.path.join(load_dir, "evaluations.yaml") for load_dir in load_dirs]
+        data_files = [
+            os.path.join(load_dir, "evaluations.yaml") for load_dir in load_dirs
+        ]
         self.data_handler = DataHandler.from_file(data_files)
         self.data_handler.maximize = self.maximize
         self.gp = self._initialize_model(self.data_handler)
@@ -379,14 +381,22 @@ class BayesianOptimization(object):
             An acquisition function based on BoTorch's base class.
         """
         if self.acq_func.upper() == "UCB":
-            acq_func = UpperConfidenceBound(model=self.gp, beta=4.0, maximize=self.maximize)
+            acq_func = UpperConfidenceBound(
+                model=self.gp, beta=4.0, maximize=self.maximize
+            )
         elif self.acq_func.upper() == "EI":
             best_f = self.data_handler.y_best  # note that EI assumes noiseless
-            acq_func = ExpectedImprovement(model=self.gp, best_f=best_f, maximize=self.maximize)
+            acq_func = ExpectedImprovement(
+                model=self.gp, best_f=best_f, maximize=self.maximize
+            )
         elif self.acq_func.upper() == "NEI":
-            raise NotImplementedError("Not implemented yet. Always leads to numerical issues")
+            raise NotImplementedError(
+                "Not implemented yet. Always leads to numerical issues"
+            )
         else:
-            raise NotImplementedError(f"{self.acq_func} is not a valid acquisition function")
+            raise NotImplementedError(
+                f"{self.acq_func} is not a valid acquisition function"
+            )
         return acq_func
 
     def _optimize_acqf(
@@ -546,7 +556,9 @@ class BayesianOptimization(object):
             # Create plot
             _, axes = plt.subplots(nrows=2, ncols=1)
             axes[0].plot(xs, mean, label="GP mean")
-            axes[0].fill_between(xs.squeeze(), mean + 2 * std, mean - 2 * std, alpha=0.3)
+            axes[0].fill_between(
+                xs.squeeze(), mean + 2 * std, mean - 2 * std, alpha=0.3
+            )
             axes[0].plot(x_eval, y_eval, "ko")
             axes[0].grid()
 

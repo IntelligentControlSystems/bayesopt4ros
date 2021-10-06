@@ -16,7 +16,7 @@ from bayesopt4ros.msg import BayesOptStateAction, BayesOptStateGoal, BayesOptSta
 
 
 class ExampleClient(object):
-    """A demonstration on how to use the BayesOpt server from a Python node. """
+    """A demonstration on how to use the BayesOpt server from a Python node."""
 
     def __init__(self, server_name: str, objective: Callable, maximize=True) -> None:
         """Initializer of the client that queries the BayesOpt server.
@@ -70,7 +70,9 @@ class ExampleClient(object):
         .. note:: As we only call this function once, we can just create the
             corresponding client locally.
         """
-        state_client = actionlib.SimpleActionClient("BayesOptState", BayesOptStateAction)
+        state_client = actionlib.SimpleActionClient(
+            "BayesOptState", BayesOptStateAction
+        )
         state_client.wait_for_server()
 
         goal = BayesOptStateGoal()
@@ -107,7 +109,7 @@ class ClientTestCase(unittest.TestCase):
     _maximize = True
 
     def test_objective(self) -> None:
-        """Testing the client on the defined objective function. """
+        """Testing the client on the defined objective function."""
 
         # Set up the client
         node = ExampleClient(
@@ -161,10 +163,16 @@ if __name__ == "__main__":
     if objective == "Forrester":
         rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCaseForrester)
     elif objective == "NegativeForrester":
-        rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCaseNegativeForrester)
+        rostest.rosrun(
+            "bayesopt4ros", "test_python_client", ClientTestCaseNegativeForrester
+        )
     elif objective == "NoisyForrester":
-        rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCaseNoisyForrester)
+        rostest.rosrun(
+            "bayesopt4ros", "test_python_client", ClientTestCaseNoisyForrester
+        )
     elif objective == "ThreeHumpCamel":
-        rostest.rosrun("bayesopt4ros", "test_python_client", ClientTestCaseThreeHumpCamel)
+        rostest.rosrun(
+            "bayesopt4ros", "test_python_client", ClientTestCaseThreeHumpCamel
+        )
     else:
         raise ValueError("Not a known objective function.")

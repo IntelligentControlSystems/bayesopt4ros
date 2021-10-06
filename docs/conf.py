@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.abspath("../nodes"))
 sys.path.insert(0, os.path.abspath("../test/integration"))
 
 
-
 # -- Project information -----------------------------------------------------
 
 project = "BayesOpt4ROS"

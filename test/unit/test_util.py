@@ -104,7 +104,9 @@ def test_from_single_file():
 def test_from_multiple_files():
     dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
     for dim in [1, 2]:
-        data_files = [os.path.join(dir, f"test_data_{dim}d_{i}.yaml") for i in [0, 1, 2]]
+        data_files = [
+            os.path.join(dir, f"test_data_{dim}d_{i}.yaml") for i in [0, 1, 2]
+        ]
         dh = DataHandler.from_file(data_files)
         x, y = dh.get_xy()
         np.testing.assert_array_equal(x, dim * torch.ones(max(3 * dim, 6), dim))

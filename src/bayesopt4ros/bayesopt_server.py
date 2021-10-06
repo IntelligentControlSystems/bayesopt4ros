@@ -167,7 +167,7 @@ class BayesOptServer(object):
 
     @property
     def _log_prefix(self) -> str:
-        """Convenience property that pre-fixes the logging strings. """
+        """Convenience property that pre-fixes the logging strings."""
         return f"[{self.__class__.__name__}] Iteration {self.request_count}: "
 
     @staticmethod

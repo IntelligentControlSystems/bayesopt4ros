@@ -35,7 +35,9 @@ class ExampleContextualClient(object):
             If True, consider the problem a maximization problem.
         """
         rospy.init_node(self.__class__.__name__, anonymous=True, log_level=rospy.INFO)
-        self.client = actionlib.SimpleActionClient(server_name, ContextualBayesOptAction)
+        self.client = actionlib.SimpleActionClient(
+            server_name, ContextualBayesOptAction
+        )
 
         self.client.wait_for_server()
 
@@ -172,6 +174,8 @@ if __name__ == "__main__":
     objective = rospy.get_param("/objective")
     rospy.logwarn(f"Objective: {objective}")
     if objective == "ContextualForrester":
-        rostest.rosrun("bayesopt4ros", "test_python_client", ContextualClientTestCaseForrester)
+        rostest.rosrun(
+            "bayesopt4ros", "test_python_client", ContextualClientTestCaseForrester
+        )
     else:
         raise ValueError("Not a known objective function.")

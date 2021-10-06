@@ -17,7 +17,9 @@ class DataHandler(object):
     .. note:: This is mostly a convenience class to clean up the BO classes.
     """
 
-    def __init__(self, x: Tensor = None, y: Tensor = None, maximize: bool = True) -> None:
+    def __init__(
+        self, x: Tensor = None, y: Tensor = None, maximize: bool = True
+    ) -> None:
         """The DataHandler class initializer.
 
         Parameters
@@ -61,7 +63,9 @@ class DataHandler(object):
                 rospy.logwarn(f"The evaluations file '{file}' could not be found.")
 
         if x and y:
-            if not len(set([xi.shape[1] for xi in x])) == 1:  # check for correct dimension
+            if (
+                not len(set([xi.shape[1] for xi in x])) == 1
+            ):  # check for correct dimension
                 message = "Evaluation points seem to have different dimensions."
                 raise BotorchTensorDimensionError(message)
             x = torch.cat(x)
@@ -70,7 +74,9 @@ class DataHandler(object):
         else:
             return cls()
 
-    def get_xy(self, as_dict: dict = False) -> Union[Dict, Tuple[torch.Tensor, torch.Tensor]]:
+    def get_xy(
+        self, as_dict: dict = False
+    ) -> Union[Dict, Tuple[torch.Tensor, torch.Tensor]]:
         """Returns the data as a tuple (default) or as a dictionary."""
         if as_dict:
             return {"train_inputs": self.data.Xs, "train_targets": self.data.Ys}

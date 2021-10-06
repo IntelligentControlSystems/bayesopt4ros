@@ -77,7 +77,9 @@ class ContextualBayesOptServer(BayesOptServer):
         try:
             self.bo = ContextualBayesianOptimization.from_file(config_file)
         except Exception as e:
-            rospy.logerr(f"[ContextualBayesOpt] Something went wrong with initialization: '{e}'")
+            rospy.logerr(
+                f"[ContextualBayesOpt] Something went wrong with initialization: '{e}'"
+            )
             rospy.signal_shutdown("Initialization of ContextualBayesOpt failed.")
 
     def _initialize_parameter_server(self, server_name):
