@@ -2,11 +2,11 @@
 
 <p align="center">
   <a href="https://github.com/lukasfro/bayesopt4ros/actions">
-    <img src="https://github.com/lukasfro/bayesopt4ros/actions/workflows/continuous_integration.yml/badge.svg" alt="Integration test status badge">
+    <img src="https://github.com/IntelligentControlSystems/bayesopt4ros/actions/workflows/continuous_integration.yml/badge.svg" alt="Integration test status badge">
   </a>
   
   <a href="https://github.com/lukasfro/bayesopt4ros/actions">
-    <img src="https://github.com/lukasfro/bayesopt4ros/actions/workflows/documentation_deployment.yml/badge.svg" alt="Documentation deployment status badge">
+    <img src="https://github.com/IntelligentControlSystems/bayesopt4ros/actions/workflows/documentation_deployment.yml/badge.svg" alt="Documentation deployment status badge">
   </a>
 </p>
 
@@ -14,18 +14,18 @@ A Bayesian Optimisation package for ROS developed by the [Intelligent Control Sy
 
 ## Documentation
 
-We provide a official and up-to-date documentation [here](https://lukasfro.github.io/bayesopt4ros/).
+We provide a official and up-to-date documentation [here](https://intelligentcontrolsystems.github.io/bayesopt4ros/).
 
 ## Getting started
 
-For a short tutorial on how to get started with the BayesOpt4ROS package, please see the [official documentation](https://lukasfro.github.io/bayesopt4ros/getting_started.html).
+For a short tutorial on how to get started with the BayesOpt4ROS package, please see the [official documentation](https://intelligentcontrolsystems.github.io/bayesopt4ros/getting_started.html).
 
 ## Contributing
 
 In case you find our package helpful and want to contribute, please either raise an issue or directly make a pull request.
 
 - We follow the [NumPy convention](https://numpydoc.readthedocs.io/en/latest/format.html) for docstrings
-- We use the [Black formatter](https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html) with the `--line-length` option set to `99`
+- We use the [Black formatter](https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html) with the `--line-length` option set to `88`
 
 ## Testing
 
