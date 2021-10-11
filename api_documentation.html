@@ -1,0 +1,999 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>API Documentation &mdash; BayesOpt4ROS  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="More Examples" href="examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> BayesOpt4ROS
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">More Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-bayesopt_server">The Server Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-bayesopt4ros.bayesopt">The Optimizer Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-bayesopt4ros.data_handler">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-test_client_python">Examplary Clients</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BayesOpt4ROS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>API Documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/api_documentation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="api-documentation">
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-bayesopt_server">
+<span id="the-server-classes"></span><h2>The Server Classes<a class="headerlink" href="#module-bayesopt_server" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="bayesopt_server.BayesOptServer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">bayesopt_server.</span></span><span class="sig-name descname"><span class="pre">BayesOptServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Bayesian optimization server node.</p>
+<p>Acts as a layer between the actual Bayesian optimization and ROS.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt_server.BayesOptServer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The BayesOptServer class initializer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> (<em>str</em>) – File that describes all settings for Bayesian optimization.</p></li>
+<li><p><strong>server_name</strong> (<em>str</em>) – Name of the server that is used for ROS.</p></li>
+<li><p><strong>log_file</strong> (<em>str</em>) – All input/output pairs are logged to this file.</p></li>
+<li><p><strong>anonymous</strong> (<em>bool</em>) – Flag if the node should be anonymous or not (see ROS documentation).</p></li>
+<li><p><strong>log_level</strong> (<em>int</em>) – Controls the log_level of the node’s output.</p></li>
+<li><p><strong>silent</strong> (<em>bool</em>) – Controls the verbosity of the node’s output.</p></li>
+<li><p><strong>node_rate</strong> (<em>float</em>) – Rate at which the server gives feedback.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt_server.BayesOptServer.next_parameter_callback">
+<span class="sig-name descname"><span class="pre">next_parameter_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.msg._BayesOptAction.BayesOptAction</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer.next_parameter_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer.next_parameter_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that gets called when a new parameter vector is requested.</p>
+<p>The action message (goal/result/feedback) is defined here:
+<code class="docutils literal notranslate"><span class="pre">action/BayesOpt.action</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Goal: corresponds to the &quot;output value&quot; for BayesOpt</span>
+<span class="n">float64</span> <span class="n">y_new</span>
+<span class="o">---</span>
+<span class="c1"># Result: corresponds to the new parameters</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="n">x_new</span>
+<span class="o">---</span>
+<span class="c1"># Feedback: as of now we do not use this</span>
+<span class="nb">bool</span> <span class="n">feedback</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptAction</em>) – The action (goal) coming from a client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt_server.BayesOptServer.run">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simply starts the server.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt_server.BayesOptServer.state_callback">
+<span class="sig-name descname"><span class="pre">state_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt_server.html#BayesOptServer.state_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt_server.BayesOptServer.state_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that gets called when the BayesOpt state is requested.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We are calling this <cite>state</cite> instead of <cite>result</cite> to avoid
+confusion with the <cite>result</cite> variable in the action message.</p>
+</div>
+<p>The action message (goal/result/feedback) is defined here:
+<code class="docutils literal notranslate"><span class="pre">action/BayesOptState.action</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Goal: as of now we do not use this</span>
+<span class="nb">bool</span> <span class="n">goal</span>
+<span class="o">---</span>
+<span class="c1"># Result: this contains the BayesOpt state</span>
+<span class="c1"># &#39;best&#39; corresponds to observed parameters/outcomes</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="n">x_best</span>
+<span class="n">float64</span> <span class="n">y_best</span>
+<span class="c1"># &#39;opt&#39; corresponds to optimum of the posterior mean</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="n">x_opt</span>
+<span class="n">float64</span> <span class="n">f_opt</span>
+<span class="o">---</span>
+<span class="c1"># Feedback: as of now we do not use this</span>
+<span class="nb">bool</span> <span class="n">feedback</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptStateAction</em>) – The action (goal) coming from a client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-contextual_bayesopt_server"></span><dl class="py class">
+<dt class="sig sig-object py" id="contextual_bayesopt_server.ContextualBayesOptServer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">contextual_bayesopt_server.</span></span><span class="sig-name descname"><span class="pre">ContextualBayesOptServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'ContextualBayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/contextual_bayesopt_server.html#ContextualBayesOptServer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#contextual_bayesopt_server.ContextualBayesOptServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The contextual Bayesian optimization server node.</p>
+<p>Acts as a layer between the actual contextual Bayesian optimization and ROS.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="contextual_bayesopt_server.ContextualBayesOptServer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'ContextualBayesOpt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anonymous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/contextual_bayesopt_server.html#ContextualBayesOptServer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#contextual_bayesopt_server.ContextualBayesOptServer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ContextualBayesOptServer class initializer.</p>
+<p>For paramters see <a class="reference internal" href="#bayesopt_server.BayesOptServer" title="bayesopt_server.BayesOptServer"><code class="xref py py-class docutils literal notranslate"><span class="pre">bayesopt_server.BayesOptServer</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="contextual_bayesopt_server.ContextualBayesOptServer.next_parameter_callback">
+<span class="sig-name descname"><span class="pre">next_parameter_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.msg._ContextualBayesOptAction.ContextualBayesOptAction</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/contextual_bayesopt_server.html#ContextualBayesOptServer.next_parameter_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#contextual_bayesopt_server.ContextualBayesOptServer.next_parameter_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that gets called when a new parameter vector is requested.</p>
+<p>The action message (goal/result/feedback) is defined here:
+<code class="docutils literal notranslate"><span class="pre">action/BayesOpt.action</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Goal: corresponds to the &quot;output value&quot; for BayesOpt</span>
+<span class="n">float64</span> <span class="n">y_new</span>
+<span class="o">---</span>
+<span class="c1"># Result: corresponds to the new parameters</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="n">x_new</span>
+<span class="o">---</span>
+<span class="c1"># Feedback: as of now we do not use this</span>
+<span class="nb">bool</span> <span class="n">feedback</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptAction</em>) – The action (goal) coming from a client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="contextual_bayesopt_server.ContextualBayesOptServer.run">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#contextual_bayesopt_server.ContextualBayesOptServer.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simply starts the server.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="contextual_bayesopt_server.ContextualBayesOptServer.state_callback">
+<span class="sig-name descname"><span class="pre">state_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.msg._ContextualBayesOptStateAction.ContextualBayesOptStateAction</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/contextual_bayesopt_server.html#ContextualBayesOptServer.state_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#contextual_bayesopt_server.ContextualBayesOptServer.state_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that gets called when the BayesOpt state is requested.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We are calling this <cite>state</cite> instead of <cite>result</cite> to avoid
+confusion with the <cite>result</cite> variable in the action message.</p>
+</div>
+<p>The action message (goal/result/feedback) is defined here:
+<code class="docutils literal notranslate"><span class="pre">action/BayesOptState.action</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Goal: as of now we do not use this</span>
+<span class="nb">bool</span> <span class="n">goal</span>
+<span class="o">---</span>
+<span class="c1"># Result: this contains the BayesOpt state</span>
+<span class="c1"># &#39;best&#39; corresponds to observed parameters/outcomes</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="n">x_best</span>
+<span class="n">float64</span> <span class="n">y_best</span>
+<span class="c1"># &#39;opt&#39; corresponds to optimum of the posterior mean</span>
+<span class="n">float64</span><span class="p">[]</span> <span class="n">x_opt</span>
+<span class="n">float64</span> <span class="n">f_opt</span>
+<span class="o">---</span>
+<span class="c1"># Feedback: as of now we do not use this</span>
+<span class="nb">bool</span> <span class="n">feedback</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptStateAction</em>) – The action (goal) coming from a client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bayesopt4ros.bayesopt">
+<span id="the-optimizer-classes"></span><h2>The Optimizer Classes<a class="headerlink" href="#module-bayesopt4ros.bayesopt" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">bayesopt4ros.bayesopt.</span></span><span class="sig-name descname"><span class="pre">BayesianOptimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'UCB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_visualization</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Bayesian optimization class.</p>
+<p>Implements the actual heavy lifting that is done under the hood of
+<a class="reference internal" href="#bayesopt_server.BayesOptServer" title="bayesopt_server.BayesOptServer"><code class="xref py py-class docutils literal notranslate"><span class="pre">bayesopt_server.BayesOptServer</span></code></a>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'UCB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_visualization</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The BayesianOptimization class initializer.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a <cite>log_dir</cite> is specified, three different files will be
+created: 1) evaluations file, 2) model file, 3) config file. As the
+names suggest, these store the evaluated points, the final GP model
+as well as the configuration, respectively.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_dim</strong> (<em>int</em>) – Number of input dimensions for the parameters.</p></li>
+<li><p><strong>max_iter</strong> (<em>int</em>) – Maximum number of iterations.</p></li>
+<li><p><strong>bounds</strong> (<em>torch.Tensor</em>) – A [2, input_dim] shaped tensor specifying the optimization domain.</p></li>
+<li><p><strong>acq_func</strong> (<em>str</em>) – The acquisition function specifier.</p></li>
+<li><p><strong>n_init</strong> (<em>int</em>) – Number of point for initial design, i.e. Sobol.</p></li>
+<li><p><strong>log_dir</strong> (<em>str</em>) – Directory to which the log files are stored.</p></li>
+<li><p><strong>load_dir</strong> (<em>str</em><em> or </em><em>list of str</em>) – Directory/directories from which initial data points are loaded.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – The configuration dictionary for the experiment.</p></li>
+<li><p><strong>maximize</strong> (<em>bool</em>) – If True, consider the problem a maximization problem.</p></li>
+<li><p><strong>debug_visualization</strong> (<em>bool</em>) – If True, the optimization of the acquisition function is visualized.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization.constant_config_parameters">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">constant_config_parameters</span></span><em class="property"><span class="pre">:</span> <span class="pre">List[str]</span></em><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.constant_config_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>These parameters need to be the same when loading previous runs. For
+all other settings, the user might have a reasonable explanation to
+change it inbetween experiments/runs. E.g., maximum number of iterations
+or bounds.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_config</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization.from_file">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#bayesopt4ros.bayesopt.BayesianOptimization" title="bayesopt4ros.bayesopt.BayesianOptimization"><span class="pre">bayesopt4ros.bayesopt.BayesianOptimization</span></a></span></span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a BayesianOptimization instance from a config file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – The config file (full path, relative or absolute).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An instance of the BayesianOptimization class.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bayesopt4ros.bayesopt.BayesianOptimization" title="bayesopt4ros.bayesopt.BayesianOptimization"><code class="xref py py-class docutils literal notranslate"><span class="pre">BayesianOptimization</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization.get_best_observation">
+<span class="sig-name descname"><span class="pre">get_best_observation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.get_best_observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.get_best_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the best parameters and corresponding observed value.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>‘Best’ refers to the highest/lowest observed datum.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>torch.Tensor</em> – Location of the highest/lowest observed datum.</p></li>
+<li><p><em>float</em> – Function value of the highest/lowest observed datum.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#bayesopt4ros.bayesopt.BayesianOptimization.get_optimal_parameters" title="bayesopt4ros.bayesopt.BayesianOptimization.get_optimal_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_optimal_parameters</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization.get_optimal_parameters">
+<span class="sig-name descname"><span class="pre">get_optimal_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.get_optimal_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.get_optimal_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the optimal parameters with corresponding expected value.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>‘Optimal’ referes to the optimum of the GP model.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>torch.Tensor</em> – Location of the GP posterior mean’s optimum.</p></li>
+<li><p><em>float</em> – Function value of the GP posterior mean’s optium.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#bayesopt4ros.bayesopt.BayesianOptimization.get_best_observation" title="bayesopt4ros.bayesopt.BayesianOptimization.get_best_observation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_best_observation</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization.next">
+<span class="sig-name descname"><span class="pre">next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.msg._BayesOptAction.BayesOptAction</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute new parameters to perform an experiment with.</p>
+<p>The functionality of this method can generally be split into three steps:</p>
+<ol class="arabic simple">
+<li><p>Update the model with the new data.</p></li>
+<li><p>Retrieve a new point as response of the server.</p></li>
+<li><p>Save current state to file.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptAction</em>) – The goal sent from the client for the most recent experiment.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The new parameters as an array.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.bayesopt.BayesianOptimization.update_last_goal">
+<span class="sig-name descname"><span class="pre">update_last_goal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.msg._BayesOptAction.BayesOptAction</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/bayesopt.html#BayesianOptimization.update_last_goal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.bayesopt.BayesianOptimization.update_last_goal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the GP model with the last function value obtained.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is only called once from the server, right before
+shutting down the node. However, we still want to update the GP model
+with the latest data.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptAction</em>) – The goal sent from the client for the last recent experiment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-bayesopt4ros.contextual_bayesopt"></span><dl class="py class">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">bayesopt4ros.contextual_bayesopt.</span></span><span class="sig-name descname"><span class="pre">ContextualBayesianOptimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'UCB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/contextual_bayesopt.html#ContextualBayesianOptimization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization" title="Permalink to this definition">¶</a></dt>
+<dd><p>The contextual Bayesian optimization class.</p>
+<p>Implements the actual heavy lifting that is done under the hood of
+<a class="reference internal" href="#contextual_bayesopt_server.ContextualBayesOptServer" title="contextual_bayesopt_server.ContextualBayesOptServer"><code class="xref py py-class docutils literal notranslate"><span class="pre">contextual_bayesopt_server.ContextualBayesOptServer</span></code></a>.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">bayesopt.BayesianOptimization</span></code></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'UCB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_init</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/contextual_bayesopt.html#ContextualBayesianOptimization.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ContextualBayesianOptimization class initializer.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For a definition of the other arguments, see
+<code class="xref py py-class docutils literal notranslate"><span class="pre">bayesopt.BayesianOptimization</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>context_dim</strong> (<em>int</em>) – Number of context dimensions for the parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.constant_config_parameters">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">constant_config_parameters</span></span><em class="property"><span class="pre">:</span> <span class="pre">List[str]</span></em><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.constant_config_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>These parameters need to be the same when loading previous runs. For
+all other settings, the user might have a reasonable explanation to
+change it inbetween experiments/runs. E.g., maximum number of iterations
+or bounds.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_config</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.from_file">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization" title="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization"><span class="pre">bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization</span></a></span></span><a class="reference internal" href="_modules/bayesopt4ros/contextual_bayesopt.html#ContextualBayesianOptimization.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a ContextualBayesianOptimization instance from a config file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>str</em>) – The config file (full path, relative or absolute).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An instance of the ContextualBayesianOptimization class.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization" title="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContextualBayesianOptimization</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_best_observation">
+<span class="sig-name descname"><span class="pre">get_best_observation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bayesopt4ros/contextual_bayesopt.html#ContextualBayesianOptimization.get_best_observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_best_observation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the best parameters, context and corresponding observed value.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>‘Best’ refers to the highest/lowest observed datum.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>torch.Tensor</em> – Location of the highest/lowest observed datum.</p></li>
+<li><p><em>torch.Tensor</em> – Context of the highest/lowest observed datum.</p></li>
+<li><p><em>float</em> – Function value of the highest/lowest observed datum.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_optimal_parameters" title="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_optimal_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_optimal_parameters</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_optimal_parameters">
+<span class="sig-name descname"><span class="pre">get_optimal_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bayesopt4ros/contextual_bayesopt.html#ContextualBayesianOptimization.get_optimal_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_optimal_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the optimal parameters for given context with corresponding value.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>‘Optimal’ referes to the optimum of the GP model.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>context</strong> (<em>torch.Tensor</em><em>, </em><em>optional</em>) – The context for which to get the optimal parameters. If none is
+none is provided, use the last observed context.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>torch.Tensor</em> – Location of the GP posterior mean’s optimum for the given context.</p></li>
+<li><p><em>float</em> – Function value of the GP posterior mean’s optium for the given context.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_best_observation" title="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_best_observation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_best_observation</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.next">
+<span class="sig-name descname"><span class="pre">next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.msg._BayesOptAction.BayesOptAction</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute new parameters to perform an experiment with.</p>
+<p>The functionality of this method can generally be split into three steps:</p>
+<ol class="arabic simple">
+<li><p>Update the model with the new data.</p></li>
+<li><p>Retrieve a new point as response of the server.</p></li>
+<li><p>Save current state to file.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptAction</em>) – The goal sent from the client for the most recent experiment.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The new parameters as an array.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.update_last_goal">
+<span class="sig-name descname"><span class="pre">update_last_goal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bayesopt4ros.msg._BayesOptAction.BayesOptAction</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.update_last_goal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the GP model with the last function value obtained.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is only called once from the server, right before
+shutting down the node. However, we still want to update the GP model
+with the latest data.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>goal</strong> (<em>BayesOptAction</em>) – The goal sent from the client for the last recent experiment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bayesopt4ros.data_handler">
+<span id="utilities"></span><h2>Utilities<a class="headerlink" href="#module-bayesopt4ros.data_handler" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">bayesopt4ros.data_handler.</span></span><span class="sig-name descname"><span class="pre">DataHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/data_handler.html#DataHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class that handles all data for BayesOpt.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is mostly a convenience class to clean up the BO classes.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/data_handler.html#DataHandler.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DataHandler class initializer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>torch.Tensor</em>) – The training inputs.</p></li>
+<li><p><strong>y</strong> (<em>torch.Tensor</em>) – The training targets.</p></li>
+<li><p><strong>maximize</strong> (<em>bool</em>) – Specifies if ‘best’ refers to min or max.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.add_xy">
+<span class="sig-name descname"><span class="pre">add_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/data_handler.html#DataHandler.add_xy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.add_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds new data to the existing data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.from_file">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#bayesopt4ros.data_handler.DataHandler" title="bayesopt4ros.data_handler.DataHandler"><span class="pre">bayesopt4ros.data_handler.DataHandler</span></a></span></span><a class="reference internal" href="_modules/bayesopt4ros/data_handler.html#DataHandler.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a DataHandler instance with input/target values from the
+specified file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>str</em><em> or </em><em>List</em><em>[</em><em>str</em><em>]</em>) – One or many evaluation files to load data from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An instance of the DataHandler class. Returns an empty object if
+not file could be found.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bayesopt4ros.data_handler.DataHandler" title="bayesopt4ros.data_handler.DataHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataHandler</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.get_xy">
+<span class="sig-name descname"><span class="pre">get_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">as_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">,</span> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bayesopt4ros/data_handler.html#DataHandler.get_xy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.get_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data as a tuple (default) or as a dictionary.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.n_data">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_data</span></span><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.n_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of data points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.set_xy">
+<span class="sig-name descname"><span class="pre">set_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/data_handler.html#DataHandler.set_xy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.set_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overwrites the existing data.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.x_best">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">x_best</span></span><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.x_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Location of the best observed datum.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.x_best_accumulate">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">x_best_accumulate</span></span><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.x_best_accumulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Locations of the best observed datum accumulated along first axis.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.y_best">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">y_best</span></span><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.y_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function value of the best observed datum.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bayesopt4ros.data_handler.DataHandler.y_best_accumulate">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">y_best_accumulate</span></span><a class="headerlink" href="#bayesopt4ros.data_handler.DataHandler.y_best_accumulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function value of the best ovbserved datum accumulated along first axis.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-bayesopt4ros.util"></span><dl class="py function">
+<dt class="sig sig-object py" id="bayesopt4ros.util.count_requests">
+<span class="sig-prename descclassname"><span class="pre">bayesopt4ros.util.</span></span><span class="sig-name descname"><span class="pre">count_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/util.html#count_requests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.util.count_requests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator that keeps track of number of requests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>func</strong> (<em>Callable</em>) – The function to be decorated.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The decorated function.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bayesopt4ros.util.create_log_dir">
+<span class="sig-prename descclassname"><span class="pre">bayesopt4ros.util.</span></span><span class="sig-name descname"><span class="pre">create_log_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/util.html#create_log_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.util.create_log_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new logging sub-directory with current date and time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>log_dir</strong> (<em>str</em>) – Path to the root logging directory.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The final sub-directory path.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bayesopt4ros.util.iter_to_string">
+<span class="sig-prename descclassname"><span class="pre">bayesopt4ros.util.</span></span><span class="sig-name descname"><span class="pre">iter_to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">it</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">',</span> <span class="pre">'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/util.html#iter_to_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.util.iter_to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents an iterable (list, tuple, etc.) as a formatted string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>it</strong> (<em>Iterable</em>) – An iterable with numeric elements.</p></li>
+<li><p><strong>format_spec</strong> (<em>str</em>) – Format specifier according to
+<a class="reference external" href="https://docs.python.org/3/library/string.html#format-specification-mini-language">https://docs.python.org/3/library/string.html#format-specification-mini-language</a></p></li>
+<li><p><strong>separator</strong> (<em>str</em>) – String between items of the iterator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The iterable as formatted string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bayesopt4ros.util.PosteriorMean">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">bayesopt4ros.util.</span></span><span class="sig-name descname"><span class="pre">PosteriorMean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">botorch.models.model.Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">botorch.acquisition.objective.ScalarizedObjective</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bayesopt4ros/util.html#PosteriorMean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.util.PosteriorMean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greedy acquisition function.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Had to overwrite the implementation of BoTorch (version 0.5.0)
+because it does provide the <cite>maximize</cite> flag. See the discussion
+on Github: <a class="reference external" href="https://github.com/pytorch/botorch/issues/875">https://github.com/pytorch/botorch/issues/875</a></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.util.PosteriorMean.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">botorch.models.model.Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">botorch.acquisition.objective.ScalarizedObjective</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/util.html#PosteriorMean.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.util.PosteriorMean.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base constructor for analytic acquisition functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – A fitted single-outcome model.</p></li>
+<li><p><strong>objective</strong> – A ScalarizedObjective (optional).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bayesopt4ros.util.PosteriorMean.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="_modules/bayesopt4ros/util.html#PosteriorMean.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bayesopt4ros.util.PosteriorMean.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the posterior mean on the candidate set X.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-test_client_python">
+<span id="examplary-clients"></span><h2>Examplary Clients<a class="headerlink" href="#module-test_client_python" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="test_client_python.ExampleClient">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">test_client_python.</span></span><span class="sig-name descname"><span class="pre">ExampleClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/test_client_python.html#ExampleClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_python.ExampleClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>A demonstration on how to use the BayesOpt server from a Python node.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_python.ExampleClient.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/test_client_python.html#ExampleClient.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_python.ExampleClient.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer of the client that queries the BayesOpt server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>server_name</strong> (<em>str</em>) – Name of the server (needs to be consistent with server node).</p></li>
+<li><p><strong>objective</strong> (<em>str</em>) – Name of the example objective.</p></li>
+<li><p><strong>maximize</strong> (<em>bool</em>) – If True, consider the problem a maximization problem.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_python.ExampleClient.request_bayesopt_state">
+<span class="sig-name descname"><span class="pre">request_bayesopt_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bayesopt4ros.msg._BayesOptStateResult.BayesOptStateResult</span></span></span><a class="reference internal" href="_modules/test_client_python.html#ExampleClient.request_bayesopt_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_python.ExampleClient.request_bayesopt_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that requests the (final) state of BayesOpt server.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As we only call this function once, we can just create the
+corresponding client locally.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_python.ExampleClient.request_parameter">
+<span class="sig-name descname"><span class="pre">request_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_new</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/test_client_python.html#ExampleClient.request_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_python.ExampleClient.request_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that requests new parameters from the BayesOpt server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>float</em>) – The function value obtained from the objective/experiment.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An array containing the new parameters suggested by BayesOpt server.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_python.ExampleClient.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/test_client_python.html#ExampleClient.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_python.ExampleClient.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that emulates client behavior.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-test_client_contextual_python"></span><dl class="py class">
+<dt class="sig sig-object py" id="test_client_contextual_python.ExampleContextualClient">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">test_client_contextual_python.</span></span><span class="sig-name descname"><span class="pre">ExampleContextualClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/test_client_contextual_python.html#ExampleContextualClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_contextual_python.ExampleContextualClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>A demonstration on how to use the contexutal BayesOpt server from a Python
+node.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_contextual_python.ExampleContextualClient.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/test_client_contextual_python.html#ExampleContextualClient.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_contextual_python.ExampleContextualClient.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer of the client that queries the contextual BayesOpt server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>server_name</strong> (<em>str</em>) – Name of the server (needs to be consistent with server node).</p></li>
+<li><p><strong>objective</strong> (<em>str</em>) – Name of the example objective.</p></li>
+<li><p><strong>maximize</strong> (<em>bool</em>) – If True, consider the problem a maximization problem.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_contextual_python.ExampleContextualClient.request_bayesopt_state">
+<span class="sig-name descname"><span class="pre">request_bayesopt_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bayesopt4ros.msg._ContextualBayesOptStateResult.ContextualBayesOptStateResult</span></span></span><a class="reference internal" href="_modules/test_client_contextual_python.html#ExampleContextualClient.request_bayesopt_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_contextual_python.ExampleContextualClient.request_bayesopt_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that requests the (final) state of BayesOpt server.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As we only call this function once, we can just create the
+corresponding client locally.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_contextual_python.ExampleContextualClient.request_parameter">
+<span class="sig-name descname"><span class="pre">request_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_new</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_new</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/test_client_contextual_python.html#ExampleContextualClient.request_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_contextual_python.ExampleContextualClient.request_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that requests new parameters from the ContextualBayesOpt
+server for a given context.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_new</strong> (<em>float</em>) – The function value obtained from the objective/experiment.</p></li>
+<li><p><strong>c_new</strong> (<em>np.ndarray</em>) – The context variable for the next evaluation/experiment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An array containing the new parameters suggested by contextual BayesOpt
+server.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_contextual_python.ExampleContextualClient.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/test_client_contextual_python.html#ExampleContextualClient.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_contextual_python.ExampleContextualClient.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that emulates client behavior.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test_client_contextual_python.ExampleContextualClient.sample_context">
+<span class="sig-name descname"><span class="pre">sample_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/test_client_contextual_python.html#ExampleContextualClient.sample_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#test_client_contextual_python.ExampleContextualClient.sample_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples a random context variable to emulate the client.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="examples.html" class="btn btn-neutral float-left" title="More Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Lukas Froehlich.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,557 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>bayesopt4ros.contextual_bayesopt &mdash; BayesOpt4ROS  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BayesOpt4ROS
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">More Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_documentation.html">API Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BayesOpt4ROS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>bayesopt4ros.contextual_bayesopt</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for bayesopt4ros.contextual_bayesopt</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">botorch.models</span> <span class="kn">import</span> <span class="n">SingleTaskGP</span>
+<span class="kn">from</span> <span class="nn">botorch.acquisition</span> <span class="kn">import</span> <span class="n">AcquisitionFunction</span><span class="p">,</span> <span class="n">FixedFeatureAcquisitionFunction</span>
+<span class="kn">from</span> <span class="nn">botorch.models.gpytorch</span> <span class="kn">import</span> <span class="n">GPyTorchModel</span>
+<span class="kn">from</span> <span class="nn">botorch.models.transforms.input</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="kn">from</span> <span class="nn">botorch.models.transforms.outcome</span> <span class="kn">import</span> <span class="n">Standardize</span>
+
+<span class="kn">from</span> <span class="nn">gpytorch.kernels</span> <span class="kn">import</span> <span class="n">MaternKernel</span><span class="p">,</span> <span class="n">ScaleKernel</span>
+<span class="kn">from</span> <span class="nn">gpytorch.priors</span> <span class="kn">import</span> <span class="n">GammaPrior</span>
+
+<span class="kn">from</span> <span class="nn">bayesopt4ros</span> <span class="kn">import</span> <span class="n">BayesianOptimization</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.data_handler</span> <span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.util</span> <span class="kn">import</span> <span class="n">PosteriorMean</span>
+
+
+<div class="viewcode-block" id="ContextualBayesianOptimization"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization">[docs]</a><span class="k">class</span> <span class="nc">ContextualBayesianOptimization</span><span class="p">(</span><span class="n">BayesianOptimization</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The contextual Bayesian optimization class.</span>
+
+<span class="sd">    Implements the actual heavy lifting that is done under the hood of</span>
+<span class="sd">    :class:`contextual_bayesopt_server.ContextualBayesOptServer`.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :class:`bayesopt.BayesianOptimization`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ContextualBayesianOptimization.__init__"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">context_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">bounds</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">acq_func</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;UCB&quot;</span><span class="p">,</span>
+        <span class="n">n_init</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">log_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">load_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The ContextualBayesianOptimization class initializer.</span>
+
+<span class="sd">        .. note:: For a definition of the other arguments, see</span>
+<span class="sd">            :class:`bayesopt.BayesianOptimization`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        context_dim : int</span>
+<span class="sd">            Number of context dimensions for the parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Needs to be initialized before super() is called to check config in load_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context_dim</span> <span class="o">=</span> <span class="n">context_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_context</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">joint_dim</span> <span class="o">=</span> <span class="n">input_dim</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_dim</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">input_dim</span><span class="o">=</span><span class="n">input_dim</span><span class="p">,</span>
+            <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+            <span class="n">acq_func</span><span class="o">=</span><span class="n">acq_func</span><span class="p">,</span>
+            <span class="n">n_init</span><span class="o">=</span><span class="n">n_init</span><span class="p">,</span>
+            <span class="n">log_dir</span><span class="o">=</span><span class="n">log_dir</span><span class="p">,</span>
+            <span class="n">load_dir</span><span class="o">=</span><span class="n">load_dir</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+            <span class="n">maximize</span><span class="o">=</span><span class="n">maximize</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ContextualBayesianOptimization.from_file"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ContextualBayesianOptimization</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a ContextualBayesianOptimization instance from a config file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config_file : str</span>
+<span class="sd">            The config file (full path, relative or absolute).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`ContextualBayesianOptimization`</span>
+<span class="sd">            An instance of the ContextualBayesianOptimization class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Read config from file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+
+        <span class="c1"># Bring bounds in correct format</span>
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;lower_bound&quot;</span><span class="p">])</span>
+        <span class="n">ub</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;upper_bound&quot;</span><span class="p">])</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">))</span>
+
+        <span class="c1"># Construct class instance based on the config</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">input_dim</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;input_dim&quot;</span><span class="p">],</span>
+            <span class="n">context_dim</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;context_dim&quot;</span><span class="p">],</span>
+            <span class="n">max_iter</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">],</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+            <span class="n">acq_func</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;acq_func&quot;</span><span class="p">],</span>
+            <span class="n">n_init</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;n_init&quot;</span><span class="p">],</span>
+            <span class="n">log_dir</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log_dir&quot;</span><span class="p">),</span>
+            <span class="n">load_dir</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;load_dir&quot;</span><span class="p">),</span>
+            <span class="n">maximize</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;maximize&quot;</span><span class="p">],</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ContextualBayesianOptimization.get_optimal_parameters"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_optimal_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_optimal_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the optimal parameters for given context with corresponding value.</span>
+
+<span class="sd">        .. note:: &#39;Optimal&#39; referes to the optimum of the GP model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        context : torch.Tensor, optional</span>
+<span class="sd">            The context for which to get the optimal parameters. If none is</span>
+<span class="sd">            none is provided, use the last observed context.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            Location of the GP posterior mean&#39;s optimum for the given context.</span>
+<span class="sd">        float</span>
+<span class="sd">            Function value of the GP posterior mean&#39;s optium for the given context.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_best_observation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimize_posterior_mean</span><span class="p">(</span><span class="n">context</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ContextualBayesianOptimization.get_best_observation"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.contextual_bayesopt.ContextualBayesianOptimization.get_best_observation">[docs]</a>    <span class="k">def</span> <span class="nf">get_best_observation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the best parameters, context and corresponding observed value.</span>
+
+<span class="sd">        .. note:: &#39;Best&#39; refers to the highest/lowest observed datum.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            Location of the highest/lowest observed datum.</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            Context of the highest/lowest observed datum.</span>
+<span class="sd">        float</span>
+<span class="sd">            Function value of the highest/lowest observed datum.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_optimal_parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_best</span><span class="p">,</span> <span class="n">c_best</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">x_best</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_dim</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">x_best</span><span class="p">,</span> <span class="n">c_best</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">y_best</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">constant_config_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;These parameters need to be the same when loading previous runs. For</span>
+<span class="sd">        all other settings, the user might have a reasonable explanation to</span>
+<span class="sd">        change it inbetween experiments/runs. E.g., maximum number of iterations</span>
+<span class="sd">        or bounds.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        _check_config</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;input_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;context_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;maximize&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_update_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the GP with new data as well as the current context. Creates</span>
+<span class="sd">        a model if none exists yet.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        goal : ContextualBayesOptAction</span>
+<span class="sd">            The goal (context variable of the current goal is always pre-ceding</span>
+<span class="sd">            the function value, i.e., the goal consists of [y_n, c_{n+1}]) sent</span>
+<span class="sd">            from the client for the most recent experiment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_new</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># The very first function value we obtain from the client is just to</span>
+            <span class="c1"># trigger the server. At that point, there is no new input point,</span>
+            <span class="c1"># hence, no need to need to update the model. However, the initial</span>
+            <span class="c1"># context is already valid.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">goal</span><span class="o">.</span><span class="n">c_new</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prev_context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Concatenate context and optimization variable</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">add_xy</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">goal</span><span class="o">.</span><span class="n">y_new</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">goal</span><span class="o">.</span><span class="n">c_new</span><span class="p">)</span>
+
+        <span class="c1"># Note: We always create a GP model from scratch when receiving new data.</span>
+        <span class="c1"># The reason is the following: if the &#39;set_train_data&#39; method of the GP</span>
+        <span class="c1"># is used instead, the normalization/standardization of the input/output</span>
+        <span class="c1"># data is not updated in the GPyTorchModel. We also want at least 2 data</span>
+        <span class="c1"># points such that the input normalization works properly.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">n_data</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_model</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GPyTorchModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a GP object from data.</span>
+
+<span class="sd">        .. note:: Currently the kernel types are hard-coded. However, Matern is</span>
+<span class="sd">            a good default choice. The joint kernel is just the multiplication</span>
+<span class="sd">            of the parameter and context kernels.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        :class:`DataHandler`</span>
+<span class="sd">            A data handler object containing the observations to create the model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`GPyTorchModel`</span>
+<span class="sd">            A GP object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Kernel for optimization variables</span>
+        <span class="n">ad0</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span><span class="p">))</span>
+        <span class="n">k0</span> <span class="o">=</span> <span class="n">MaternKernel</span><span class="p">(</span><span class="n">active_dims</span><span class="o">=</span><span class="n">ad0</span><span class="p">,</span> <span class="n">lengthscale_prior</span><span class="o">=</span><span class="n">GammaPrior</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">))</span>
+
+        <span class="c1"># Kernel for context variables</span>
+        <span class="n">ad1</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_dim</span><span class="p">))</span>
+        <span class="n">k1</span> <span class="o">=</span> <span class="n">MaternKernel</span><span class="p">(</span><span class="n">active_dims</span><span class="o">=</span><span class="n">ad1</span><span class="p">,</span> <span class="n">lengthscale_prior</span><span class="o">=</span><span class="n">GammaPrior</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">))</span>
+
+        <span class="c1"># Joint kernel is constructed via multiplication</span>
+        <span class="n">covar_module</span> <span class="o">=</span> <span class="n">ScaleKernel</span><span class="p">(</span><span class="n">k0</span> <span class="o">*</span> <span class="n">k1</span><span class="p">,</span> <span class="n">outputscale_prior</span><span class="o">=</span><span class="n">GammaPrior</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">))</span>
+
+        <span class="c1"># For contextual BO, we do not want to specify the bounds for the context</span>
+        <span class="c1"># variables (who knows what they might be...). We therefore use the neat</span>
+        <span class="c1"># feature of BoTorch to infer the normalization bounds from data. However,</span>
+        <span class="c1"># this does not work is only a single data point is given.</span>
+        <span class="n">input_transform</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">Normalize</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_dim</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_xy</span><span class="p">()</span>
+        <span class="n">gp</span> <span class="o">=</span> <span class="n">SingleTaskGP</span><span class="p">(</span>
+            <span class="n">train_X</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">train_Y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+            <span class="n">outcome_transform</span><span class="o">=</span><span class="n">Standardize</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">input_transform</span><span class="o">=</span><span class="n">input_transform</span><span class="p">,</span>
+            <span class="n">covar_module</span><span class="o">=</span><span class="n">covar_module</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">gp</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_acqf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FixedFeatureAcquisitionFunction</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the acquisition function of choice and wrap it with the</span>
+<span class="sd">        FixedFeatureAcquisitionFunction given the current context.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        FixedFeatureAcquisitionFunction</span>
+<span class="sd">            An acquisition function of choice with fixed features.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">acq_func</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_initialize_acqf</span><span class="p">()</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context_dim</span><span class="p">)]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">acq_func_ff</span> <span class="o">=</span> <span class="n">FixedFeatureAcquisitionFunction</span><span class="p">(</span>
+            <span class="n">acq_func</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">joint_dim</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">values</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">acq_func_ff</span>
+
+    <span class="k">def</span> <span class="nf">_optimize_acqf</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">acq_func</span><span class="p">:</span> <span class="n">AcquisitionFunction</span><span class="p">,</span> <span class="n">visualize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Optimizes the acquisition function with the context variable fixed.</span>
+
+<span class="sd">        Note: The debug visualization is turned off for contextual setting.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        acq_func : AcquisitionFunction</span>
+<span class="sd">            The acquisition function to optimize.</span>
+<span class="sd">        visualize : bool</span>
+<span class="sd">            Flag if debug visualization should be turned on.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_opt : torch.Tensor</span>
+<span class="sd">            Location of the acquisition function&#39;s optimum.</span>
+<span class="sd">        f_opt : float</span>
+<span class="sd">            Value of the acquisition function&#39;s optimum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_optimize_acqf</span><span class="p">(</span><span class="n">acq_func</span><span class="p">,</span> <span class="n">visualize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">visualize</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span>
+
+    <span class="k">def</span> <span class="nf">_optimize_posterior_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Optimizes the posterior mean function with a fixed context variable.</span>
+
+<span class="sd">        Instead of implementing this functionality from scratch, simply use the</span>
+<span class="sd">        exploitative acquisition function with BoTorch&#39;s optimization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        context : torch.Tensor, optional</span>
+<span class="sd">            The context for which to compute the mean&#39;s optimum. If none is</span>
+<span class="sd">            specified, use the last one that was received.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_opt : torch.Tensor</span>
+<span class="sd">            Location of the posterior mean function&#39;s optimum.</span>
+<span class="sd">        f_opt : float</span>
+<span class="sd">            Value of the posterior mean function&#39;s optimum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">context</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_context</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context_dim</span><span class="p">)]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="n">pm</span> <span class="o">=</span> <span class="n">PosteriorMean</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximize</span><span class="p">)</span>
+        <span class="n">pm_ff</span> <span class="o">=</span> <span class="n">FixedFeatureAcquisitionFunction</span><span class="p">(</span><span class="n">pm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_dim</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+
+        <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_optimize_acqf</span><span class="p">(</span><span class="n">pm_ff</span><span class="p">,</span> <span class="n">visualize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">f_opt</span> <span class="o">=</span> <span class="n">f_opt</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">f_opt</span>
+        <span class="k">return</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span>
+
+    <span class="k">def</span> <span class="nf">_check_data_vicinity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns true if `x1` is close to any point in `x2`.</span>
+
+<span class="sd">        .. note:: We are following Binois and Picheny (2019) and check if the</span>
+<span class="sd">            proposed point is too close to any existing data points to avoid</span>
+<span class="sd">            numerical issues. In that case, choose a random point instead.</span>
+<span class="sd">            https://www.jstatsoft.org/article/view/v089i08</span>
+
+<span class="sd">        .. note:: `x1` is considered without context whereas `x2` contains the</span>
+<span class="sd">            context. The reasons for that is to have a consistent interface</span>
+<span class="sd">            with the standard BO implementation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x1 : torch.Tensor</span>
+<span class="sd">            A single data point.</span>
+<span class="sd">        x2 : torch.Tensor</span>
+<span class="sd">            Multiple data points.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Returns `True` if `x1` is close to any point in `x2` else returns `False`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xc1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_check_data_vicinity</span><span class="p">(</span><span class="n">xc1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Lukas Froehlich.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

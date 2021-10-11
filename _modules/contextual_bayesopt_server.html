@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>contextual_bayesopt_server &mdash; BayesOpt4ROS  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> BayesOpt4ROS
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">More Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_documentation.html">API Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BayesOpt4ROS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>contextual_bayesopt_server</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for contextual_bayesopt_server</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">actionlib</span>  <span class="c1"># type: ignore</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+
+<span class="kn">from</span> <span class="nn">bayesopt4ros</span> <span class="kn">import</span> <span class="n">ContextualBayesianOptimization</span><span class="p">,</span> <span class="n">BayesOptServer</span><span class="p">,</span> <span class="n">util</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.msg</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># type: ignore</span>
+    <span class="n">ContextualBayesOptResult</span><span class="p">,</span>
+    <span class="n">ContextualBayesOptAction</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.msg</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># type: ignore</span>
+    <span class="n">ContextualBayesOptStateResult</span><span class="p">,</span>
+    <span class="n">ContextualBayesOptStateAction</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="ContextualBayesOptServer"><a class="viewcode-back" href="../api_documentation.html#contextual_bayesopt_server.ContextualBayesOptServer">[docs]</a><span class="k">class</span> <span class="nc">ContextualBayesOptServer</span><span class="p">(</span><span class="n">BayesOptServer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The contextual Bayesian optimization server node.</span>
+
+<span class="sd">    Acts as a layer between the actual contextual Bayesian optimization and ROS.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ContextualBayesOptServer.__init__"><a class="viewcode-back" href="../api_documentation.html#contextual_bayesopt_server.ContextualBayesOptServer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">server_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ContextualBayesOpt&quot;</span><span class="p">,</span>
+        <span class="n">log_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">anonymous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">log_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+        <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">node_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The ContextualBayesOptServer class initializer.</span>
+
+<span class="sd">        For paramters see :class:`bayesopt_server.BayesOptServer`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">logdebug</span><span class="p">(</span><span class="s2">&quot;Initializing Contextual BayesOpt Server&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">config_file</span><span class="o">=</span><span class="n">config_file</span><span class="p">,</span>
+            <span class="n">server_name</span><span class="o">=</span><span class="n">server_name</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="n">log_file</span><span class="p">,</span>
+            <span class="n">anonymous</span><span class="o">=</span><span class="n">anonymous</span><span class="p">,</span>
+            <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
+            <span class="n">silent</span><span class="o">=</span><span class="n">silent</span><span class="p">,</span>
+            <span class="n">node_rate</span><span class="o">=</span><span class="n">node_rate</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">rospy</span><span class="o">.</span><span class="n">logdebug</span><span class="p">(</span><span class="s2">&quot;[ContextualBayesOptServer] Initialization done&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ContextualBayesOptServer.next_parameter_callback"><a class="viewcode-back" href="../api_documentation.html#contextual_bayesopt_server.ContextualBayesOptServer.next_parameter_callback">[docs]</a>    <span class="nd">@util</span><span class="o">.</span><span class="n">count_requests</span>
+    <span class="k">def</span> <span class="nf">next_parameter_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">:</span> <span class="n">ContextualBayesOptAction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print_goal</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silent</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_final_iter</span><span class="p">(</span><span class="n">goal</span><span class="p">):</span>
+            <span class="k">return</span>  <span class="c1"># Do not continue once we reached maximum iterations</span>
+
+        <span class="c1"># Obtain the new parameter values.</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ContextualBayesOptResult</span><span class="p">()</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">x_new</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bo</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">goal</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_server</span><span class="o">.</span><span class="n">set_succeeded</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silent</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ContextualBayesOptServer.state_callback"><a class="viewcode-back" href="../api_documentation.html#contextual_bayesopt_server.ContextualBayesOptServer.state_callback">[docs]</a>    <span class="k">def</span> <span class="nf">state_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">:</span> <span class="n">ContextualBayesOptStateAction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">ContextualBayesOptStateResult</span><span class="p">()</span>
+
+        <span class="c1"># Best observed variables</span>
+        <span class="n">x_best</span><span class="p">,</span> <span class="n">c_best</span><span class="p">,</span> <span class="n">y_best</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bo</span><span class="o">.</span><span class="n">get_best_observation</span><span class="p">()</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">x_best</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">x_best</span><span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">c_best</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">c_best</span><span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">y_best</span> <span class="o">=</span> <span class="n">y_best</span>
+
+        <span class="c1"># Posterior mean optimum for a given context</span>
+        <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bo</span><span class="o">.</span><span class="n">get_optimal_parameters</span><span class="p">(</span><span class="n">goal</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">x_opt</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">f_opt</span> <span class="o">=</span> <span class="n">f_opt</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_server</span><span class="o">.</span><span class="n">set_succeeded</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_initialize_bayesopt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bo</span> <span class="o">=</span> <span class="n">ContextualBayesianOptimization</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">logerr</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;[ContextualBayesOpt] Something went wrong with initialization: &#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">signal_shutdown</span><span class="p">(</span><span class="s2">&quot;Initialization of ContextualBayesOpt failed.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_parameter_server</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This server obtains new function values and provides new parameters.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_server</span> <span class="o">=</span> <span class="n">actionlib</span><span class="o">.</span><span class="n">SimpleActionServer</span><span class="p">(</span>
+            <span class="n">server_name</span><span class="p">,</span>
+            <span class="n">ContextualBayesOptAction</span><span class="p">,</span>
+            <span class="n">execute_cb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">next_parameter_callback</span><span class="p">,</span>
+            <span class="n">auto_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_state_server</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This server provides the current state/results of BO.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_server</span> <span class="o">=</span> <span class="n">actionlib</span><span class="o">.</span><span class="n">SimpleActionServer</span><span class="p">(</span>
+            <span class="n">server_name</span><span class="p">,</span>
+            <span class="n">ContextualBayesOptStateAction</span><span class="p">,</span>
+            <span class="n">execute_cb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state_callback</span><span class="p">,</span>
+            <span class="n">auto_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_print_goal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;y_n: </span><span class="si">{</span><span class="n">goal</span><span class="o">.</span><span class="n">y_new</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;, c_(n+1) = </span><span class="si">{</span><span class="n">util</span><span class="o">.</span><span class="n">iter_to_string</span><span class="p">(</span><span class="n">goal</span><span class="o">.</span><span class="n">c_new</span><span class="p">,</span> <span class="s1">&#39;.3f&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_prefix</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;Discard value: </span><span class="si">{</span><span class="n">goal</span><span class="o">.</span><span class="n">y_new</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Lukas Froehlich.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

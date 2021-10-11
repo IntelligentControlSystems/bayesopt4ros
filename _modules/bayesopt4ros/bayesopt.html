@@ -1,0 +1,803 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>bayesopt4ros.bayesopt &mdash; BayesOpt4ROS  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BayesOpt4ROS
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">More Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_documentation.html">API Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BayesOpt4ROS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>bayesopt4ros.bayesopt</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for bayesopt4ros.bayesopt</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">botorch.acquisition</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AcquisitionFunction</span><span class="p">,</span>
+    <span class="n">UpperConfidenceBound</span><span class="p">,</span>
+    <span class="n">ExpectedImprovement</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">botorch.fit</span> <span class="kn">import</span> <span class="n">fit_gpytorch_model</span>
+<span class="kn">from</span> <span class="nn">botorch.models</span> <span class="kn">import</span> <span class="n">SingleTaskGP</span>
+<span class="kn">from</span> <span class="nn">botorch.models.gpytorch</span> <span class="kn">import</span> <span class="n">GPyTorchModel</span>
+<span class="kn">from</span> <span class="nn">botorch.models.transforms.input</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="kn">from</span> <span class="nn">botorch.models.transforms.outcome</span> <span class="kn">import</span> <span class="n">Standardize</span>
+<span class="kn">from</span> <span class="nn">botorch.optim</span> <span class="kn">import</span> <span class="n">optimize_acqf</span> <span class="k">as</span> <span class="n">optimize_acqf_botorch</span>
+<span class="kn">from</span> <span class="nn">botorch.optim.fit</span> <span class="kn">import</span> <span class="n">fit_gpytorch_torch</span>
+
+<span class="kn">from</span> <span class="nn">gpytorch.mlls</span> <span class="kn">import</span> <span class="n">ExactMarginalLogLikelihood</span>
+
+<span class="kn">from</span> <span class="nn">bayesopt4ros</span> <span class="kn">import</span> <span class="n">util</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.data_handler</span> <span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.msg</span> <span class="kn">import</span> <span class="n">BayesOptAction</span>  <span class="c1"># type: ignore</span>
+<span class="kn">from</span> <span class="nn">bayesopt4ros.util</span> <span class="kn">import</span> <span class="n">PosteriorMean</span>
+
+
+<div class="viewcode-block" id="BayesianOptimization"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.bayesopt.BayesianOptimization">[docs]</a><span class="k">class</span> <span class="nc">BayesianOptimization</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The Bayesian optimization class.</span>
+
+<span class="sd">    Implements the actual heavy lifting that is done under the hood of</span>
+<span class="sd">    :class:`bayesopt_server.BayesOptServer`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BayesianOptimization.__init__"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.bayesopt.BayesianOptimization.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">bounds</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">acq_func</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;UCB&quot;</span><span class="p">,</span>
+        <span class="n">n_init</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">log_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">load_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">debug_visualization</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The BayesianOptimization class initializer.</span>
+
+<span class="sd">        .. note:: If a `log_dir` is specified, three different files will be</span>
+<span class="sd">            created: 1) evaluations file, 2) model file, 3) config file. As the</span>
+<span class="sd">            names suggest, these store the evaluated points, the final GP model</span>
+<span class="sd">            as well as the configuration, respectively.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_dim : int</span>
+<span class="sd">            Number of input dimensions for the parameters.</span>
+<span class="sd">        max_iter : int</span>
+<span class="sd">            Maximum number of iterations.</span>
+<span class="sd">        bounds : torch.Tensor</span>
+<span class="sd">            A [2, input_dim] shaped tensor specifying the optimization domain.</span>
+<span class="sd">        acq_func : str</span>
+<span class="sd">            The acquisition function specifier.</span>
+<span class="sd">        n_init : int</span>
+<span class="sd">            Number of point for initial design, i.e. Sobol.</span>
+<span class="sd">        log_dir : str</span>
+<span class="sd">            Directory to which the log files are stored.</span>
+<span class="sd">        load_dir : str or list of str</span>
+<span class="sd">            Directory/directories from which initial data points are loaded.</span>
+<span class="sd">        config : dict</span>
+<span class="sd">            The configuration dictionary for the experiment.</span>
+<span class="sd">        maximize : bool</span>
+<span class="sd">            If True, consider the problem a maximization problem.</span>
+<span class="sd">        debug_visualization : bool</span>
+<span class="sd">            If True, the optimization of the acquisition function is visualized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="o">=</span> <span class="n">input_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">bounds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span> <span class="o">=</span> <span class="n">acq_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_init</span> <span class="o">=</span> <span class="n">n_init</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_init</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_design</span><span class="p">(</span><span class="n">n_init</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_new</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="o">=</span> <span class="n">maximize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_visualization</span> <span class="o">=</span> <span class="n">debug_visualization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">maximize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximize</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># GP is initialized when first data arrives</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">load_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_prev_bayesopt</span><span class="p">(</span><span class="n">load_dir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">log_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">create_log_dir</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">bounds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span></div>
+
+<div class="viewcode-block" id="BayesianOptimization.from_file"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.bayesopt.BayesianOptimization.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BayesianOptimization</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a BayesianOptimization instance from a config file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config_file : str</span>
+<span class="sd">            The config file (full path, relative or absolute).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`BayesianOptimization`</span>
+<span class="sd">            An instance of the BayesianOptimization class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Read config from file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+
+        <span class="c1"># Bring bounds in correct format</span>
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;lower_bound&quot;</span><span class="p">])</span>
+        <span class="n">ub</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;upper_bound&quot;</span><span class="p">])</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">))</span>
+
+        <span class="c1"># Construct class instance based on the config</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">input_dim</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;input_dim&quot;</span><span class="p">],</span>
+            <span class="n">max_iter</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">],</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+            <span class="n">acq_func</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;acq_func&quot;</span><span class="p">],</span>
+            <span class="n">n_init</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;n_init&quot;</span><span class="p">],</span>
+            <span class="n">log_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;log_dir&quot;</span><span class="p">],</span>
+            <span class="n">load_dir</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;load_dir&quot;</span><span class="p">),</span>
+            <span class="n">maximize</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;maximize&quot;</span><span class="p">],</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="BayesianOptimization.next"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.bayesopt.BayesianOptimization.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">:</span> <span class="n">BayesOptAction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute new parameters to perform an experiment with.</span>
+
+<span class="sd">        The functionality of this method can generally be split into three steps:</span>
+
+<span class="sd">        1) Update the model with the new data.</span>
+<span class="sd">        2) Retrieve a new point as response of the server.</span>
+<span class="sd">        3) Save current state to file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        goal : BayesOptAction</span>
+<span class="sd">            The goal sent from the client for the most recent experiment.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            The new parameters as an array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1) Update the model with the new data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_model</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+
+        <span class="c1"># 2) Retrieve a new point as response of the server</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_next_x</span><span class="p">()</span>
+
+        <span class="c1"># 3) Save current state to file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_results</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_new</span></div>
+
+<div class="viewcode-block" id="BayesianOptimization.update_last_goal"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.bayesopt.BayesianOptimization.update_last_goal">[docs]</a>    <span class="k">def</span> <span class="nf">update_last_goal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">:</span> <span class="n">BayesOptAction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Updates the GP model with the last function value obtained.</span>
+
+<span class="sd">        .. note:: This function is only called once from the server, right before</span>
+<span class="sd">            shutting down the node. However, we still want to update the GP model</span>
+<span class="sd">            with the latest data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        goal : BayesOptAction</span>
+<span class="sd">            The goal sent from the client for the last recent experiment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_model</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_results</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BayesianOptimization.get_optimal_parameters"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.bayesopt.BayesianOptimization.get_optimal_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_optimal_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the optimal parameters with corresponding expected value.</span>
+
+<span class="sd">        .. note:: &#39;Optimal&#39; referes to the optimum of the GP model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            Location of the GP posterior mean&#39;s optimum.</span>
+<span class="sd">        float</span>
+<span class="sd">            Function value of the GP posterior mean&#39;s optium.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_best_observation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimize_posterior_mean</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BayesianOptimization.get_best_observation"><a class="viewcode-back" href="../../api_documentation.html#bayesopt4ros.bayesopt.BayesianOptimization.get_best_observation">[docs]</a>    <span class="k">def</span> <span class="nf">get_best_observation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the best parameters and corresponding observed value.</span>
+
+<span class="sd">        .. note:: &#39;Best&#39; refers to the highest/lowest observed datum.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            Location of the highest/lowest observed datum.</span>
+<span class="sd">        float</span>
+<span class="sd">            Function value of the highest/lowest observed datum.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_optimal_parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">x_best</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">y_best</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">constant_config_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;These parameters need to be the same when loading previous runs. For</span>
+<span class="sd">        all other settings, the user might have a reasonable explanation to</span>
+<span class="sd">        change it inbetween experiments/runs. E.g., maximum number of iterations</span>
+<span class="sd">        or bounds.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        _check_config</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;input_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;maximize&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Property for conveniently accessing number of data points.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">n_data</span>
+
+    <span class="k">def</span> <span class="nf">_get_next_x</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Computes the next point to evaluate.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            The next point to evaluate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_init</span><span class="p">:</span>  <span class="c1"># We are in the initialization phase</span>
+            <span class="n">x_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_init</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Actually optimizing the acquisition function for new points</span>
+            <span class="n">x_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimize_acqf</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_acqf</span><span class="p">(),</span> <span class="n">visualize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">debug_visualization</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># To avoid numerical issues and encourage exploration</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_data_vicinity</span><span class="p">(</span><span class="n">x_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">get_xy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">rospy</span><span class="o">.</span><span class="n">logwarn</span><span class="p">(</span><span class="s2">&quot;[BayesOpt] x_new is too close to existing data.&quot;</span><span class="p">)</span>
+                <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">x_rand</span> <span class="o">=</span> <span class="n">lb</span> <span class="o">+</span> <span class="p">(</span><span class="n">ub</span> <span class="o">-</span> <span class="n">lb</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span><span class="p">,))</span>
+                <span class="n">x_new</span> <span class="o">=</span> <span class="n">x_rand</span>
+
+        <span class="k">return</span> <span class="n">x_new</span>
+
+    <span class="k">def</span> <span class="nf">_check_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">load_dirs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Make sure that all relevant parameters in the configs match.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        load_dirs : str or List[str]</span>
+<span class="sd">            The directories to the previous experiments, which are loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">load_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">load_dirs</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">load_dirs</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">load_dirs</span>
+        <span class="k">for</span> <span class="n">load_dir</span> <span class="ow">in</span> <span class="n">load_dirs</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">load_dir</span><span class="p">,</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">load_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_config_parameters</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">load_config</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+                    <span class="n">rospy</span><span class="o">.</span><span class="n">logerr</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Your configuration does not match with </span><span class="si">{</span><span class="n">load_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_prev_bayesopt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">load_dirs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">DataHandler</span><span class="p">,</span> <span class="n">GPyTorchModel</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Load data from previous BO experiments.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        load_dirs : str or List[str]</span>
+<span class="sd">            The directories to the previous experiments, which are loaded.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DataHandler`</span>
+<span class="sd">            An data handler object with filled with observations from previous</span>
+<span class="sd">            experiments.</span>
+<span class="sd">        :class:`GPyTorchModel`</span>
+<span class="sd">            A GP object that has been trained on the data from previous experiments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># We can load multiple previous runs</span>
+        <span class="n">load_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">load_dirs</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">load_dirs</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">load_dirs</span>
+
+        <span class="c1"># Configurations need to be compatible with the current one</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_config</span><span class="p">(</span><span class="n">load_dirs</span><span class="p">)</span>
+
+        <span class="c1"># Create model with the previous runs&#39; data</span>
+        <span class="n">data_files</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">load_dir</span><span class="p">,</span> <span class="s2">&quot;evaluations.yaml&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">load_dir</span> <span class="ow">in</span> <span class="n">load_dirs</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">data_files</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">maximize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_model</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span>
+
+    <span class="k">def</span> <span class="nf">_update_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Updates the GP with new data. Creates a model if none exists yet.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        goal : BayesOptAction</span>
+<span class="sd">            The goal sent from the client for the most recent experiment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_new</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># The very first function value we obtain from the client is just to</span>
+            <span class="c1"># trigger the server. At that point, there is no new input point,</span>
+            <span class="c1"># hence, no need to need to update the model.</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Note: We always create a GP model from scratch when receiving new data.</span>
+        <span class="c1"># The reason is the following: if the &#39;set_train_data&#39; method of the GP</span>
+        <span class="c1"># is used instead, the normalization/standardization of the input/output</span>
+        <span class="c1"># data is not updated in the GPyTorchModel. We also want at least 2 data</span>
+        <span class="c1"># points such that the input normalization works properly.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">add_xy</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x_new</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">goal</span><span class="o">.</span><span class="n">y_new</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_model</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GPyTorchModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a GP object from data.</span>
+
+<span class="sd">        .. note:: Currently the kernel types are hard-coded. However, Matern is</span>
+<span class="sd">            a good default choice.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        :class:`DataHandler`</span>
+<span class="sd">            A data handler object containing the observations to create the model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`GPyTorchModel`</span>
+<span class="sd">            A GP object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_xy</span><span class="p">()</span>
+        <span class="n">gp</span> <span class="o">=</span> <span class="n">SingleTaskGP</span><span class="p">(</span>
+            <span class="n">train_X</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">train_Y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+            <span class="n">outcome_transform</span><span class="o">=</span><span class="n">Standardize</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">input_transform</span><span class="o">=</span><span class="n">Normalize</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">gp</span>
+
+    <span class="k">def</span> <span class="nf">_fit_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Performs inference and fits the GP to the data.&quot;&quot;&quot;</span>
+        <span class="c1"># Scipy optimizers is faster and more accurate but tends to be numerically</span>
+        <span class="c1"># less table for single precision. To avoid error checking, we use the</span>
+        <span class="c1"># stochastic optimizer.</span>
+        <span class="n">mll</span> <span class="o">=</span> <span class="n">ExactMarginalLogLikelihood</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">likelihood</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">)</span>
+        <span class="n">fit_gpytorch_model</span><span class="p">(</span><span class="n">mll</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">fit_gpytorch_torch</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;disp&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_acqf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AcquisitionFunction</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the acquisition function of choice.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`AcquisitionFunction`</span>
+<span class="sd">            An acquisition function based on BoTorch&#39;s base class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;UCB&quot;</span><span class="p">:</span>
+            <span class="n">acq_func</span> <span class="o">=</span> <span class="n">UpperConfidenceBound</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximize</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;EI&quot;</span><span class="p">:</span>
+            <span class="n">best_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">y_best</span>  <span class="c1"># note that EI assumes noiseless</span>
+            <span class="n">acq_func</span> <span class="o">=</span> <span class="n">ExpectedImprovement</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">,</span> <span class="n">best_f</span><span class="o">=</span><span class="n">best_f</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximize</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;NEI&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Not implemented yet. Always leads to numerical issues&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">acq_func</span><span class="si">}</span><span class="s2"> is not a valid acquisition function&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">acq_func</span>
+
+    <span class="k">def</span> <span class="nf">_optimize_acqf</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">acq_func</span><span class="p">:</span> <span class="n">AcquisitionFunction</span><span class="p">,</span> <span class="n">visualize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Optimizes the acquisition function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        acq_func : :class:`AcquisitionFunction`</span>
+<span class="sd">            The acquisition function to optimize.</span>
+<span class="sd">        visualize : bool</span>
+<span class="sd">            Flag if debug visualization should be turned on.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_opt : torch.Tensor</span>
+<span class="sd">            Location of the acquisition function&#39;s optimum.</span>
+<span class="sd">        f_opt : float</span>
+<span class="sd">            Value of the acquisition function&#39;s optimum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span> <span class="o">=</span> <span class="n">optimize_acqf_botorch</span><span class="p">(</span>
+            <span class="n">acq_func</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span>
+            <span class="n">q</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">num_restarts</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">raw_samples</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+            <span class="n">sequential</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">visualize</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_debug_acqf_visualize</span><span class="p">(</span><span class="n">acq_func</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span><span class="p">)</span>
+
+        <span class="n">x_opt</span> <span class="o">=</span> <span class="n">x_opt</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># gets rid of superfluous dimension due to q=1</span>
+        <span class="k">return</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span>
+
+    <span class="k">def</span> <span class="nf">_optimize_posterior_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Optimizes the posterior mean function.</span>
+
+<span class="sd">        Instead of implementing this functionality from scratch, simply use the</span>
+<span class="sd">        exploitative acquisition function with BoTorch&#39;s optimization.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        x_opt : torch.Tensor</span>
+<span class="sd">            Location of the posterior mean function&#39;s optimum.</span>
+<span class="sd">        f_opt : float</span>
+<span class="sd">            Value of the posterior mean function&#39;s optimum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">posterior_mean</span> <span class="o">=</span> <span class="n">PosteriorMean</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximize</span><span class="p">)</span>
+        <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimize_acqf</span><span class="p">(</span><span class="n">posterior_mean</span><span class="p">)</span>
+        <span class="n">f_opt</span> <span class="o">=</span> <span class="n">f_opt</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">f_opt</span>
+        <span class="k">return</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span>
+
+    <span class="k">def</span> <span class="nf">_initial_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_init</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create initial data points from a Sobol sequence.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n_init : int</span>
+<span class="sd">           Number of initial points.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            Array containing the initial points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sobol_eng</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">quasirandom</span><span class="o">.</span><span class="n">SobolEngine</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span><span class="p">)</span>
+        <span class="n">sobol_eng</span><span class="o">.</span><span class="n">fast_forward</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># first point is origin, boring...</span>
+        <span class="n">x0_init</span> <span class="o">=</span> <span class="n">sobol_eng</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">n_init</span><span class="p">)</span>  <span class="c1"># points are in [0, 1]^d</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">x0_init</span>
+
+    <span class="k">def</span> <span class="nf">_check_data_vicinity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns true if `x1` is close to any point in `x2`.</span>
+
+<span class="sd">        .. note:: We are following Binois and Picheny (2019) and check if the</span>
+<span class="sd">            proposed point is too close to any existing data points to avoid</span>
+<span class="sd">            numerical issues. In that case, choose a random point instead.</span>
+<span class="sd">            https://www.jstatsoft.org/article/view/v089i08</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x1 : torch.Tensor</span>
+<span class="sd">            A single data point.</span>
+<span class="sd">        x2 : torch.Tensor</span>
+<span class="sd">            Multiple data points.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Returns `True` if `x1` is close to any point in `x2` else returns `False`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">x1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">x2</span><span class="p">,</span> <span class="n">x1</span><span class="p">))</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">covariance_matrix</span>
+        <span class="n">cis</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">cii</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">diag</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">css</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">diag</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">kss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">covar_module</span><span class="o">.</span><span class="n">outputscale</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">((</span><span class="n">cii</span> <span class="o">+</span> <span class="n">css</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">cis</span><span class="p">)</span> <span class="o">/</span> <span class="n">kss</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="mf">1e-5</span>
+
+    <span class="k">def</span> <span class="nf">_log_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Log evaluations and GP model to file.</span>
+
+<span class="sd">        .. note:: We do this at each iteration and overwrite the existing file in</span>
+<span class="sd">            case something goes wrong with either the optimization itself or on</span>
+<span class="sd">            the client side. We do not want to loose any valuable experimental data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Saving GP model to file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span><span class="p">,</span> <span class="s2">&quot;model_state.pth&quot;</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_file</span><span class="p">)</span>
+
+        <span class="c1"># Save config to file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span><span class="p">,</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">))</span>
+
+        <span class="c1"># Compute rolling best input/ouput pair</span>
+        <span class="n">x_best</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">x_best_accumulate</span>
+        <span class="n">y_best</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">y_best_accumulate</span>
+
+        <span class="c1"># Update optimal parameters</span>
+        <span class="n">xn_opt</span><span class="p">,</span> <span class="n">yn_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optimal_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x_opt</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">xn_opt</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">y_opt</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="n">yn_opt</span><span class="p">]])))</span>
+
+        <span class="c1"># Store all and optimal evaluation inputs/outputs to file</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">get_xy</span><span class="p">(</span><span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;x_best&quot;</span><span class="p">:</span> <span class="n">x_best</span><span class="p">,</span> <span class="s2">&quot;y_best&quot;</span><span class="p">:</span> <span class="n">y_best</span><span class="p">})</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;x_opt&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_opt</span><span class="p">,</span> <span class="s2">&quot;y_opt&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_opt</span><span class="p">})</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluations_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span><span class="p">,</span> <span class="s2">&quot;evaluations.yaml&quot;</span><span class="p">)</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluations_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_debug_acqf_visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">acq_func</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Visualize the acquisition function for debugging purposes.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># The plotting ranges</span>
+            <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">xs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">lb</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">ub</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="mi">500</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># Evaluate GP and acquisition function</span>
+            <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">observation_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">posterior</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">posterior</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="n">acqf</span> <span class="o">=</span> <span class="n">acq_func</span><span class="p">(</span><span class="n">xs</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="n">x_eval</span><span class="p">,</span> <span class="n">y_eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">get_xy</span><span class="p">()</span>
+
+            <span class="c1"># Create plot</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;GP mean&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                <span class="n">xs</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">mean</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">std</span><span class="p">,</span> <span class="n">mean</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">std</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span>
+            <span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_eval</span><span class="p">,</span> <span class="n">y_eval</span><span class="p">,</span> <span class="s2">&quot;ko&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+            <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">acqf</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="n">f_opt</span><span class="p">,</span> <span class="s2">&quot;C3x&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># The plotting ranges</span>
+            <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">x1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">lb</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ub</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">x2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">lb</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ub</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+            <span class="n">xs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">x1</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">x2</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span><span class="o">.</span><span class="n">T</span>
+
+            <span class="c1"># Evaluate GP and acquisition function</span>
+            <span class="n">gpm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gp</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">acqf</span> <span class="o">=</span> <span class="n">acq_func</span><span class="p">(</span><span class="n">xs</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">x_eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_handler</span><span class="o">.</span><span class="n">get_xy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># Create plot</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">gpm</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_eval</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">x_eval</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;ko&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">x_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;C3x&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">acqf</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">x_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;C3x&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;acqf_visualize_</span><span class="si">{</span><span class="n">x_eval</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.pdf&quot;</span><span class="p">)</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">logdebug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving debug visualization to: </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Lukas Froehlich.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
