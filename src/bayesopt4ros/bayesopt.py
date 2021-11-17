@@ -6,7 +6,7 @@ import torch
 import yaml
 
 from torch import Tensor
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 from botorch.acquisition import (
     AcquisitionFunction,
@@ -28,6 +28,59 @@ from bayesopt4ros import util
 from bayesopt4ros.data_handler import DataHandler
 from bayesopt4ros.msg import BayesOptAction  # type: ignore
 from bayesopt4ros.util import PosteriorMean
+
+from gpytorch.means import Mean
+from gpytorch.likelihoods.likelihood import Likelihood
+from botorch.models import SingleTaskGP
+from botorch.models.transforms.input import InputTransform
+from botorch.models.transforms.outcome import OutcomeTransform
+
+
+USE_PRIOR_MEAN = False
+
+
+class LearnedMean(Mean):
+    def __init__(self, train_X, train_Y):
+        super(LearnedMean, self).__init__()
+        self.gp = SingleTaskGP(train_X, train_Y)
+        self.mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
+        fit_gpytorch_model(self.mll)
+
+        # Important to turn off gradient computation for the inner GP
+        self.gp.requires_grad_(False)
+
+    def forward(self, x):
+        with torch.no_grad():
+            return self.gp.posterior(x).mean.detach().squeeze(-1)
+
+    def predict_with_gp(self, x):
+        with torch.no_grad():
+            posterior = self.gp.posterior(x)
+            mu = posterior.mean.detach()
+            lower, upper = posterior.mvn.confidence_region()
+            return lower.detach(), mu, upper.detach()
+
+
+class PriorMeanGP(SingleTaskGP):
+    def __init__(
+        self,
+        train_X: Tensor,
+        train_Y: Tensor,
+        mean_module: Mean,
+        likelihood: Optional[Likelihood] = None,
+        covar_module=None,
+        outcome_transform: Optional[OutcomeTransform] = None,
+        input_transform: Optional[InputTransform] = None,
+    ) -> None:
+        super().__init__(
+            train_X,
+            train_Y,
+            likelihood=likelihood,
+            covar_module=covar_module,
+            outcome_transform=outcome_transform,
+            input_transform=input_transform,
+        )
+        self.mean_module = mean_module
 
 
 class BayesianOptimization(object):
@@ -310,10 +363,22 @@ class BayesianOptimization(object):
         data_files = [
             os.path.join(load_dir, "evaluations.yaml") for load_dir in load_dirs
         ]
-        self.data_handler = DataHandler.from_file(data_files)
-        self.data_handler.maximize = self.maximize
-        self.gp = self._initialize_model(self.data_handler)
-        self._fit_model()
+        if USE_PRIOR_MEAN:
+            # We use previous data to fit an informed prior mean function,
+            # Here, we just fit the inner GP. The surrogate model GP is only
+            # created after we have observed new data, just as in the standard
+            # setting. The data handler is also re-set.
+            x, y = self.data_handler.get_xy()
+            self.mean_module = LearnedMean(x, y)
+
+            # As if we haven't observed data yet
+            self.data_handler = DataHandler(maximize=self.maximize)
+            self.gp = None
+        else:
+            self.data_handler = DataHandler.from_file(data_files)
+            self.data_handler.maximize = self.maximize
+            self.gp = self._initialize_model(self.data_handler)
+            self._fit_model()
 
         return self.data_handler, self.gp
 
@@ -357,12 +422,21 @@ class BayesianOptimization(object):
             A GP object.
         """
         x, y = data_handler.get_xy()
-        gp = SingleTaskGP(
-            train_X=x,
-            train_Y=y,
-            outcome_transform=Standardize(m=1),
-            input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
-        )
+        if USE_PRIOR_MEAN:
+            gp = PriorMeanGP(
+                train_X=x,
+                train_Y=y,
+                mean_module=self.mean_module,
+                outcome_transform=Standardize(m=1),
+                input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
+            )
+        else:
+            gp = SingleTaskGP(
+                train_X=x,
+                train_Y=y,
+                outcome_transform=Standardize(m=1),
+                input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
+            )
         return gp
 
     def _fit_model(self) -> None:
