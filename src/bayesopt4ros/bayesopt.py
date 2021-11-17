@@ -36,16 +36,20 @@ from botorch.models.transforms.input import InputTransform
 from botorch.models.transforms.outcome import OutcomeTransform
 
 
-USE_PRIOR_MEAN = False
+USE_PRIOR_MEAN = True
 
 
 class LearnedMean(Mean):
     def __init__(self, train_X, train_Y):
         super(LearnedMean, self).__init__()
+        rospy.loginfo("PRIOR MEAN START FITTING")
+        rospy.loginfo(train_X.shape)
+        rospy.loginfo(train_Y.shape)
         self.gp = SingleTaskGP(train_X, train_Y)
+        rospy.loginfo("PRIOR MEAN START FITTING 2")
         self.mll = ExactMarginalLogLikelihood(self.gp.likelihood, self.gp)
         fit_gpytorch_model(self.mll)
-
+        rospy.loginfo("PRIOR MEAN FITTED SUCCESSFULLY")
         # Important to turn off gradient computation for the inner GP
         self.gp.requires_grad_(False)
 
@@ -308,11 +312,11 @@ class BayesianOptimization(object):
             )[0]
 
             # To avoid numerical issues and encourage exploration
-            if self._check_data_vicinity(x_new, self.data_handler.get_xy()[0]):
-                rospy.logwarn("[BayesOpt] x_new is too close to existing data.")
-                lb, ub = self.bounds[0], self.bounds[1]
-                x_rand = lb + (ub - lb) * torch.rand((self.input_dim,))
-                x_new = x_rand
+            # if self._check_data_vicinity(x_new, self.data_handler.get_xy()[0]):
+            #     rospy.logwarn("[BayesOpt] x_new is too close to existing data.")
+            #     lb, ub = self.bounds[0], self.bounds[1]
+            #     x_rand = lb + (ub - lb) * torch.rand((self.input_dim,))
+            #     x_new = x_rand
 
         return x_new
 
@@ -363,20 +367,24 @@ class BayesianOptimization(object):
         data_files = [
             os.path.join(load_dir, "evaluations.yaml") for load_dir in load_dirs
         ]
+        self.data_handler = DataHandler.from_file(data_files)
+        self.data_handler.maximize = self.maximize
+
         if USE_PRIOR_MEAN:
             # We use previous data to fit an informed prior mean function,
             # Here, we just fit the inner GP. The surrogate model GP is only
             # created after we have observed new data, just as in the standard
             # setting. The data handler is also re-set.
+            
             x, y = self.data_handler.get_xy()
+            rospy.loginfo("START PRIOR MEAN")
+
             self.mean_module = LearnedMean(x, y)
 
             # As if we haven't observed data yet
             self.data_handler = DataHandler(maximize=self.maximize)
             self.gp = None
         else:
-            self.data_handler = DataHandler.from_file(data_files)
-            self.data_handler.maximize = self.maximize
             self.gp = self._initialize_model(self.data_handler)
             self._fit_model()
 
@@ -422,20 +430,30 @@ class BayesianOptimization(object):
             A GP object.
         """
         x, y = data_handler.get_xy()
+
+        if x.shape[0] < 2:
+            rospy.logerr("[BO] DO NOT USE TRANSFORMATION")
+            outcome_transform = None
+            input_transform = None
+        else:
+            rospy.logerr("[BO] DO USE TRANSFORMATION")
+            outcome_transform = Standardize(m=1)
+            input_transform = Normalize(d=self.input_dim, bounds=self.bounds)
+
         if USE_PRIOR_MEAN:
             gp = PriorMeanGP(
                 train_X=x,
                 train_Y=y,
                 mean_module=self.mean_module,
-                outcome_transform=Standardize(m=1),
-                input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
+                outcome_transform=outcome_transform,
+                input_transform=input_transform,
             )
         else:
             gp = SingleTaskGP(
                 train_X=x,
                 train_Y=y,
-                outcome_transform=Standardize(m=1),
-                input_transform=Normalize(d=self.input_dim, bounds=self.bounds),
+                outcome_transform=outcome_transform,
+                input_transform=input_transform,
             )
         return gp
 
